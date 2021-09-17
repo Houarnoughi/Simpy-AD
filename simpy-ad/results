@@ -1,0 +1,32 @@
+***** All in vehicle (TX2)
+Total execution time fot Task-0 is 1356.2537322402181
+Total energy consumed by for Task-0 is 20343.805983603273
+Total execution time fot Task-1 is 6708.328328229916
+Total energy consumed by for Task-1 is 100624.92492344874
+Total execution time fot Task-2 is 1712.4951496441893
+Total energy consumed by for Task-2 is 25687.42724466284
+
+**** All in vehicle (AGX)
+Total execution time fot Task-0 is 163.98340580776164
+Total energy consumed by for Task-0 is 4919.502174232849
+Total execution time fot Task-1 is 811.0978796855255
+Total energy consumed by for Task-1 is 24332.936390565766
+Total execution time fot Task-2 is 207.0562317298701
+Total energy consumed by for Task-2 is 6211.686951896103
+
+
+***** All on fog (Tesla V100)
+Total execution time fot Task-0 is 16.105513070412318
+Total energy consumed by for Task-0 is 4831.653921123695
+Total execution time fot Task-1 is 79.66139889769414
+Total energy consumed by for Task-1 is 23898.41966930824
+Total execution time fot Task-2 is 20.33587990205019
+Total energy consumed by for Task-2 is 6100.763970615058
+
+***** All on Cloud (DGXa100)
+Total execution time fot Task-0 is 0.36076349277597475
+Total energy consumed by for Task-0 is 2344.962703043836
+Total execution time fot Task-1 is 1.7844153353085908
+Total energy consumed by for Task-1 is 11598.69967950584
+Total execution time fot Task-2 is 0.45552370980617535
+Total energy consumed by for Task-2 is 2960.9041137401396
