@@ -1,15 +1,16 @@
 from Location import Location
 import simpy
-
+from TaskMapper import TaskMapper
+from Colors import GREEN, END
 
 class Vehicle(object):
     idx = 0
     name = ''
-    c_location = []
-    f_location = []
-    speed = 0
-    task_list = []
-    PU_list = []
+    # c_location = []
+    # f_location = []
+    # speed = 0
+    # task_list = []
+    # PU_list = []
 
     def __init__(self,
                  c_location: Location,  # Current location: source
@@ -27,16 +28,30 @@ class Vehicle(object):
         self.f_location = f_location
         self.speed = speed
         # self.task_list = task_list
+        self.task_list = []
         self.setTaskList(task_list)
-        # self.PU_list = PU_list
         self.required_FPS = required_FPS
+        self.PU_list = []
         self.setPUList(PU_list)
         self.env = env
         self.capacity = capacity
         # self.updateTaskListExecution()
         # simpy.Resource.__init__(self, env, capacity)
-        for pu in self.getPUList():
-            self.proc = env.process(pu.updateTaskListExecution(self.getFramesToBeProcessed()))
+        self.run = env.process(self.run())
+    
+    # Send tasks to TaskMapper
+    def run(self):
+        while True:
+            # sublit tasks to TaskMapper
+            for _ in range(self.required_FPS):
+                for task in self.task_list:
+                    TaskMapper.addTask(task)
+            break
+
+            yield self.env.timeout(0)
+
+    def showInfo(self):
+        print(f"{GREEN}Vehicle [{self.name}, PUs: {self.PU_list}, Tasks: {self.task_list} ]{END}")
 
     # Get the name of the vehicle
     def getVehicleName(self):

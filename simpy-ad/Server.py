@@ -4,17 +4,19 @@ from simpy import Environment
 class Server(object):
     idx = 0
     name = ''
-    PU_list = []
+    # each server must have its' own PUs, moving to instance var
+    #PU_list = []   
 
-    def __init__(self, PU_list, bw, env: Environment, capacity=1):
+    def __init__(self, pu_list, bw, env: Environment, capacity=1):
         self.name = 'Server-{0}'.format(Server.idx)
         Server.idx += 1
-        self.setPUList(PU_list)
+        self.pu_list = []
+        self.setPUList(pu_list)
         self.bw = bw
         self.env = env
         self.capacity = capacity
-        for pu in self.getPUList():
-            self.proc = env.process(pu.updateTaskListExecution(15224))
+        # for pu in self.getPUList():
+        #     self.proc = env.process(pu.updateTaskListExecution(15224))
 
     def getBandwidth(self):
         return self.bw
@@ -26,13 +28,13 @@ class Server(object):
         return self.name
 
     def getPUList(self):
-        return self.PU_list
+        return self.pu_list
 
-    def setPUList(self, PU_list):
-        for pu in PU_list:
+    def setPUList(self, pu_list):
+        for pu in pu_list:
             if pu not in self.getPUList():
                 pu.setCurrentServer(self)
-                self.PU_list.append(pu)
+                self.pu_list.append(pu)
                 print('[INFO] Server-setPUList: Processing Unit {0} added to Server {1}'.format(pu.getPUName(),
                                                                                                 self.getServerName()))
 

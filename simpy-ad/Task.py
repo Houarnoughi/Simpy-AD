@@ -1,6 +1,6 @@
 from ProcessingUnit import ProcessingUnit
 from Vehicle import Vehicle
-
+from TaskCriticality import TaskCriticality
 
 class Task(object):
     CREATED = 0
@@ -16,11 +16,11 @@ class Task(object):
 
     idx = 0
 
-    def __init__(self, flop, size, preemptive=False, real_time=False, status=PAUSED, currentVehicle=None,
-                 currentPU=None):
+    def __init__(self, flop, size, criticality: TaskCriticality=None, preemptive=False, real_time=False, status=PAUSED, currentVehicle=None,currentPU=None):
+        self.id = Task.idx
         self.name = 'Task-{0}'.format(Task.idx)
         Task.idx += 1
-
+        self.criticality = criticality
         self.flop = flop
         self.size = size
         self.preemptive = preemptive

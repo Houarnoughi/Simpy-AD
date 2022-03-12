@@ -1,6 +1,6 @@
 from Location import Location
 import simpy
-
+from Colors import RED, END
 '''
 Notes : Pour la simulation, les principales interactions se font seulement entre les tasks et les PU
 '''
@@ -20,10 +20,13 @@ class RoadSideUnit(simpy.Resource):
         self.to_cloud_bw = to_cloud_bw
         self.location = location
         self.env = env
-        for server in self.getServerList():
-            for pu in server.getPUList():
-                self.proc = env.process(pu.updateTaskListExecution(100))
+        # for server in self.getServerList():
+        #     for pu in server.getPUList():
+        #         self.proc = env.process(pu.updateTaskListExecution(100))
         super().__init__(env, capacity)
+    
+    def showInfo(self):
+        print(f"{RED}RSU [{self.name}, Servers: {self.server_list} ]{END}")
 
     # Get the Roadside Unit name
     def getRSUName(self):

@@ -28,7 +28,7 @@ class ProcessingUnit(simpy.Resource):
         self.scheduler = scheduler
         self.setTaskList(task_list)
         self.env = env
-        # self.proc = env.process(self.updateTaskListExecution())
+        self.proc = env.process(self.updateTaskListExecution())
 
     def getPUName(self):
         return self.name
@@ -102,20 +102,44 @@ class ProcessingUnit(simpy.Resource):
         exec_time = self.getTaskExecutionTime(task) * 1000
         yield self.env.timeout(exec_time)
 
-    def updateTaskListExecution(self, frames):
-        new_task_list = self.getScheduler().getExecutionSequence(self.getTaskList())
-        for frame in range(frames):
+    # def updateTaskListExecution(self, frames):
+    #     new_task_list = self.getScheduler().getExecutionSequence(self.getTaskList())
+    #     for frame in range(frames):
+    #         for task in new_task_list:
+    #             print('[LOG] Starting executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
+    #                                                                       self.env.now))
+    #             start = self.env.now
+    #             yield self.env.process(self.executeTask(task))
+    #             print('[LOG] Finishing executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
+    #                                                                        self.env.now))
+    #             stop = self.env.now
+    #             task.updateTotalExecutionTime(stop-start)
+    #             yield self.env.timeout(0)
+    def updateTaskListExecution(self):
+        while True:
+            if len(self.getTaskList()) == 0:
+                #self.log(f"[PUnit][LOG] {self.getPUName()} No More Tasks")
+                yield self.env.timeout(1)
+
+            new_task_list = self.getScheduler().getExecutionSequence(self.getTaskList())
+            #print("new task list", new_task_list)
+            #for frame in range(frames):
             for task in new_task_list:
-                print('[LOG] Starting executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
-                                                                          self.env.now))
+                print('[PUnit][LOG] Starting executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
+                                                                            self.env.now))
                 start = self.env.now
                 yield self.env.process(self.executeTask(task))
-                print('[LOG] Finishing executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
-                                                                           self.env.now))
+                print('[PUnit][LOG] Finishing executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
+                                                                            self.env.now))
+                self.removeTask(task)
+
                 stop = self.env.now
                 task.updateTotalExecutionTime(stop-start)
-                yield self.env.timeout(0)
+                yield self.env.timeout(1)
+            yield self.env.timeout(1)
 
+    def __repr__(self) -> str:
+        return f"{self.name}"
 
 class AGX(ProcessingUnit):
     currentVehicle = None
