@@ -3,7 +3,7 @@ import simpy
 from Server import Server
 from Vehicle import Vehicle
 from TaskSchedulingPolicy import TaskSchedulingPolicy
-
+from Colors import YELLOW, END
 '''
 Benchmarks sources : https://developer.nvidia.com/embedded/jetson-modules 
 and https://developer.nvidia.com/blog/nvidia-jetson-agx-xavier-32-teraops-ai-robotics/
@@ -92,15 +92,20 @@ class ProcessingUnit(simpy.Resource):
         if task not in self.getTaskList():
             task.setCurrentPU(self)
             self.task_list.append(task)
-            print('[INFO] ProcessingUnit-submitTask: {0} submitted to {1}'.format(task.getTaskName(),
-                                                                                  self.getPUName()))
+            self.log(f'[PUnit][INFO] ProcessingUnit-submitTask: {task.getTaskName()} submitted to {self.getPUName()} at {self.env.now}')
         else:
-            print('[ERROR] ProcessingUnit-submitTask: {0} already assigned to {1}'.format(task.getTaskName(),
-                                                                                          self.getPUName()))
+            self.log(f'[ERROR] ProcessingUnit-submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
+
+    def removeTask(self, task):
+        if task in self.task_list:
+            self.task_list.remove(task)
 
     def executeTask(self, task):
         exec_time = self.getTaskExecutionTime(task) * 1000
         yield self.env.timeout(exec_time)
+        
+    def log(self, message):
+        print(f"{YELLOW}{message}{END}")
 
     # def updateTaskListExecution(self, frames):
     #     new_task_list = self.getScheduler().getExecutionSequence(self.getTaskList())

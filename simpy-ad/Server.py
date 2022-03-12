@@ -1,5 +1,5 @@
 from simpy import Environment
-
+from TaskMapper import TaskMapper
 
 class Server(object):
     idx = 0
@@ -35,6 +35,8 @@ class Server(object):
             if pu not in self.getPUList():
                 pu.setCurrentServer(self)
                 self.pu_list.append(pu)
+
+                TaskMapper.addPU(pu)
                 print('[INFO] Server-setPUList: Processing Unit {0} added to Server {1}'.format(pu.getPUName(),
                                                                                                 self.getServerName()))
 

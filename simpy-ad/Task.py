@@ -80,3 +80,9 @@ class Task(object):
 
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time
+
+    def __str__(self):
+        return f"[ID: {self.id}, {self.name}]"
+    
+    def __repr__(self) -> str:
+        return f"[ID: {self.id}, {self.name}]"

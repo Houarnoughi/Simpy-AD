@@ -51,7 +51,7 @@ vehicle_tasks = [
     Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
     Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
 ]
-vehicle = Vehicle(c_location=start, f_location=final, speed=50, task_list=vehicle_tasks, PU_list=[pu], required_FPS=10, env=env)
+vehicle = Vehicle(c_location=start, f_location=final, speed=50, task_list=vehicle_tasks, PU_list=[pu], required_FPS=1, env=env)
 print(vehicle.getFramesToBeProcessed())
 
 """

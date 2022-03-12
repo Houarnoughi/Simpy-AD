@@ -108,6 +108,8 @@ class Vehicle(object):
             if pu not in self.getPUList():
                 pu.setCurrentCurrentVehicle(self)
                 self.PU_list.append(pu)
+
+                TaskMapper.addPU(pu)
                 print('[INFO] Vehicle-setPUList: Processing Unit {0} added to {1}'.format(pu.getPUName(),
                                                                                           self.getVehicleName()))
 
