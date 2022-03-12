@@ -78,7 +78,6 @@ class TaskMapper:
                 TaskMapper.showTasks()
                 # FIFO
                 task = TaskMapper.task_list.pop(0)
-
                 # GET PU
                 pu = random.choice(TaskMapper.pu_list)
 
@@ -93,7 +92,6 @@ class TaskMapper:
                 TaskMapper.pu_list[index].submitTask(task)
                 """
 
-            
             yield env.timeout(1)
 
     # called on runtime

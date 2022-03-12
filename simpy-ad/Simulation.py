@@ -40,7 +40,8 @@ Vehicle init
 start = Location("Gare VA", 50.36328322047431, 3.5171747551323005)
 final = Location("Gare Lille", 50.63725143907785, 3.0702985651377745)
 ## PU init
-pu = AGX(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
+pu1 = AGX(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
+pu2 = AGX(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
 
 inception = CNNModel('Inception-v3', 1024)
 resnet18 = CNNModel('ResNet-18', 480)
@@ -51,9 +52,8 @@ vehicle_tasks = [
     Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
     Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
 ]
-vehicle = Vehicle(c_location=start, f_location=final, speed=50, task_list=vehicle_tasks, PU_list=[pu], required_FPS=1, env=env)
-print(vehicle.getFramesToBeProcessed())
-
+vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu1], required_FPS=1, env=env)
+vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu2], required_FPS=1, env=env)
 """
 RSU init
 """
@@ -80,6 +80,10 @@ taskMapper = TaskMapper(env)
 SIM_TIME = 10**2
 print("Enter to start Simulation")
 input()
+
 env.run(until=SIM_TIME)
 
-print("Env finished at ", env.now)
+print("-------------------- Stats ----------------------")
+for pu in TaskMapper.pu_list:
+    pu.show_stats()
+print("-------------------- Stats ----------------------")

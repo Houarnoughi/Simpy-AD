@@ -30,6 +30,8 @@ class ProcessingUnit(simpy.Resource):
         self.env = env
         self.proc = env.process(self.updateTaskListExecution())
 
+        self.executed_tasks = 0
+
     def getPUName(self):
         return self.name
 
@@ -92,6 +94,7 @@ class ProcessingUnit(simpy.Resource):
         if task not in self.getTaskList():
             task.setCurrentPU(self)
             self.task_list.append(task)
+            self.executed_tasks += 1
             self.log(f'[PUnit][INFO] ProcessingUnit-submitTask: {task.getTaskName()} submitted to {self.getPUName()} at {self.env.now}')
         else:
             self.log(f'[PUnit][ERROR] ProcessingUnit-submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
@@ -106,6 +109,9 @@ class ProcessingUnit(simpy.Resource):
         
     def log(self, message):
         print(f"{YELLOW}{message}{END}")
+    
+    def show_stats(self):
+        self.log(f"{self.name} Executed {self.executed_tasks} tasks")
 
     # def updateTaskListExecution(self, frames):
     #     new_task_list = self.getScheduler().getExecutionSequence(self.getTaskList())

@@ -40,7 +40,9 @@ class Vehicle(object):
         # simpy.Resource.__init__(self, env, capacity)
         self.run = env.process(self.run())
     
-    # Send tasks to TaskMapper
+    """
+    Send runtime tasks to TaskMapper
+    """
     def run(self):
         while True:
             # sublit tasks to TaskMapper
@@ -48,17 +50,16 @@ class Vehicle(object):
                 for task in self.task_list:
                     t = Task(task.flop, task.size, task.criticality)
                     #t = task
-                    self.log(f"Generate Task {t}")
+                    self.log(f"Generate Task {t} at {self.env.now}")
                     TaskMapper.addTask(t)
                     yield self.env.timeout(1)
             #break
             
-
     def showInfo(self):
         print(f"{GREEN}Vehicle [{self.name}, PUs: {self.PU_list}, Tasks: {self.task_list} ]{END}")
 
     def log(self, message):
-        print(f"{RED}[Vehicle] {message}{END}")
+        print(f"{RED}[{self.name}] {message}{END}")
 
     # Get the name of the vehicle
     def getVehicleName(self):
