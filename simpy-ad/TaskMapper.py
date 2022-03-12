@@ -78,14 +78,21 @@ class TaskMapper:
                 TaskMapper.showTasks()
                 # FIFO
                 task = TaskMapper.task_list.pop(0)
-                self.log(f"TaskMapper submit task {task.name} at {env.now}")
 
                 # GET PU
+                pu = random.choice(TaskMapper.pu_list)
+
+                self.log(f"[TaskMapper] submit task {task.name} to {pu} at {env.now}")
+                pu.submitTask(task)
+
+                """
                 n = len(TaskMapper.pu_list)
                 index = random.choice(range(n))
-                print("task avant", task)
-                print(f"Mapper tasks {TaskMapper.task_list}")
+                
+                self.log(f"[TaskMapper] submit task {task.name} to {TaskMapper.pu_list[index]} at {env.now}")
                 TaskMapper.pu_list[index].submitTask(task)
+                """
+
             
             yield env.timeout(1)
 
@@ -103,10 +110,10 @@ class TaskMapper:
         print(f"{GREEN}{message}{END}")
     
     def showTasks():
-        print(f"{GREEN}TaskMapper Tasks {TaskMapper.task_list} {END}")
+        print(f"{GREEN}[TaskMapper] Tasks {TaskMapper.task_list} {END}")
 
     def showPUs():
-        print(f"{GREEN}TaskMapper PUs {TaskMapper.pu_list} {END}")
+        print(f"{GREEN}[TaskMapper] PUs {TaskMapper.pu_list} {END}")
     
     def distance(self, l1: Location, l2: Location):
         return np.sqrt( 

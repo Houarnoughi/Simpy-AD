@@ -8,6 +8,7 @@ class Server(object):
     #PU_list = []   
 
     def __init__(self, pu_list, bw, env: Environment, capacity=1):
+        self.id = Server.idx
         self.name = 'Server-{0}'.format(Server.idx)
         Server.idx += 1
         self.pu_list = []
@@ -57,3 +58,9 @@ class Server(object):
         for pu in self.getPUList():
             total += pu.getPower()
         return total
+
+    def __str__(self):
+        return f"[ID: {self.id}, {self.name}]"
+    
+    def __repr__(self) -> str:
+        return f"[ID: {self.id}, {self.name}]"

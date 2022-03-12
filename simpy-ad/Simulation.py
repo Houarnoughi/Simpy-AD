@@ -77,8 +77,8 @@ taskMapper = TaskMapper(env)
 #print("t ", taskMapper.task_list)
 #print("TaskMapper ", TaskMapper.task_list)
 
-SIM_TIME = 10**10
-print("Enter to start SImulation")
+SIM_TIME = 10**2
+print("Enter to start Simulation")
 input()
 env.run(until=SIM_TIME)
 

@@ -1,7 +1,7 @@
 from Units import Units
 import simpy
 from Server import Server
-from Vehicle import Vehicle
+import Vehicle
 from TaskSchedulingPolicy import TaskSchedulingPolicy
 from Colors import YELLOW, END
 '''
@@ -94,7 +94,7 @@ class ProcessingUnit(simpy.Resource):
             self.task_list.append(task)
             self.log(f'[PUnit][INFO] ProcessingUnit-submitTask: {task.getTaskName()} submitted to {self.getPUName()} at {self.env.now}')
         else:
-            self.log(f'[ERROR] ProcessingUnit-submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
+            self.log(f'[PUnit][ERROR] ProcessingUnit-submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
 
     def removeTask(self, task):
         if task in self.task_list:
@@ -130,11 +130,11 @@ class ProcessingUnit(simpy.Resource):
             #print("new task list", new_task_list)
             #for frame in range(frames):
             for task in new_task_list:
-                print('[PUnit][LOG] Starting executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
+                self.log('[PUnit][INFO] Starting executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
                                                                             self.env.now))
                 start = self.env.now
                 yield self.env.process(self.executeTask(task))
-                print('[PUnit][LOG] Finishing executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
+                self.log('[PUnit][INFO] Finishing executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
                                                                             self.env.now))
                 self.removeTask(task)
 

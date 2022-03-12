@@ -1,5 +1,4 @@
 from ProcessingUnit import ProcessingUnit
-from Vehicle import Vehicle
 from TaskCriticality import TaskCriticality
 
 class Task(object):
@@ -72,7 +71,7 @@ class Task(object):
     def getCurrentVehicle(self):
         return self.currentVehicle
 
-    def setCurrentVehicle(self, current_vehicle: Vehicle):
+    def setCurrentVehicle(self, current_vehicle):
         self.currentVehicle = current_vehicle
 
     def getTotalExecutionTime(self):
