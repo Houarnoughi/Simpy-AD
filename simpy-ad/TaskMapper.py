@@ -75,7 +75,8 @@ class TaskMapper:
             if len(TaskMapper.task_list) == 0:
                 pass
             else:
-                TaskMapper.showTasks()
+                #TaskMapper.showTasks()
+                self.log(f"[TaskMapper] task count {len(TaskMapper.task_list)}")
                 # FIFO
                 task = TaskMapper.task_list.pop(0)
                 # GET PU

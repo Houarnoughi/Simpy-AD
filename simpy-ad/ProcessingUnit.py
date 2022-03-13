@@ -15,9 +15,9 @@ class ProcessingUnit(simpy.Resource):
     idx = 0
     name = ''
 
-    def __init__(self, flops, memory, power, memory_bw, task_list,  scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=2):
+    def __init__(self, flops, memory, power, memory_bw, task_list,  scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
         super().__init__(env, capacity)
-        self.name = 'PU-{0}'.format(ProcessingUnit.idx)
+        self.name = f'PU-{ProcessingUnit.idx}'
         ProcessingUnit.idx += 1
 
         self.flops = flops
@@ -69,8 +69,7 @@ class ProcessingUnit(simpy.Resource):
         for task in task_list:
             task.setCurrentPU(self)
             self.task_list.append(task)
-            print('[INFO] ProcessingUnit-setTaskList: {0} submitted to {1}'.format(task.getTaskName(),
-                                                                                   self.getPUName()))
+            print(f'[INFO] ProcessingUnit-setTaskList: {task.getTaskName()} submitted to {self.getPUName()}')
 
     def getScheduler(self):
         return self.scheduler
@@ -132,16 +131,15 @@ class ProcessingUnit(simpy.Resource):
                 #self.log(f"[PUnit][LOG] {self.getPUName()} No More Tasks")
                 yield self.env.timeout(1)
 
-            new_task_list = self.getScheduler().getExecutionSequence(self.getTaskList())
+            new_task_list = self.scheduler.getExecutionSequence(self.task_list)
             #print("new task list", new_task_list)
             #for frame in range(frames):
             for task in new_task_list:
-                self.log('[PUnit][INFO] Starting executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
-                                                                            self.env.now))
+                self.log(f'[PUnit][INFO] Starting executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
                 start = self.env.now
                 yield self.env.process(self.executeTask(task))
-                self.log('[PUnit][INFO] Finishing executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
-                                                                            self.env.now))
+                self.log(f'[PUnit][INFO] Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
+
                 self.removeTask(task)
 
                 stop = self.env.now
@@ -157,7 +155,7 @@ class AGX(ProcessingUnit):
     idx = 0
 
     def __init__(self, task_list, scheduler: TaskSchedulingPolicy, env, capacity=1):
-        name = 'AGX-{0}'.format(AGX.idx)
+        name = f'AGX-{AGX.idx}'
         AGX.idx += 1
         flops = 11 * Units.tera
         memory = 32 * Units.giga
@@ -178,7 +176,7 @@ class TX2(ProcessingUnit):
     idx = 0
 
     def __init__(self, task_list, scheduler: TaskSchedulingPolicy, env, capacity=1):
-        name = 'TX2-{0}'.format(TX2.idx)
+        name = f'TX2-{TX2.idx}'
         TX2.idx += 1
         flops = 1.33 * Units.tera
         memory = 8 * Units.giga
@@ -201,7 +199,7 @@ class TeslaV100(ProcessingUnit):
     idx = 0
 
     def __init__(self, task_list, scheduler: TaskSchedulingPolicy, env, capacity=1):
-        name = 'TeslaV100-{0}'.format(TeslaV100.idx)
+        name = f'TeslaV100-{TeslaV100.idx}'
         TeslaV100.idx += 1
         flops = 112 * Units.tera
         memory = 32 * Units.giga
@@ -224,7 +222,7 @@ class DGXa100(ProcessingUnit):
     idx = 0
 
     def __init__(self, task_list, scheduler: TaskSchedulingPolicy, env, capacity=1):
-        name = 'DGXa100-{0}'.format(DGXa100.idx)
+        name = f'DGXa100-{DGXa100.idx}'
         DGXa100.idx += 1
         flops = 5 * Units.peta
         memory = 320 * Units.giga

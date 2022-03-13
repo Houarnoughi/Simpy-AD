@@ -9,7 +9,7 @@ class Server(object):
 
     def __init__(self, pu_list, bw, env: Environment, capacity=1):
         self.id = Server.idx
-        self.name = 'Server-{0}'.format(Server.idx)
+        self.name = f'Server-{Server.idx}'
         Server.idx += 1
         self.pu_list = []
         self.setPUList(pu_list)
@@ -38,8 +38,7 @@ class Server(object):
                 self.pu_list.append(pu)
 
                 TaskMapper.addPU(pu)
-                print('[INFO] Server-setPUList: Processing Unit {0} added to Server {1}'.format(pu.getPUName(),
-                                                                                                self.getServerName()))
+                print(f'[INFO] Server-setPUList: Processing Unit {pu.getPUName()} added to Server {self.getServerName()}')
 
     def getTotalFlops(self):
         total = 0

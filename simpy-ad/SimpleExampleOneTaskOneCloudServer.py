@@ -71,8 +71,8 @@ def main():
         offloading_time = (task.getSize() / (server.getBandwidth() / 8)) + (task.getSize() / ((server.getBandwidth()*100) / 8))
         total = tmps + offloading_time
         power = task.getCurrentPU().getPower()
-        print('Total execution time for {0} is {1}'.format(task.getTaskName(), total))
-        print('Total energy consumed by for {0} is {1}'.format(task.getTaskName(), tmps * power))
+        print(f'Total execution time for {task.getTaskName()} is {total}')
+        print(f'Total energy consumed by for {task.getTaskName()} is {tmps * power}')
 
 
 if __name__ == "__main__":

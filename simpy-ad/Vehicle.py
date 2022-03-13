@@ -52,8 +52,15 @@ class Vehicle(object):
                     #t = task
                     self.log(f"Generate Task {t} at {self.env.now}")
                     TaskMapper.addTask(t)
+
+                    # send 1 task
                     yield self.env.timeout(1)
-            #break
+
+                # send frame's tasks
+                #yield self.env.timeout(1)
+
+            # send all frame's tasks
+            #yield self.env.timeout(1)
             
     def showInfo(self):
         print(f"{GREEN}Vehicle [{self.name}, PUs: {self.PU_list}, Tasks: {self.task_list} ]{END}")

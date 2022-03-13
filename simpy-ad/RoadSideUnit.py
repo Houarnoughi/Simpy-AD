@@ -13,7 +13,7 @@ class RoadSideUnit(simpy.Resource):
 
     def __init__(self, location: Location, server_list, to_vehicle_bw, to_cloud_bw, env: simpy.Environment, capacity=1):
 
-        self.name = 'RSU-{0}'.format(RoadSideUnit.idx)
+        self.name = f'RSU-{RoadSideUnit.idx}'
         RoadSideUnit.idx += 1
         self.setServerList(server_list)
         self.to_vehicle_bw = to_vehicle_bw

@@ -83,6 +83,7 @@ input()
 
 env.run(until=SIM_TIME)
 
+print("\n")
 print("-------------------- Stats ----------------------")
 for pu in TaskMapper.pu_list:
     pu.show_stats()
