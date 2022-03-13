@@ -1,6 +1,9 @@
 from simpy import Environment
 from TaskMapper import TaskMapper
 
+"""
+parent - RSU, DatCenter
+"""
 class Server(object):
     idx = 0
     name = ''
@@ -16,6 +19,8 @@ class Server(object):
         self.bw = bw
         self.env = env
         self.capacity = capacity
+
+        self.parent = None
         # for pu in self.getPUList():
         #     self.proc = env.process(pu.updateTaskListExecution(15224))
 
@@ -39,6 +44,12 @@ class Server(object):
 
                 TaskMapper.addPU(pu)
                 print(f'[INFO] Server-setPUList: Processing Unit {pu.getPUName()} added to Server {self.getServerName()}')
+
+    def getParent(self):
+        return self.parent
+    
+    def setParent(self, parent):
+        self.parent = parent
 
     def getTotalFlops(self):
         total = 0

@@ -10,7 +10,12 @@ and https://developer.nvidia.com/blog/nvidia-jetson-agx-xavier-32-teraops-ai-rob
 
 '''
 
-
+"""
+PU's parent can be
+    - Vehicle
+    - RSU
+    - DataCenter
+"""
 class ProcessingUnit(simpy.Resource):
     idx = 0
     name = ''
@@ -20,6 +25,7 @@ class ProcessingUnit(simpy.Resource):
         self.name = f'PU-{ProcessingUnit.idx}'
         ProcessingUnit.idx += 1
 
+        self.parent = None
         self.flops = flops
         self.memory = memory
         self.power = power
@@ -112,6 +118,13 @@ class ProcessingUnit(simpy.Resource):
     def show_stats(self):
         self.log(f"{self.name} Executed {self.executed_tasks} tasks")
 
+    def setParent(self, parent):
+        print(f"PU setParent called with {parent}")
+        self.parent=parent
+    
+    def getParent(self):
+        return self.parent
+
     def updateTaskListExecution(self):
         while True:
             if len(self.getTaskList()) == 0:
@@ -127,11 +140,16 @@ class ProcessingUnit(simpy.Resource):
                 yield self.env.process(self.executeTask(task))
                 self.log(f'[PUnit][INFO] Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
 
-                # get vehicle and check if it's still in PU activity zone
+                # get vehicle and check if it's still in PU activity zone (actually RoadSideUnit's one)
                 # if vehicle is outside, we consider task failed
                 # to do
                 vehicle = task.currentVehicle
-                self.log(f'[PUnit][INFO] tasks vehicle {vehicle}')
+                parent = self.parent
+                location = parent.getLocation()
+
+                if vehicle.name == parent.name:
+                    print("on board")
+                self.log(f'[PUnit][INFO] Task from vehicle {vehicle} on Parent {parent}, location {location}')
 
                 self.removeTask(task)
 

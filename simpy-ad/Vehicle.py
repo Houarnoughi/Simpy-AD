@@ -82,6 +82,9 @@ class Vehicle(object):
     def setVehicleName(self, name):
         self.name = name
 
+    def getLocation(self):
+        return self.c_location
+
     # Get the source location of the vehicle
     def getCurrentLocation(self):
         return self.c_location
@@ -118,6 +121,12 @@ class Vehicle(object):
                 self.task_list.append(task)
                 self.log(f'[INFO] Vehicle-setTaskList: Task {task.getTaskName()} submitted to {self.getVehicleName()}')
 
+    def setParent(self, parent):
+        self.parent=parent
+    
+    def getParent(self):
+        return self.parent
+
     # Get the list of Processing Units assigned embedded in the vahicle
     def getPUList(self):
         return self.PU_list
@@ -126,8 +135,11 @@ class Vehicle(object):
     def setPUList(self, PU_list):
         for pu in PU_list:
             if pu not in self.getPUList():
+
                 pu.setCurrentCurrentVehicle(self)
                 self.PU_list.append(pu)
+
+                pu.setParent(self)
 
                 TaskMapper.addPU(pu)
                 self.log(f'[INFO] Vehicle-setPUList: Processing Unit {pu.getPUName()} added to {self.getVehicleName()}')

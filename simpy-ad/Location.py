@@ -29,3 +29,9 @@ class Location(object):
         src = (self.getLatitude(), self.getLongitude())
         coord = (dst.getLatitude(), dst.getLongitude())
         return hs.haversine(src, coord)
+
+    def __str__(self):
+        return f"[Location: {self.latitude}, {self.longitude}]"
+    
+    def __repr__(self) -> str:
+        return f"[Location: {self.latitude}, {self.longitude}]"

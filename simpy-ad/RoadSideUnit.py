@@ -5,20 +5,25 @@ from Colors import RED, END
 Notes : Pour la simulation, les principales interactions se font seulement entre les tasks et les PU
 '''
 
-
+"""
+activity_range - a number in meters representing RSU's activity zone as a circle
+to_vehicle_bw - 
+to_cloud_bw - 
+"""
 class RoadSideUnit(simpy.Resource):
     idx = 0
     name = ''
     server_list = []
 
-    def __init__(self, location: Location, server_list, to_vehicle_bw, to_cloud_bw, env: simpy.Environment, capacity=1):
-
-        self.name = f'RSU-{RoadSideUnit.idx}'
+    def __init__(self, location: Location, server_list, to_vehicle_bw, to_cloud_bw, env: simpy.Environment, activity_range=0, capacity=1):
+        self.id = RoadSideUnit.idx
+        self.name = f'RSU-{self.id}'
         RoadSideUnit.idx += 1
         self.setServerList(server_list)
         self.to_vehicle_bw = to_vehicle_bw
         self.to_cloud_bw = to_cloud_bw
         self.location = location
+        self.activity_range = activity_range
         self.env = env
         # for server in self.getServerList():
         #     for pu in server.getPUList():
@@ -32,13 +37,11 @@ class RoadSideUnit(simpy.Resource):
     def getRSUName(self):
         return self.name
 
-    # Get the location of the Roadside Unit
-    def getRSULocation(self):
-        return self.location
+    def setLocation(self, location):
+        self.location=location
 
-    # Set the location of the Roadside Unit
-    def setRSULocation(self, location: Location):
-        self.location = location
+    def getLocation(self):
+        return self.location
 
     # Get the list of the servers of the Roadside Unit
     def getServerList(self):
@@ -50,3 +53,12 @@ class RoadSideUnit(simpy.Resource):
             if server not in self.getServerList():
                 self.server_list.append(server)
                 print(f'[INFO] RoadSideUnit-setServerList: Server {server.getServerName()} added to Roadside Unit {self.getRSUName()}')
+                #server.setParent(self)
+                for pu in server.getPUList():
+                    pu.setParent(self)
+
+    def __str__(self):
+        return f"[ID: {self.id}, {self.name}]"
+    
+    def __repr__(self) -> str:
+        return f"[ID: {self.id}, {self.name}]"

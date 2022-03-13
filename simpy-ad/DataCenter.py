@@ -38,3 +38,15 @@ class DataCenter(object):
 
     def setToVehicleBW(self, bw):
         self.to_RSU_bw = bw
+
+    def setLocation(self, location):
+        self.location=location
+
+    def getLocation(self):
+        return self.location
+
+    def __str__(self):
+        return f"[ID: {self.id}, {self.name}]"
+    
+    def __repr__(self) -> str:
+        return f"[ID: {self.id}, {self.name}]"

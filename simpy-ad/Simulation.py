@@ -53,7 +53,7 @@ vehicle_tasks = [
     Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
 ]
 vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu1], required_FPS=1, env=env)
-vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu2], required_FPS=1, env=env)
+#vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu2], required_FPS=1, env=env)
 """
 RSU init
 """
@@ -63,7 +63,7 @@ pu = TeslaV100(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
 ## Server init
 server = Server(pu_list=[pu], bw=1, env=env)
 
-rsu = RoadSideUnit(location=location, server_list=[server], to_vehicle_bw=1, to_cloud_bw=1, env=env)
+rsu = RoadSideUnit(activity_range=100, location=location, server_list=[server], to_vehicle_bw=1, to_cloud_bw=1, env=env)
 
 vehicle.showInfo()
 rsu.showInfo()
