@@ -49,6 +49,4 @@ class RoadSideUnit(simpy.Resource):
         for server in server_list:
             if server not in self.getServerList():
                 self.server_list.append(server)
-                print('[INFO] RoadSideUnit-setServerList: Server {0} added to Roadside Unit {1}'.format(
-                    server.getServerName(),
-                    self.getRSUName()))
+                print(f'[INFO] RoadSideUnit-setServerList: Server {server.getServerName()} added to Roadside Unit {self.getRSUName()}')

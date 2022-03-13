@@ -112,19 +112,6 @@ class ProcessingUnit(simpy.Resource):
     def show_stats(self):
         self.log(f"{self.name} Executed {self.executed_tasks} tasks")
 
-    # def updateTaskListExecution(self, frames):
-    #     new_task_list = self.getScheduler().getExecutionSequence(self.getTaskList())
-    #     for frame in range(frames):
-    #         for task in new_task_list:
-    #             print('[LOG] Starting executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
-    #                                                                       self.env.now))
-    #             start = self.env.now
-    #             yield self.env.process(self.executeTask(task))
-    #             print('[LOG] Finishing executing {0} on {1} at {2}'.format(task.getTaskName(), self.getPUName(),
-    #                                                                        self.env.now))
-    #             stop = self.env.now
-    #             task.updateTotalExecutionTime(stop-start)
-    #             yield self.env.timeout(0)
     def updateTaskListExecution(self):
         while True:
             if len(self.getTaskList()) == 0:
@@ -139,6 +126,12 @@ class ProcessingUnit(simpy.Resource):
                 start = self.env.now
                 yield self.env.process(self.executeTask(task))
                 self.log(f'[PUnit][INFO] Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
+
+                # get vehicle and check if it's still in PU activity zone
+                # if vehicle is outside, we consider task failed
+                # to do
+                vehicle = task.currentVehicle
+                self.log(f'[PUnit][INFO] tasks vehicle {vehicle}')
 
                 self.removeTask(task)
 

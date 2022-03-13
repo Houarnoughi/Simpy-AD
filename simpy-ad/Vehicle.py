@@ -4,6 +4,7 @@ from TaskMapper import TaskMapper
 from Colors import GREEN, END, RED
 from Task import Task
 
+
 class Vehicle(object):
     idx = 0
     name = ''
@@ -22,7 +23,9 @@ class Vehicle(object):
                  required_FPS,
                  env: simpy.Environment,  # The simulation environment
                  capacity=1):  # The capacity of the shared resource
-        self.name = 'Vehicle-{0}'.format(Vehicle.idx)
+
+        self.id = Vehicle.idx
+        self.name = f'Vehicle-{Vehicle.idx}'
         Vehicle.idx += 1
 
         self.c_location = c_location
@@ -39,16 +42,18 @@ class Vehicle(object):
         # self.updateTaskListExecution()
         # simpy.Resource.__init__(self, env, capacity)
         self.run = env.process(self.run())
-    
+
     """
     Send runtime tasks to TaskMapper
     """
+
     def run(self):
         while True:
             # sublit tasks to TaskMapper
             for _ in range(self.required_FPS):
                 for task in self.task_list:
                     t = Task(task.flop, task.size, task.criticality)
+                    t.currentVehicle = self
                     #t = task
                     self.log(f"Generate Task {t} at {self.env.now}")
                     TaskMapper.addTask(t)
@@ -57,13 +62,14 @@ class Vehicle(object):
                     yield self.env.timeout(1)
 
                 # send frame's tasks
-                #yield self.env.timeout(1)
+                # yield self.env.timeout(1)
 
             # send all frame's tasks
-            #yield self.env.timeout(1)
-            
+            # yield self.env.timeout(1)
+
     def showInfo(self):
-        print(f"{GREEN}Vehicle [{self.name}, PUs: {self.PU_list}, Tasks: {self.task_list} ]{END}")
+        print(
+            f"{GREEN}Vehicle [{self.name}, PUs: {self.PU_list}, Tasks: {self.task_list} ]{END}")
 
     def log(self, message):
         print(f"{RED}[{self.name}] {message}{END}")
@@ -110,8 +116,7 @@ class Vehicle(object):
             if task not in self.task_list:
                 task.setCurrentVehicle(self)
                 self.task_list.append(task)
-                self.log('[INFO] Vehicle-setTaskList: Task {0} submitted to {1}'.format(task.getTaskName(),
-                                                                                     self.getVehicleName()))
+                self.log(f'[INFO] Vehicle-setTaskList: Task {task.getTaskName()} submitted to {self.getVehicleName()}')
 
     # Get the list of Processing Units assigned embedded in the vahicle
     def getPUList(self):
@@ -125,20 +130,19 @@ class Vehicle(object):
                 self.PU_list.append(pu)
 
                 TaskMapper.addPU(pu)
-                self.log('[INFO] Vehicle-setPUList: Processing Unit {0} added to {1}'.format(pu.getPUName(),
-                                                                                          self.getVehicleName()))
+                self.log(f'[INFO] Vehicle-setPUList: Processing Unit {pu.getPUName()} added to {self.getVehicleName()}')
 
     def updateTaskListExecution(self):
         for pu in self.getPUList():
             for task in pu.getTaskList():
                 with pu.request() as req:
                     yield req
-                    self.log('[LOG] Starting execution {0} on {1} at {2}'.format(task.getTaskName(), pu.getPUName(),
-                                                                              self.env.now))
-                    execution_time = pu.getTaskExecutionTime(task) * 1000  # Multiply to adjust precision to simulation
+                    self.log(f'[LOG] Starting execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
+
+                    # Multiply to adjust precision to simulation
+                    execution_time = pu.getTaskExecutionTime(task) * 1000
                     yield self.env.timeout(execution_time)
-                    self.log('[LOG] Finishing execution {0} on {1} at {2}'.format(task.getTaskName(), pu.getPUName(),
-                                                                               self.env.now))
+                    self.log(f'[LOG] Finishing execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
 
     # Get the closest RSU among the list of all RSUs
     def getClosestRSU(self, rsu_list):
@@ -176,3 +180,8 @@ class Vehicle(object):
     def getFramesToBeProcessed(self):
         return int(self.getTripDurationInSeconds() * self.getRequiredFPS())
 
+    def __str__(self):
+        return f"[ID: {self.id}, {self.name}]"
+
+    def __repr__(self) -> str:
+        return f"[ID: {self.id}, {self.name}]"

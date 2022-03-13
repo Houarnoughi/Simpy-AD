@@ -17,7 +17,7 @@ class Task(object):
 
     def __init__(self, flop, size, criticality: TaskCriticality=None, preemptive=False, real_time=False, status=PAUSED, currentVehicle=None,currentPU=None):
         self.id = Task.idx
-        self.name = 'Task-{0}'.format(Task.idx)
+        self.name = f'Task-{Task.idx}'
         Task.idx += 1
         self.criticality = criticality
         self.flop = flop
