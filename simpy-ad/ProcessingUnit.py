@@ -140,11 +140,11 @@ class ProcessingUnit(simpy.Resource):
                 yield self.env.process(self.executeTask(task))
                 task.execution_end_time = time()
                 self.log(f'[PUnit][INFO] Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}, took {task.getTotalExecutionTime()}')
-                
+                self.log(f'Task ended {task.execution_end_time}, deadline {task.deadline}, {task.isFailed()}')
                 # get vehicle and check if it's still in PU activity zone (actually RoadSideUnit's one)
                 # if vehicle is outside, we consider task failed -> optimize model
                 # to do
-                vehicle = task.currentVehicle
+                vehicle = task.getCurrentVehicle()
                 parent = self.parent
                 location = parent.getLocation()
 

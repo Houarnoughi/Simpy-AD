@@ -54,7 +54,7 @@ vehicle_tasks = [
     Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
     Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
 ]
-vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu1], required_FPS=1, env=env)
+vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu1], required_FPS=60, env=env)
 #vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu2], required_FPS=1, env=env)
 """
 RSU init

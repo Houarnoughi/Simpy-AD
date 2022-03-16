@@ -87,6 +87,12 @@ class Task(object):
 
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time
+    
+    def setDeadline(self, deadline):
+        self.deadline = deadline
+    
+    def getDeadline(self):
+        return self.deadline
 
     def __str__(self):
         return f"[ID: {self.id}, {self.name}]"
