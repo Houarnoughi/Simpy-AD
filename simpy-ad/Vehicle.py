@@ -3,7 +3,7 @@ import simpy
 from TaskMapper import TaskMapper
 from Colors import GREEN, END, RED
 from Task import Task
-
+from time import time
 
 class Vehicle(object):
     idx = 0
@@ -44,15 +44,24 @@ class Vehicle(object):
 
     """
     Send runtime tasks to TaskMapper
-    """
 
+    DELTA is set in respect to required FPS
+    to get a positive reward if success and negative reward if failure
+
+    The goal is to approach FPS by training
+    """
     def run(self):
+        # we set DELTA to respect Vehicle FPS
+        DELTA = 1/self.required_FPS
         while True:
             # sublit tasks to TaskMapper
             for _ in range(self.required_FPS):
                 for task in self.task_list:
                     t = Task(task.flop, task.size, task.criticality)
                     t.currentVehicle = self
+
+                    t.deadline = time() + DELTA
+
                     #t = task
                     self.log(f"Generate Task {t} at {self.env.now}")
                     TaskMapper.addTask(t)

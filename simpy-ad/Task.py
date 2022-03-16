@@ -81,12 +81,9 @@ class Task(object):
         #return self.total_execution_time
         return self.execution_end_time - self.execution_start_time
     
-    # if ended after deadline (fixed by Vehicle)
+    # if ended after deadline (deadline fixed by Vehicle)
     def isFailed(self):
-        if self.execution_end_time > self.deadline:
-            return True
-        else:
-            return False
+        return self.execution_end_time > self.deadline
 
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time

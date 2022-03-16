@@ -4,6 +4,7 @@ from Server import Server
 import Vehicle
 from TaskSchedulingPolicy import TaskSchedulingPolicy
 from Colors import YELLOW, END
+from time import time
 '''
 Benchmarks sources : https://developer.nvidia.com/embedded/jetson-modules 
 and https://developer.nvidia.com/blog/nvidia-jetson-agx-xavier-32-teraops-ai-robotics/
@@ -110,6 +111,7 @@ class ProcessingUnit(simpy.Resource):
 
     def executeTask(self, task):
         exec_time = self.getTaskExecutionTime(task) * 1000
+        task.execution_start_time = time()
         yield self.env.timeout(exec_time)
         
     def log(self, message):
@@ -136,8 +138,9 @@ class ProcessingUnit(simpy.Resource):
                 self.log(f'[PUnit][INFO] Starting executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
                 start = self.env.now
                 yield self.env.process(self.executeTask(task))
-                self.log(f'[PUnit][INFO] Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
-
+                task.execution_end_time = time()
+                self.log(f'[PUnit][INFO] Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}, took {task.getTotalExecutionTime()}')
+                
                 # get vehicle and check if it's still in PU activity zone (actually RoadSideUnit's one)
                 # if vehicle is outside, we consider task failed -> optimize model
                 # to do
