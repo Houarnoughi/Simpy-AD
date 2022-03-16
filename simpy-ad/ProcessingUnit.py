@@ -5,6 +5,7 @@ import Vehicle
 from TaskSchedulingPolicy import TaskSchedulingPolicy
 from Colors import YELLOW, END
 from time import time
+from TaskMapper import TaskMapper
 '''
 Benchmarks sources : https://developer.nvidia.com/embedded/jetson-modules 
 and https://developer.nvidia.com/blog/nvidia-jetson-agx-xavier-32-teraops-ai-robotics/
@@ -76,7 +77,7 @@ class ProcessingUnit(simpy.Resource):
         for task in task_list:
             task.setCurrentPU(self)
             self.task_list.append(task)
-            print(f'[INFO] ProcessingUnit-setTaskList: {task.getTaskName()} submitted to {self.getPUName()}')
+            self.log(f'ProcessingUnit-setTaskList: {task.getTaskName()} submitted to {self.getPUName()}')
 
     def getScheduler(self):
         return self.scheduler
@@ -101,9 +102,9 @@ class ProcessingUnit(simpy.Resource):
             task.setCurrentPU(self)
             self.task_list.append(task)
             self.executed_tasks += 1
-            self.log(f'[PUnit][INFO] ProcessingUnit-submitTask: {task.getTaskName()} submitted to {self.getPUName()} at {self.env.now}')
+            self.log(f'submitTask: {task.getTaskName()} submitted to {self.getPUName()} at {self.env.now}')
         else:
-            self.log(f'[PUnit][ERROR] ProcessingUnit-submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
+            self.log(f'submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
 
     def removeTask(self, task):
         if task in self.task_list:
@@ -115,7 +116,7 @@ class ProcessingUnit(simpy.Resource):
         yield self.env.timeout(exec_time)
         
     def log(self, message):
-        print(f"{YELLOW}{message}{END}")
+        print(f"{YELLOW}[PU] {message}{END}")
     
     def show_stats(self):
         self.log(f"{self.name} Executed {self.executed_tasks} tasks")
@@ -135,12 +136,12 @@ class ProcessingUnit(simpy.Resource):
             new_task_list = self.scheduler.getExecutionSequence(self.task_list)
             #for frame in range(frames):
             for task in new_task_list:
-                self.log(f'[PUnit][INFO] Starting executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
+                self.log(f'Starting executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
                 start = self.env.now
                 yield self.env.process(self.executeTask(task))
                 task.execution_end_time = time()
-                self.log(f'[PUnit][INFO] Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}, took {task.getTotalExecutionTime()}')
-                self.log(f'Task ended {task.execution_end_time}, deadline {task.deadline}, {task.isFailed()}')
+                self.log(f'Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}, took {task.getTotalExecutionTime()}')
+                self.log(f'Task ended {task.execution_end_time}, deadline {task.deadline}, failed={task.isFailed()}')
                 # get vehicle and check if it's still in PU activity zone (actually RoadSideUnit's one)
                 # if vehicle is outside, we consider task failed -> optimize model
                 # to do
@@ -150,9 +151,16 @@ class ProcessingUnit(simpy.Resource):
 
                 if vehicle.name == parent.name:
                     print("on board")
-                self.log(f'[PUnit][INFO] Task from vehicle {vehicle} on Parent {parent}, location {location}')
+                    pass
+                self.log(f'Task from vehicle {vehicle} on Parent {parent}, location {location}')
 
                 self.removeTask(task)
+
+                # train step ?
+                TaskMapper.optimize()
+
+                # for later stats
+                TaskMapper.all_tasks.append(task)
 
                 stop = self.env.now
                 task.updateTotalExecutionTime(stop-start)

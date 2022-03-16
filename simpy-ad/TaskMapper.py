@@ -39,6 +39,7 @@ class TaskMapper:
 
     success_task_list = []
     failed_task_list = []
+    all_tasks = []
     # env = None
 
     """
@@ -70,22 +71,16 @@ class TaskMapper:
                 pass
             else:
                 #TaskMapper.showTasks()
-                self.log(f"[TaskMapper] task count {len(TaskMapper.task_list)}")
+                TaskMapper.log(f"task count {len(TaskMapper.task_list)}")
                 # FIFO
                 task = TaskMapper.task_list.pop(0)
                 # GET PU
                 pu = random.choice(TaskMapper.pu_list)
 
-                self.log(f"[TaskMapper] submit task {task.name} to {pu} at {env.now}")
+                TaskMapper.log(f"submit task {task.name} to {pu} at {env.now}")
+                # send task to PU
                 pu.submitTask(task)
 
-                """
-                n = len(TaskMapper.pu_list)
-                index = random.choice(range(n))
-                
-                self.log(f"[TaskMapper] submit task {task.name} to {TaskMapper.pu_list[index]} at {env.now}")
-                TaskMapper.pu_list[index].submitTask(task)
-                """
 
             yield env.timeout(1)
 
@@ -99,14 +94,14 @@ class TaskMapper:
     def removeTask(task):
         TaskMapper.task_list.remove(task)
 
-    def log(self, message):
-        print(f"{GREEN}{message}{END}")
+    def log(message):
+        print(f"{GREEN}[TaskMapper] {message}{END}")
     
     def showTasks():
-        print(f"{GREEN}[TaskMapper] Tasks {TaskMapper.task_list} {END}")
+        TaskMapper.log(f"Tasks {TaskMapper.task_list}")
 
     def showPUs():
-        print(f"{GREEN}[TaskMapper] PUs {TaskMapper.pu_list} {END}")
+        TaskMapper.log(f"PUs {TaskMapper.pu_list}")
     
     def distance(self, l1: Location, l2: Location):
         return np.sqrt( 
@@ -120,7 +115,8 @@ class TaskMapper:
     def assignTaskToPu(self):
         pass
 
-    def optimize(self):
+    def optimize():
+        TaskMapper.log('Training todo')
         pass
         
 #scheduler = TaskSchedulingPolicy('FIFO')

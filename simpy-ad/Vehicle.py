@@ -51,7 +51,6 @@ class Vehicle(object):
     The goal is to approach FPS by training
     """
     def run(self):
-        # we set DELTA to respect Vehicle FPS
         DELTA = 1/self.required_FPS
         while True:
             # sublit tasks to TaskMapper

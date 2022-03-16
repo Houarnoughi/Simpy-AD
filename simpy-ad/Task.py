@@ -77,6 +77,7 @@ class Task(object):
     def setCurrentVehicle(self, current_vehicle):
         self.currentVehicle = current_vehicle
 
+    # OS time
     def getTotalExecutionTime(self):
         #return self.total_execution_time
         return self.execution_end_time - self.execution_start_time
@@ -88,6 +89,7 @@ class Task(object):
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time
     
+    # OS time
     def setDeadline(self, deadline):
         self.deadline = deadline
     
