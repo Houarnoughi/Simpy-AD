@@ -42,8 +42,8 @@ final = Location("Gare Lille", 50.63725143907785, 3.0702985651377745)
 ## PU init
 pu1 = AGX(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
 TaskMapper.addPU(pu1)
-pu2 = AGX(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
-TaskMapper.addPU(pu2)
+#pu2 = AGX(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
+#TaskMapper.addPU(pu2)
 
 inception = CNNModel('Inception-v3', 1024)
 resnet18 = CNNModel('ResNet-18', 480)
@@ -55,7 +55,7 @@ vehicle_tasks = [
     Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
 ]
 vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu1], required_FPS=1, env=env)
-vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu2], required_FPS=1, env=env)
+#vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu2], required_FPS=1, env=env)
 """
 RSU init
 """

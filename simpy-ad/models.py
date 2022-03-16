@@ -16,11 +16,11 @@ class TaskMapperNet(nn.Module):
             offload_time (Task to PU)
             offload_pu_execution_time (Task on PU)
             offload_execution_time (Task on PU)
-            pu_queue ???
+            pu_queue ??? (PU)
             bw (Vehicle to PU)
             flop (Task)
             size (Task)
-            euclid(task, pu)
+            euclid(task, pu) ???
         output
             offload (threshold)
     """

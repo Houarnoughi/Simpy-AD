@@ -27,9 +27,10 @@ class Task(object):
         self.status = status
         self.currentVehicle = currentVehicle
         self.currentPU = currentPU
+        self.deadline = 0
         self.total_execution_time = 0
-        self.execution_start_time = None
-        self.execution_end_time = None
+        self.execution_start_time = 0
+        self.execution_end_time = 0
 
     def getTaskName(self):
         return self.name
@@ -79,7 +80,13 @@ class Task(object):
     def getTotalExecutionTime(self):
         #return self.total_execution_time
         return self.execution_end_time - self.execution_start_time
-
+    
+    # if ended after deadline (fixed by Vehicle)
+    def isFailed(self):
+        if self.execution_end_time > self.deadline:
+            return True
+        else:
+            return False
 
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time

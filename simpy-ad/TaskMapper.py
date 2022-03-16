@@ -30,6 +30,7 @@ from Location import Location
 import simpy
 from Colors import GREEN, END
 import random
+from models import TaskMapperNet
 
 class TaskMapper:
 
@@ -54,15 +55,8 @@ class TaskMapper:
           output -> assing to a PU 
     """
     input_dim = 9
-    output_dim = 2
-    nn = nn.Sequential(
-        nn.Linear(input_dim, 16, bias=True),
-        nn.ReLU(),
-        nn.Linear(16, 16, bias=True), 
-        nn.ReLU(),
-        nn.Linear(16, output_dim, bias=True),
-        nn.Softmax()
-    )
+
+    nn = TaskMapperNet(input_dim=10, hidden_dim=input_dim*2)
 
     def __init__(self, env):
         self.env = env
