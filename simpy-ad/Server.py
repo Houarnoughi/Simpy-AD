@@ -42,7 +42,7 @@ class Server(object):
                 pu.setCurrentServer(self)
                 self.pu_list.append(pu)
 
-                TaskMapper.addPU(pu)
+                #TaskMapper.addPU(pu)
                 print(f'[INFO] Server-setPUList: Processing Unit {pu.getPUName()} added to Server {self.getServerName()}')
 
     def getParent(self):

@@ -128,11 +128,9 @@ class ProcessingUnit(simpy.Resource):
     def updateTaskListExecution(self):
         while True:
             if len(self.getTaskList()) == 0:
-                #self.log(f"[PUnit][LOG] {self.getPUName()} No More Tasks")
                 yield self.env.timeout(1)
 
             new_task_list = self.scheduler.getExecutionSequence(self.task_list)
-            #print("new task list", new_task_list)
             #for frame in range(frames):
             for task in new_task_list:
                 self.log(f'[PUnit][INFO] Starting executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
@@ -141,7 +139,7 @@ class ProcessingUnit(simpy.Resource):
                 self.log(f'[PUnit][INFO] Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
 
                 # get vehicle and check if it's still in PU activity zone (actually RoadSideUnit's one)
-                # if vehicle is outside, we consider task failed
+                # if vehicle is outside, we consider task failed -> optimize model
                 # to do
                 vehicle = task.currentVehicle
                 parent = self.parent

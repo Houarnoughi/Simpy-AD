@@ -31,7 +31,6 @@ class Vehicle(object):
         self.c_location = c_location
         self.f_location = f_location
         self.speed = speed
-        # self.task_list = task_list
         self.task_list = []
         self.setTaskList(task_list)
         self.required_FPS = required_FPS
@@ -141,7 +140,7 @@ class Vehicle(object):
 
                 pu.setParent(self)
 
-                TaskMapper.addPU(pu)
+                #TaskMapper.addPU(pu)
                 self.log(f'[INFO] Vehicle-setPUList: Processing Unit {pu.getPUName()} added to {self.getVehicleName()}')
 
     def updateTaskListExecution(self):
