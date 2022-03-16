@@ -31,6 +31,8 @@ class Vehicle(object):
         self.c_location = c_location
         self.f_location = f_location
         self.speed = speed
+        # keep track of all generated tasks
+        self.all_tasks = []
         self.task_list = []
         self.setTaskList(task_list)
         self.required_FPS = required_FPS
@@ -62,6 +64,8 @@ class Vehicle(object):
                     #t.setDeadline(time())
                     #t = task
                     self.log(f"Generate Task {t} at {self.env.now}")
+
+                    self.all_tasks.append(t)
                     TaskMapper.addTask(t)
 
                     # send 1 task

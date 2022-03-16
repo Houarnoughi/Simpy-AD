@@ -93,9 +93,17 @@ for pu in TaskMapper.pu_list:
     pu.show_stats()
 print("-------------------- Stats ----------------------")
 
-"""
-for i, t in enumerate(TaskMapper.all_tasks):
-    print(i, t, t.isFailed())
-"""
+
+for i, task in enumerate(TaskMapper.all_tasks):
+
+    pu = task.getCurrentPU()
+    pu_power = pu.getPower()
+    task_time = task.getTotalExecutionTime()
+    power = pu_power * task_time
+    #print(i, task, task.isFailed(), pu, power)
+
+for t in vehicle.all_tasks:
+    #print(t, t.getTotalExecutionTime())
+    pass
 
 
