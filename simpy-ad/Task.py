@@ -28,6 +28,8 @@ class Task(object):
         self.currentVehicle = currentVehicle
         self.currentPU = currentPU
         self.total_execution_time = 0
+        self.execution_start_time = None
+        self.execution_end_time = None
 
     def getTaskName(self):
         return self.name
@@ -75,7 +77,9 @@ class Task(object):
         self.currentVehicle = current_vehicle
 
     def getTotalExecutionTime(self):
-        return self.total_execution_time
+        #return self.total_execution_time
+        return self.execution_end_time - self.execution_start_time
+
 
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time
