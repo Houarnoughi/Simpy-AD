@@ -22,6 +22,20 @@ By yielding the Process instance that Environment.process() returns, the run pro
 
 import simpy
 
+class TaskMapper:
+    tasks = []
+    def __init__(self, env) -> None:
+        self.env = env
+        # Start the run process every time an instance is created
+        self.action = env.process(self.run())
+    
+    def run(self):
+        while True:
+            print(f"TaskMapper tasks {len(TaskMapper.tasks)}")
+            
+            yield self.env.timeout(1)
+
+
 
 class Car(object):
     def __init__(self, env):
@@ -32,6 +46,7 @@ class Car(object):
     def run(self):
         while True:
             print('Start parking and charging at %d' % self.env.now)
+            TaskMapper.tasks.append("task")
             charge_duration = 5
             # We yield the process that process() returns to wait for it ti finish
             yield self.env.process(self.charge(charge_duration))
@@ -86,6 +101,7 @@ def driver(env, car):
 
 def main():
     env = simpy.Environment()
+    mapper = TaskMapper(env)
     car1 = Car(env)
     car2 = Car(env)
     env.run(until=20)

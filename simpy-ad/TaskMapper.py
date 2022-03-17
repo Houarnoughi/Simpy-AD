@@ -66,9 +66,8 @@ class TaskMapper:
     
     def work(self, env):
         while True:
-            #print("TaskMapper: work")
-            if len(TaskMapper.task_list) == 0:
-                pass
+            if not TaskMapper.task_list:
+                yield env.timeout(0)
             else:
                 #TaskMapper.showTasks()
                 TaskMapper.log(f"task count {len(TaskMapper.task_list)}")
@@ -80,7 +79,6 @@ class TaskMapper:
                 TaskMapper.log(f"submit task {task.name} to {pu} at {env.now}")
                 # send task to PU
                 pu.submitTask(task)
-
 
             yield env.timeout(1)
 

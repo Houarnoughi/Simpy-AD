@@ -1,3 +1,17 @@
+from abc import ABC, abstractmethod
+
+"""
+Abstract class for task scheduling policy. 
+Abstract methods must be implemented in a unique way
+by each scheduling policy
+"""
+class TaskScheduling(ABC):
+    @abstractmethod
+    def getExecutionSequence(self, task_list):
+        """
+        Imlplemented by chil class
+        """
+        
 class TaskSchedulingPolicy(object):
     """
     Scheduling policies:
@@ -39,4 +53,16 @@ class TaskSchedulingPolicy(object):
             new_task_list = sorted(task_list, key=lambda x: x.flop, reverse=False)
         return new_task_list
 
+class FIFOSchedulingPolicy(TaskScheduling):
+    def getExecutionSequence(task_list):
+        return task_list.copy()
 
+class SJFSchedulingPolicy(TaskScheduling):
+    def getExecutionSequence(task_list):
+        return sorted(task_list, key=lambda x: x.flop, reverse=False)
+
+class RoundRobinSchedulingPolicy(TaskScheduling):
+    pass
+
+#fifo = FIFOSchedulingPolicy()
+#sjf = SJFSchedulingPolicy()

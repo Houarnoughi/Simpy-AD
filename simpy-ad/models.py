@@ -11,7 +11,7 @@ class TaskMapperNet(nn.Module):
     TaskMapper - receives all tasks and distributes across PUs
     TaskMapperNet
         input - 
-            real_time (Task)
+            criticallity (Task)
             local_pu_execution_time (Task on Vehicle's PU)
             offload_time (Task to PU)
             offload_pu_execution_time (Task on PU)
