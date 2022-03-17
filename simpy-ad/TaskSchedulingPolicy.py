@@ -6,8 +6,15 @@ Abstract methods must be implemented in a unique way
 by each scheduling policy
 """
 class TaskScheduling(ABC):
+    def __init__(self) -> None:
+        self.task_list = ["default"]
+        super().__init__()
+
+    def addTask(self, task):
+        self.task_list.append(task)
+
     @abstractmethod
-    def getExecutionSequence(self, task_list):
+    def getExecutionSequence(self):
         """
         Imlplemented by chil class
         """
@@ -55,9 +62,6 @@ class TaskSchedulingPolicy(object):
 
 
 class FIFOSchedulingPolicy(TaskScheduling):
-    """
-    no state needed
-    """
     def getExecutionSequence(task_list):
         return task_list.copy()
 
@@ -65,18 +69,30 @@ class SJFSchedulingPolicy(TaskScheduling):
     """
     no state needed
     """
-    def getExecutionSequence(task_list):
-        return sorted(task_list, key=lambda x: x.flop, reverse=False)
+    def getExecutionSequence(self):
+        return sorted(self.task_list, key=lambda x: x.flop, reverse=False)
 
 class RoundRobinSchedulingPolicy(TaskScheduling):
     """
+    Quantum is time amount (q=10ms for example)
+    Each PU will burst (q/1000)*pu.flops of Task's flops
+
+        Task.remaining_flop -= (q/1000)*pu.flops
     
+    repeated until no flops remaining
     """
     def __init__(self, quantum):
         self.quantum = quantum
-
-    def getExecutionSequence(self, task_list):
+        super().__init__()
+        
+    def getExecutionSequence(self):
         pass
 
-#fifo = FIFOSchedulingPolicy()
-#sjf = SJFSchedulingPolicy()
+fifo = FIFOSchedulingPolicy()
+fifo.addTask("sec")
+sjf = SJFSchedulingPolicy()
+
+rr = RoundRobinSchedulingPolicy(10)
+rr.addTask('ok')
+
+print(fifo.task_list, sjf.task_list, rr.task_list)

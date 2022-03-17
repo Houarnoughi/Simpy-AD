@@ -130,9 +130,6 @@ class ProcessingUnit(simpy.Resource):
 
     def updateTaskListExecution(self):
         while True:
-            if len(self.getTaskList()) == 0:
-                yield self.env.timeout(1)
-
             new_task_list = self.scheduler.getExecutionSequence(self.task_list)
             #for frame in range(frames):
             for task in new_task_list:
@@ -154,10 +151,12 @@ class ProcessingUnit(simpy.Resource):
                     pass
                 self.log(f'Task from vehicle {vehicle} on Parent {parent}, location {location}')
 
+                self.removeTask(task)
+                """
                 # if no more flops remaining
                 if task.isDone():
                     self.removeTask(task)
-
+                """
                 # train step ?
                 TaskMapper.optimize()
 
@@ -166,7 +165,9 @@ class ProcessingUnit(simpy.Resource):
 
                 stop = self.env.now
                 task.updateTotalExecutionTime(stop-start)
+
                 yield self.env.timeout(1)
+
             yield self.env.timeout(1)
 
     def __repr__(self) -> str:
