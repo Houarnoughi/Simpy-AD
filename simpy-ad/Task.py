@@ -21,6 +21,7 @@ class Task(object):
         Task.idx += 1
         self.criticality = criticality
         self.flop = flop
+        self.remaining_flop = flop
         self.size = size
         self.preemptive = preemptive
         self.real_time = real_time
@@ -85,6 +86,10 @@ class Task(object):
     # if ended after deadline (deadline fixed by Vehicle)
     def isFailed(self):
         return self.execution_end_time > self.deadline
+
+    # 
+    def isFinished(self):
+        return self.remaining_flop <= 0
 
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time
