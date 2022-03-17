@@ -101,6 +101,10 @@ class ProcessingUnit(simpy.Resource):
         if task not in self.getTaskList():
             task.setCurrentPU(self)
             self.task_list.append(task)
+
+            # add task to scheduler
+            self.scheduler.addTask(task)
+
             self.executed_tasks += 1
             self.log(f'submitTask: {task.getTaskName()} submitted to {self.getPUName()} at {self.env.now}')
         else:
@@ -114,7 +118,12 @@ class ProcessingUnit(simpy.Resource):
         exec_time = self.getTaskExecutionTime(task) * 1000
         task.execution_start_time = time()
         yield self.env.timeout(exec_time)
-        
+    
+    def executeTaskRR(self, task):
+        executed_flops = (self.scheduler.quantum/1000) * self.getFlops()
+        task.remaining_flop -= executed_flops
+        yield self.env.timeout(self.scheduler.quantum)
+
     def log(self, message):
         print(f"{YELLOW}[PU] {message}{END}")
     
@@ -130,11 +139,17 @@ class ProcessingUnit(simpy.Resource):
 
     def updateTaskListExecution(self):
         while True:
-            new_task_list = self.scheduler.getExecutionSequence(self.task_list)
-            #for frame in range(frames):
+            #new_task_list = self.scheduler.getExecutionSequence(self.task_list)
+            new_task_list = self.scheduler.getExecutionSequence()
+
             for task in new_task_list:
                 self.log(f'Starting executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
                 start = self.env.now
+
+                # To-do execute task according to scheduling policy
+                # decrease flops and yield a scheduler's quantum
+
+                self.executeTaskRR(task)
                 yield self.env.process(self.executeTask(task))
                 task.execution_end_time = time()
                 self.log(f'Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}, took {task.getTotalExecutionTime()}')

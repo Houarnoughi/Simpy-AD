@@ -6,9 +6,12 @@ Abstract methods must be implemented in a unique way
 by each scheduling policy
 """
 class TaskScheduling(ABC):
-    def __init__(self) -> None:
-        self.task_list = ["default"]
-        super().__init__()
+    def __init__(self, parallel=False) -> None:
+        self.parallel=parallel
+        self.task_list = []
+
+    def getParallel(self):
+        return self.parallel
 
     def addTask(self, task):
         self.task_list.append(task)
@@ -84,9 +87,9 @@ class RoundRobinSchedulingPolicy(TaskScheduling):
     def __init__(self, quantum):
         self.quantum = quantum
         super().__init__()
-        
+
     def getExecutionSequence(self):
-        pass
+        return self.task_list
 
 fifo = FIFOSchedulingPolicy()
 fifo.addTask("sec")
@@ -95,4 +98,4 @@ sjf = SJFSchedulingPolicy()
 rr = RoundRobinSchedulingPolicy(10)
 rr.addTask('ok')
 
-print(fifo.task_list, sjf.task_list, rr.task_list)
+print(fifo.task_list, sjf.task_list, rr.task_list, rr.quantum)
