@@ -53,16 +53,30 @@ class TaskSchedulingPolicy(object):
             new_task_list = sorted(task_list, key=lambda x: x.flop, reverse=False)
         return new_task_list
 
+
 class FIFOSchedulingPolicy(TaskScheduling):
+    """
+    no state needed
+    """
     def getExecutionSequence(task_list):
         return task_list.copy()
 
 class SJFSchedulingPolicy(TaskScheduling):
+    """
+    no state needed
+    """
     def getExecutionSequence(task_list):
         return sorted(task_list, key=lambda x: x.flop, reverse=False)
 
 class RoundRobinSchedulingPolicy(TaskScheduling):
-    pass
+    """
+    
+    """
+    def __init__(self, quantum):
+        self.quantum = quantum
+
+    def getExecutionSequence(self, task_list):
+        pass
 
 #fifo = FIFOSchedulingPolicy()
 #sjf = SJFSchedulingPolicy()

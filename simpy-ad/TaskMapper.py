@@ -69,8 +69,9 @@ class TaskMapper:
             if not TaskMapper.task_list:
                 yield env.timeout(0)
             else:
-                #TaskMapper.showTasks()
+                
                 TaskMapper.log(f"task count {len(TaskMapper.task_list)}")
+                
                 # FIFO
                 task = TaskMapper.task_list.pop(0)
                 # GET PU

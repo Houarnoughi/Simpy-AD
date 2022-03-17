@@ -154,7 +154,9 @@ class ProcessingUnit(simpy.Resource):
                     pass
                 self.log(f'Task from vehicle {vehicle} on Parent {parent}, location {location}')
 
-                self.removeTask(task)
+                # if no more flops remaining
+                if task.isDone():
+                    self.removeTask(task)
 
                 # train step ?
                 TaskMapper.optimize()
