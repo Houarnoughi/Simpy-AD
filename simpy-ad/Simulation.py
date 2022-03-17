@@ -23,7 +23,7 @@ import simpy
 from Vehicle import Vehicle
 from Location import Location
 from ProcessingUnit import AGX, TeslaV100
-from TaskSchedulingPolicy import TaskSchedulingPolicy, RoundRobinSchedulingPolicy
+from TaskSchedulingPolicy import RoundRobinSchedulingPolicy, FIFOSchedulingPolicy
 from RoadSideUnit import RoadSideUnit
 from Server import Server
 from CNNModel import CNNModel
@@ -41,7 +41,7 @@ start = Location("Gare VA", 50.36328322047431, 3.5171747551323005)
 final = Location("Gare Lille", 50.63725143907785, 3.0702985651377745)
 ## PU init
 #pu1 = AGX(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
-pu1 = AGX(task_list=[], scheduler=RoundRobinSchedulingPolicy(1), env=env)
+pu1 = AGX(task_list=[], scheduler=FIFOSchedulingPolicy(), env=env)
 TaskMapper.addPU(pu1)
 #pu2 = AGX(task_list=[], scheduler=TaskSchedulingPolicy("FIFO"), env=env)
 #TaskMapper.addPU(pu2)

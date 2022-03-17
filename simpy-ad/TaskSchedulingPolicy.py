@@ -65,8 +65,8 @@ class TaskSchedulingPolicy(object):
 
 
 class FIFOSchedulingPolicy(TaskScheduling):
-    def getExecutionSequence(task_list):
-        return task_list.copy()
+    def getExecutionSequence(self):
+        return self.task_list.copy()
 
 class SJFSchedulingPolicy(TaskScheduling):
     """

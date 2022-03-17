@@ -115,9 +115,14 @@ class ProcessingUnit(simpy.Resource):
             self.task_list.remove(task)
 
     def executeTask(self, task):
-        exec_time = self.getTaskExecutionTime(task) * 1000
-        task.execution_start_time = time()
-        yield self.env.timeout(exec_time)
+        if hasattr(self.getScheduler(), 'quantum'):
+            print("quandtum")
+            self.executeTaskRR(task)
+        else:
+            print("No quandtum")
+            exec_time = self.getTaskExecutionTime(task) * 1000
+            task.execution_start_time = time()
+            yield self.env.timeout(exec_time)
     
     def executeTaskRR(self, task):
         executed_flops = (self.scheduler.quantum/1000) * self.getFlops()
@@ -148,8 +153,8 @@ class ProcessingUnit(simpy.Resource):
 
                 # To-do execute task according to scheduling policy
                 # decrease flops and yield a scheduler's quantum
+                #self.executeTaskRR(task)
 
-                self.executeTaskRR(task)
                 yield self.env.process(self.executeTask(task))
                 task.execution_end_time = time()
                 self.log(f'Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}, took {task.getTotalExecutionTime()}')
