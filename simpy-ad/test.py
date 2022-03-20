@@ -1,6 +1,7 @@
 import simpy
 from Colors import END, GREEN, YELLOW
 import random
+from TaskSchedulingPolicy import RoundRobinSchedulingPolicy
 
 env = simpy.Environment()
 
@@ -22,6 +23,7 @@ class PU:
         self.env = env
         self.name = name
         self.tasks =  list()
+        self.CYCLE = 1/100000
         self.process = self.env.process(self.run())
 
     def addTask(self, task):
@@ -33,16 +35,14 @@ class PU:
         return task.flop / flops
 
     def execute_task(self, task):
-        print("------------------")
         print(f"{GREEN}{self.name} executing {task} at {self.env.now}, tasks={len(self.tasks)}")
-        q = self.scheduler.quantum
-        qty = q * self.flops
+        quantum = self.scheduler.quantum
+        qty = quantum * self.flops
 
         # if have less to burn in 1 quantum
         if qty >= task.remaining_flop:
             # get needed quantum for remaining flop to be yielded
             current_quantum = task.remaining_flop/self.flops
-            self.scheduler.current_quantum = current_quantum
 
             # task finished
             task.remaining_flop = 0
@@ -50,36 +50,28 @@ class PU:
             print(f"quantum {current_quantum}")
             yield self.env.timeout(current_quantum) 
         else:
-            remaining_flop = task.remaining_flop
-            
-            q = remaining_flop/self.flops
-            print("quantum 0.01")
-
             task.remaining_flop -= qty
-
-            yield self.env.timeout(q) 
+            yield self.env.timeout(quantum) 
 
     def run(self):
         while True:
-            #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.tasks)}")
-            # scheduler update tasks
-            #print(f"sched tasks {len(self.scheduler.task_list)}")
             try:
                 task = self.scheduler.getNextTask()
                 if task:
-                    print(f'got task from schedulemr {task}')
+                    print("------------------")
+                    print(f'from scheduler {task}')
                     yield self.env.process(self.execute_task(task))
                     print(f"{GREEN}{self.name} after exec {task} at {self.env.now}, tasks={len(self.tasks)}")
 
+                    # if task not finished
                     if task.remaining_flop > 0:
                         print(f"Back to scheduler {task}")
                         self.scheduler.addTaskInQueue(task)
-
                     #input('enter to continue')
                 else:
-                    yield self.env.timeout(0.0001)
+                    yield self.env.timeout(self.CYCLE)
             except Exception as e:
-                yield self.env.timeout(0.0001)
+                yield self.env.timeout(self.CYCLE)
             
 class Car:
     def __init__(self, name, pu: PU, env):
@@ -100,9 +92,7 @@ class Car:
 
             yield self.env.timeout(1)
 
-from TaskSchedulingPolicy import RoundRobinSchedulingPolicy
-
 pu = PU('PU 1', env, scheduler=RoundRobinSchedulingPolicy(0.01))
 car = Car('CAR 1', pu, env)
 
-env.run(until=2)
+env.run(until=20)

@@ -154,7 +154,6 @@ class Vehicle(object):
                 with pu.request() as req:
                     yield req
                     self.log(f'[LOG] Starting execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
-
                     # Multiply to adjust precision to simulation
                     execution_time = pu.getTaskExecutionTime(task) * 1000
                     yield self.env.timeout(execution_time)

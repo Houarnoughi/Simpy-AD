@@ -55,7 +55,7 @@ vehicle_tasks = [
     Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
     Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
 ]
-vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu1], required_FPS=100, env=env)
+vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu1], required_FPS=10, env=env)
 #vehicle = Vehicle(c_location=start, f_location=final, speed=10, task_list=vehicle_tasks, PU_list=[pu2], required_FPS=1, env=env)
 """
 RSU init
@@ -83,7 +83,7 @@ taskMapper = TaskMapper(env)
 #print("t ", taskMapper.task_list)
 #print("TaskMapper ", TaskMapper.task_list)
 
-SIM_TIME = 10**2
+SIM_TIME = 10**1
 print("Enter to start Simulation")
 input()
 

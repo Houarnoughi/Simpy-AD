@@ -12,6 +12,14 @@ class TaskScheduling(ABC):
 
     def getParallel(self):
         return self.parallel
+    
+    @abstractmethod
+    def addTaskInQueue(self, task):
+        """ impl by Policy """
+    
+    @abstractmethod
+    def getNextTask(self):
+        """ return task to be executed by PU """
 
     @abstractmethod
     def getExecutionSequence(self):
@@ -62,13 +70,24 @@ class TaskSchedulingPolicy(object):
 
 
 class FIFOSchedulingPolicy(TaskScheduling):
+    def addTaskInQueue(self, task):
+        self.task_list.append(task)
+    
+    def getNextTask(self):
+        if self.task_list:
+            return self.task_list.pop()
+
     def getExecutionSequence(self):
         return self.task_list.copy()
 
 class SJFSchedulingPolicy(TaskScheduling):
-    """
-    no state needed
-    """
+    def addTaskInQueue(self, task):
+        self.task_list.append(task)
+    
+    def getNextTask(self):
+        if self.task_list:
+            return self.task_list.pop()
+
     def getExecutionSequence(self):
         return sorted(self.task_list, key=lambda x: x.flop, reverse=False)
 
@@ -83,7 +102,6 @@ class RoundRobinSchedulingPolicy(TaskScheduling):
     """
     def __init__(self, quantum):
         self.quantum = quantum
-        self.current_quantum = 0
         self.queue = deque()
         super().__init__()
     

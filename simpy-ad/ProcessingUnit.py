@@ -103,7 +103,7 @@ class ProcessingUnit(simpy.Resource):
             self.task_list.append(task)
 
             # add task to scheduler
-            self.scheduler.addTask(task)
+            self.scheduler.addTaskInQueue(task)
 
             self.executed_tasks += 1
             self.log(f'submitTask: {task.getTaskName()} submitted to {self.getPUName()} at {self.env.now}')
@@ -122,7 +122,7 @@ class ProcessingUnit(simpy.Resource):
             task.remaining_flop -= executed_flops
             yield self.env.timeout(self.scheduler.quantum)
         else:
-            print("No quandtum")
+            print("No quantum")
             exec_time = self.getTaskExecutionTime(task) * 1000
             task.execution_start_time = time()
             yield self.env.timeout(exec_time)
@@ -142,6 +142,29 @@ class ProcessingUnit(simpy.Resource):
         return self.parent
 
     def updateTaskListExecution(self):
+        while True:
+            #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.tasks)}")
+            # scheduler update tasks
+            #print(f"sched tasks {len(self.scheduler.task_list)}")
+            try:
+                task = self.scheduler.getNextTask()
+                if task:
+                    self.log(f'got task from schedulemr {task}')
+                    yield self.env.process(self.execute_task(task))
+                    self.log(f" after exec {task} at {self.env.now}, tasks={len(self.tasks)}")
+
+                    if task.remaining_flop > 0:
+                        self.log(f"Back to scheduler {task}")
+                        self.scheduler.addTaskInQueue(task)
+
+                    #input('enter to continue')
+                else:
+                    yield self.env.timeout(0.0001)
+            except Exception as e:
+                yield self.env.timeout(0.0001)
+
+
+    def old_updateTaskListExecution(self):
         while True:
             #new_task_list = self.scheduler.getExecutionSequence(self.task_list)
             new_task_list = self.scheduler.getExecutionSequence()
