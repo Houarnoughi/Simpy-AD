@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from collections import deque
 """
 Abstract class for task scheduling policy. 
 Abstract methods must be implemented in a unique way
@@ -12,9 +12,6 @@ class TaskScheduling(ABC):
 
     def getParallel(self):
         return self.parallel
-
-    def addTask(self, task):
-        self.task_list.append(task)
 
     @abstractmethod
     def getExecutionSequence(self):
@@ -86,11 +83,20 @@ class RoundRobinSchedulingPolicy(TaskScheduling):
     """
     def __init__(self, quantum):
         self.quantum = quantum
+        self.current_quantum = 0
+        self.queue = deque()
         super().__init__()
+    
+    def addTaskInQueue(self, task):
+        self.queue.append(task)
+    
+    def getNextTask(self):
+        if self.queue:
+            return self.queue.popleft()
 
     def getExecutionSequence(self):
         return self.task_list
-
+"""
 fifo = FIFOSchedulingPolicy()
 fifo.addTask("sec")
 sjf = SJFSchedulingPolicy()
@@ -99,3 +105,4 @@ rr = RoundRobinSchedulingPolicy(10)
 rr.addTask('ok')
 
 print(fifo.task_list, sjf.task_list, rr.task_list, rr.quantum)
+"""

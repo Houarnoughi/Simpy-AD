@@ -115,20 +115,19 @@ class ProcessingUnit(simpy.Resource):
             self.task_list.remove(task)
 
     def executeTask(self, task):
+        print("IN EXECUTE TASK")
         if hasattr(self.getScheduler(), 'quantum'):
-            print("quandtum")
-            self.executeTaskRR(task)
+            print("quantum")
+            executed_flops = (self.scheduler.quantum/1000) * self.getFlops()
+            task.remaining_flop -= executed_flops
+            yield self.env.timeout(self.scheduler.quantum)
         else:
             print("No quandtum")
             exec_time = self.getTaskExecutionTime(task) * 1000
             task.execution_start_time = time()
             yield self.env.timeout(exec_time)
+        print("OUT EXECUTE TASK")
     
-    def executeTaskRR(self, task):
-        executed_flops = (self.scheduler.quantum/1000) * self.getFlops()
-        task.remaining_flop -= executed_flops
-        yield self.env.timeout(self.scheduler.quantum)
-
     def log(self, message):
         print(f"{YELLOW}[PU] {message}{END}")
     
@@ -153,15 +152,17 @@ class ProcessingUnit(simpy.Resource):
 
                 # To-do execute task according to scheduling policy
                 # decrease flops and yield a scheduler's quantum
-                #self.executeTaskRR(task)
-
+                print("BEFORE execute task")
                 yield self.env.process(self.executeTask(task))
+                print("AFTER execute task")
                 task.execution_end_time = time()
                 self.log(f'Finishing executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}, took {task.getTotalExecutionTime()}')
                 self.log(f'Task ended {task.execution_end_time}, deadline {task.deadline}, failed={task.isFailed()}')
+                self.log(f'Total flops {task.getFlop()}, remaining {task.remaining_flop} ')
                 # get vehicle and check if it's still in PU activity zone (actually RoadSideUnit's one)
                 # if vehicle is outside, we consider task failed -> optimize model
                 # to do
+                
                 vehicle = task.getCurrentVehicle()
                 parent = self.parent
                 location = parent.getLocation()
@@ -186,7 +187,7 @@ class ProcessingUnit(simpy.Resource):
                 stop = self.env.now
                 task.updateTotalExecutionTime(stop-start)
 
-                yield self.env.timeout(1)
+                #yield self.env.timeout(1)
 
             yield self.env.timeout(1)
 

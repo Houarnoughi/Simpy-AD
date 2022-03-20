@@ -67,15 +67,9 @@ class Vehicle(object):
 
                     self.all_tasks.append(t)
                     TaskMapper.addTask(t)
-
-                    # send 1 task
-                    yield self.env.timeout(1)
-
-                # send frame's tasks
-                # yield self.env.timeout(1)
-
-            # send all frame's tasks
-            # yield self.env.timeout(1)
+                    
+            # send all frame's tasks in a second
+            yield self.env.timeout(1)
 
     def showInfo(self):
         print(
