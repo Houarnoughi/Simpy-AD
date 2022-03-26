@@ -118,8 +118,8 @@ class ProcessingUnit(simpy.Resource):
         q = self.scheduler.quantum/1000
         return q * self.getFlops()
 
-    def executeTask(self, task):
-        print("IN EXECUTE TASK")
+    def execute_task(self, task):
+        self.log(f'execute_task: Scheduler {self.scheduler.__class__.__name__}')
         if hasattr(self.getScheduler(), 'quantum'):
             qty = self.getQuantumFlop()
 
@@ -129,20 +129,22 @@ class ProcessingUnit(simpy.Resource):
                 current_quantum = task.remaining_flop/self.flops
                 # task finished
                 task.remaining_flop = 0
-                print(f"quantum {current_quantum}")
+                self.log(f'execute_task: Task {task} finished at {self.env.now}')
+                self.log(f"execute_task: quantum {current_quantum}")
                 yield self.env.timeout(current_quantum)
             # normal quantum execution
             else:
+                self.log(f'execute_task: before burst task {task} remaining flop={task.remaining_flop}')
                 task.remaining_flop -= qty
+                self.log(f'execute_task:  after burst task {task} remaining flop={task.remaining_flop}')
                 yield self.env.timeout(self.scheduler.quantum) 
         else:
-            print("No quantum")
+            self.log("execute_task: No quantum")
             exec_time = self.getTaskExecutionTime(task) * 1000
             task.execution_start_time = time()
             # task finished
             task.remaining_flop = 0
             yield self.env.timeout(exec_time)
-        print("OUT EXECUTE TASK")
     
     def log(self, message):
         print(f"{YELLOW}[PU] {message}{END}")
@@ -176,7 +178,7 @@ class ProcessingUnit(simpy.Resource):
 
                     #input('enter to continue')
                 else:
-                    #self.log(f'CYCLE at {self.env.now}')
+                    #self.log(f'No Task Found. CYCLE at {self.env.now}')
                     yield self.env.timeout(CYCLE)
             except Exception as e:
                 #self.log(f'CYCLE at {self.env.now}')
