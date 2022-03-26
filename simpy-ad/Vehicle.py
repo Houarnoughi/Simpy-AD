@@ -60,10 +60,9 @@ class Vehicle(object):
                 for task in self.task_list:
                     t = Task(task.flop, task.size, task.criticality)
                     t.setCurrentVehicle(self)
-                    t.setDeadline(time() + DELTA)
-                    #t.setDeadline(time())
+                    t.setDeadline(self.env.now + DELTA)
                     #t = task
-                    self.log(f"Generate Task {t} at {self.env.now}")
+                    #self.log(f"Generate Task {t} at {self.env.now}")
 
                     self.all_tasks.append(t)
                     TaskMapper.addTask(t)
