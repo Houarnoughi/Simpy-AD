@@ -24,8 +24,18 @@ class Location(object):
 
     def setLongitude(self, longitude):
         self.longitude = longitude
+    
+    def getDistanceInMetersBetween(src: 'Location', dst: 'Location'):
+        source = (src.getLatitude(), src.getLongitude())
+        coord = (dst.getLatitude(), dst.getLongitude())
+        return hs.haversine(source, coord, hs.Unit.METERS)
 
-    def getDistanceInKm(self, dst):
+    def getDistanceInMeters(self, dst: 'Location'):
+        src = (self.getLatitude(), self.getLongitude())
+        coord = (dst.getLatitude(), dst.getLongitude())
+        return hs.haversine(src, coord, hs.Unit.METERS)
+
+    def getDistanceInKm(self, dst: 'Location'):
         src = (self.getLatitude(), self.getLongitude())
         coord = (dst.getLatitude(), dst.getLongitude())
         return hs.haversine(src, coord)
