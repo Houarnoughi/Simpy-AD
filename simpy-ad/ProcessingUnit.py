@@ -113,18 +113,34 @@ class ProcessingUnit(simpy.Resource):
     def removeTask(self, task):
         if task in self.task_list:
             self.task_list.remove(task)
+    
+    def getQuantumFlop(self):
+        q = self.scheduler.quantum/1000
+        return q * self.getFlops()
 
     def executeTask(self, task):
         print("IN EXECUTE TASK")
         if hasattr(self.getScheduler(), 'quantum'):
-            print("quantum")
-            executed_flops = (self.scheduler.quantum/1000) * self.getFlops()
-            task.remaining_flop -= executed_flops
-            yield self.env.timeout(self.scheduler.quantum)
+            qty = self.getQuantumFlop()
+
+            # if have less to burn in 1 quantum
+            if qty >= task.remaining_flop:
+                # get needed quantum for remaining flop to be yielded
+                current_quantum = task.remaining_flop/self.flops
+                # task finished
+                task.remaining_flop = 0
+                print(f"quantum {current_quantum}")
+                yield self.env.timeout(current_quantum)
+            # normal quantum execution
+            else:
+                task.remaining_flop -= qty
+                yield self.env.timeout(self.scheduler.quantum) 
         else:
             print("No quantum")
             exec_time = self.getTaskExecutionTime(task) * 1000
             task.execution_start_time = time()
+            # task finished
+            task.remaining_flop = 0
             yield self.env.timeout(exec_time)
         print("OUT EXECUTE TASK")
     
@@ -142,6 +158,7 @@ class ProcessingUnit(simpy.Resource):
         return self.parent
 
     def updateTaskListExecution(self):
+        CYCLE = 0.0001
         while True:
             #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.tasks)}")
             # scheduler update tasks
@@ -159,9 +176,11 @@ class ProcessingUnit(simpy.Resource):
 
                     #input('enter to continue')
                 else:
-                    yield self.env.timeout(0.0001)
+                    #self.log(f'CYCLE at {self.env.now}')
+                    yield self.env.timeout(CYCLE)
             except Exception as e:
-                yield self.env.timeout(0.0001)
+                #self.log(f'CYCLE at {self.env.now}')
+                yield self.env.timeout(CYCLE)
 
 
     def old_updateTaskListExecution(self):
