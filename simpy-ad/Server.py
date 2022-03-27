@@ -1,6 +1,6 @@
 from simpy import Environment
 from TaskMapper import TaskMapper
-
+from typing import List
 """
 parent - RSU, DatCenter
 """
@@ -33,10 +33,10 @@ class Server(object):
     def getServerName(self):
         return self.name
 
-    def getPUList(self):
+    def getPUList(self) -> List:
         return self.pu_list
 
-    def setPUList(self, pu_list):
+    def setPUList(self, pu_list: List):
         for pu in pu_list:
             if pu not in self.getPUList():
                 pu.setCurrentServer(self)

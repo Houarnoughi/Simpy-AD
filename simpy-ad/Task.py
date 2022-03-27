@@ -66,7 +66,7 @@ class Task(object):
     def setStatus(self, status):
         self.status = status
 
-    def getCurrentPU(self):
+    def getCurrentPU(self) -> ProcessingUnit:
         return self.currentPU
 
     def setCurrentPU(self, pu: ProcessingUnit):
@@ -94,7 +94,7 @@ class Task(object):
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time
     
-    # OS time
+    # Simpy time
     def setDeadline(self, deadline):
         self.deadline = deadline
     

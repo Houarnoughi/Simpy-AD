@@ -1,12 +1,13 @@
 from Location import Location
-
+from typing import List
+from Server import Server
 
 class DataCenter(object):
     idx = 0
     name = ''
     server_list = []
 
-    def __init__(self, location: Location, server_list, to_RSU_bw):
+    def __init__(self, location: Location, server_list: List[Server], to_RSU_bw):
         self.id = DataCenter.idx
         self.name = f'Datacenter-{self.id}'
         DataCenter.idx += 1
@@ -14,7 +15,7 @@ class DataCenter(object):
         self.to_RSU_bw = to_RSU_bw
         self.location = location
 
-    def getDataCenterLocation(self):
+    def getDataCenterLocation(self) -> Location:
         return self.location
 
     def setDataCenterLocation(self, location: Location):
@@ -23,10 +24,11 @@ class DataCenter(object):
     def getDataCenterName(self):
         return self.name
 
-    def getServerList(self):
+    def getServerList(self) -> List[Server]:
         return self.server_list
 
-    def setServerList(self, server_list):
+    def setServerList(self, server_list: List[Server]):
+        server: Server = None
         for server in server_list:
             if server not in self.getServerList():
                 server.setCurrentDataCenter(self)
@@ -39,10 +41,10 @@ class DataCenter(object):
     def setToVehicleBW(self, bw):
         self.to_RSU_bw = bw
 
-    def setLocation(self, location):
+    def setLocation(self, location: Location):
         self.location=location
 
-    def getLocation(self):
+    def getLocation(self) -> Location:
         return self.location
 
     def __str__(self):

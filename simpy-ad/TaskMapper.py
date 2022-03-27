@@ -31,6 +31,7 @@ import simpy
 from Colors import GREEN, END
 import random
 from models import TaskMapperNet
+from typing import List
 
 class TaskMapper:
 
@@ -118,8 +119,8 @@ class TaskMapper:
         )
 
     # returns a list of sorted n closest PUs to a Task (Vehicle) 
-    def getClosestPUforTask(task, n):
-        task_location = task.getCurrentVehicle().getLocation()
+    def getClosestPUforTask(task, n) -> List:
+        task_location: Location = task.getCurrentVehicle().getLocation()
         #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
         for pu in TaskMapper.pu_list:

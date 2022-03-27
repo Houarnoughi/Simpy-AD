@@ -4,7 +4,8 @@ from TaskMapper import TaskMapper
 from Colors import GREEN, END, RED
 from Task import Task
 from ProcessingUnit import ProcessingUnit
-from typing import Type
+from typing import Type, List, Union
+from RoadSideUnit import RoadSideUnit
 
 class Vehicle(object):
     idx = 0
@@ -19,8 +20,8 @@ class Vehicle(object):
                  c_location: Location,  # Current location: source
                  f_location: Location,  # Future location: destination
                  speed,  # The car speed
-                 task_list,  # The list of vehicle tasks
-                 PU_list,  # The list of Processing units embedded on the vehicle
+                 task_list: List[Task],  # The list of vehicle tasks
+                 PU_list: List[ProcessingUnit],  # The list of Processing units embedded on the vehicle
                  required_FPS,
                  env: simpy.Environment,  # The simulation environment
                  capacity=1):  # The capacity of the shared resource
@@ -91,23 +92,23 @@ class Vehicle(object):
     def setVehicleName(self, name):
         self.name = name
 
-    def getLocation(self):
+    def getLocation(self) -> Location:
         return self.c_location
 
     # Get the source location of the vehicle
-    def getCurrentLocation(self):
+    def getCurrentLocation(self) -> Location:
         return self.c_location
 
     # Set the source location of the vehicle
-    def setCurrentLocation(self, location):
+    def setCurrentLocation(self, location: Location):
         self.c_location = location
 
     # Get the destination location
-    def getFutureLocation(self):
+    def getFutureLocation(self) -> Location:
         return self.f_location
 
     # Set the destination location
-    def setFutureLocation(self, location):
+    def setFutureLocation(self, location: Location):
         self.f_location = location
 
     # Get the average car driving speed
@@ -119,11 +120,12 @@ class Vehicle(object):
         self.speed = speed
 
     # Get the task list assigned to the vehicle
-    def getTaskList(self):
+    def getTaskList(self) -> List[Task]:
         return self.task_list
 
     # Assign the Task list to be executed by the vehicle
-    def setTaskList(self, task_list):
+    def setTaskList(self, task_list: List[Task]):
+        task: Task = None
         for task in task_list:
             if task not in self.task_list:
                 task.setCurrentVehicle(self)
@@ -137,11 +139,12 @@ class Vehicle(object):
         return self.parent
 
     # Get the list of Processing Units assigned embedded in the vahicle
-    def getPUList(self):
+    def getPUList(self) -> List[ProcessingUnit]:
         return self.PU_list
 
     # Assign the Processing Unit list to the vehicle
-    def setPUList(self, PU_list):
+    def setPUList(self, PU_list: List[ProcessingUnit]):
+        pu: ProcessingUnit = None
         for pu in PU_list:
             if pu not in self.getPUList():
 
@@ -165,10 +168,11 @@ class Vehicle(object):
                     self.log(f'[LOG] Finishing execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
 
     # Get the closest RSU among the list of all RSUs
-    def getClosestRSU(self, rsu_list):
-        closest_rsu = None
+    def getClosestRSU(self, rsu_list: List[RoadSideUnit]) -> RoadSideUnit:
+        closest_rsu: RoadSideUnit = None
         min_distance = float("inf")
 
+        rsu: RoadSideUnit = None
         for rsu in rsu_list:
             rsu_location = rsu.getLocation()
             dist_to_rsu = self.getCurrentLocation().getDistanceInKm(rsu_location)

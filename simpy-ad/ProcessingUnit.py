@@ -2,10 +2,11 @@ from Units import Units
 import simpy
 from Server import Server
 import Vehicle
-from TaskSchedulingPolicy import TaskSchedulingPolicy
+from TaskSchedulingPolicy import TaskSchedulingPolicy, TaskScheduling
 from Colors import YELLOW, END
 from time import time
 from TaskMapper import TaskMapper
+from typing import List
 '''
 Benchmarks sources : https://developer.nvidia.com/embedded/jetson-modules 
 and https://developer.nvidia.com/blog/nvidia-jetson-agx-xavier-32-teraops-ai-robotics/
@@ -22,7 +23,7 @@ class ProcessingUnit(simpy.Resource):
     idx = 0
     name = ''
 
-    def __init__(self, flops, memory, power, memory_bw, task_list,  scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
+    def __init__(self, flops, memory, power, memory_bw, task_list: List,  scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
         super().__init__(env, capacity)
         self.name = f'PU-{ProcessingUnit.idx}'
         ProcessingUnit.idx += 1
@@ -70,16 +71,16 @@ class ProcessingUnit(simpy.Resource):
     def setMemoryBandwidth(self, memory_bw):
         self.memory_bw = memory_bw
 
-    def getTaskList(self):
+    def getTaskList(self) -> List:
         return self.task_list
 
-    def setTaskList(self, task_list):
+    def setTaskList(self, task_list: List):
         for task in task_list:
             task.setCurrentPU(self)
             self.task_list.append(task)
             self.log(f'ProcessingUnit-setTaskList: {task.getTaskName()} submitted to {self.getPUName()}')
 
-    def getScheduler(self):
+    def getScheduler(self) -> TaskScheduling:
         return self.scheduler
 
     def setScheduler(self, scheduler: TaskSchedulingPolicy):
