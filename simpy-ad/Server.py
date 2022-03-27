@@ -1,6 +1,10 @@
 from simpy import Environment
 from TaskMapper import TaskMapper
-from typing import List
+from typing import List, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ProcessingUnit import ProcessingUnit
+
 """
 parent - RSU, DatCenter
 """
@@ -33,10 +37,10 @@ class Server(object):
     def getServerName(self):
         return self.name
 
-    def getPUList(self) -> List:
+    def getPUList(self) -> List['ProcessingUnit']:
         return self.pu_list
 
-    def setPUList(self, pu_list: List):
+    def setPUList(self, pu_list: List['ProcessingUnit']):
         for pu in pu_list:
             if pu not in self.getPUList():
                 pu.setCurrentServer(self)

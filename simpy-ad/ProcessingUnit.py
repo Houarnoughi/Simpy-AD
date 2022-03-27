@@ -6,7 +6,10 @@ from TaskSchedulingPolicy import TaskSchedulingPolicy, TaskScheduling
 from Colors import YELLOW, END
 from time import time
 from TaskMapper import TaskMapper
-from typing import List
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Task import Task
 '''
 Benchmarks sources : https://developer.nvidia.com/embedded/jetson-modules 
 and https://developer.nvidia.com/blog/nvidia-jetson-agx-xavier-32-teraops-ai-robotics/
@@ -23,7 +26,7 @@ class ProcessingUnit(simpy.Resource):
     idx = 0
     name = ''
 
-    def __init__(self, flops, memory, power, memory_bw, task_list: List,  scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
+    def __init__(self, flops, memory, power, memory_bw, task_list: List['Task'], scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
         super().__init__(env, capacity)
         self.name = f'PU-{ProcessingUnit.idx}'
         ProcessingUnit.idx += 1
@@ -71,10 +74,11 @@ class ProcessingUnit(simpy.Resource):
     def setMemoryBandwidth(self, memory_bw):
         self.memory_bw = memory_bw
 
-    def getTaskList(self) -> List:
+    def getTaskList(self) -> List['Task']:
         return self.task_list
 
-    def setTaskList(self, task_list: List):
+    def setTaskList(self, task_list: List['Task']):
+        task: Task = None
         for task in task_list:
             task.setCurrentPU(self)
             self.task_list.append(task)
@@ -86,19 +90,20 @@ class ProcessingUnit(simpy.Resource):
     def setScheduler(self, scheduler: TaskSchedulingPolicy):
         self.scheduler = scheduler
 
-    def getTaskLoadingTime(self, task):
+    def getTaskLoadingTime(self, task: 'Task'):
         return task.getSize() / self.getMemoryBandwidth()
 
-    def getTaskExecutionTime(self, task):
+    def getTaskExecutionTime(self, task: 'Task'):
         flops = self.getFlops()
         if self.getScheduler().getParallel():
             flops = int(self.getFlops()/len(self.getTaskList()))
         return task.getFlop() / flops
 
-    def getTaskEnergyConsumption(self, task):
+    def getTaskEnergyConsumption(self, task: 'Task'):
         return self.getTaskExecutionTime(task) * self.getPower()
 
-    def submitTask(self, task):
+    def submitTask(self, task: 'Task'):
+        
         if task not in self.getTaskList():
             task.setCurrentPU(self)
             self.task_list.append(task)
@@ -119,7 +124,7 @@ class ProcessingUnit(simpy.Resource):
         q = self.scheduler.quantum/1000
         return q * self.getFlops()
 
-    def execute_task(self, task):
+    def execute_task(self, task: 'Task'):
         self.log(f'execute_task: Scheduler {self.scheduler.__class__.__name__}')
         if hasattr(self.getScheduler(), 'quantum'):
             qty = self.getQuantumFlop()

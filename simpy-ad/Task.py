@@ -1,5 +1,9 @@
 from ProcessingUnit import ProcessingUnit
 from TaskCriticality import TaskCriticality
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Vehicle import Vehicle
 
 class Task(object):
     CREATED = 0
@@ -72,10 +76,10 @@ class Task(object):
     def setCurrentPU(self, pu: ProcessingUnit):
         self.currentPU = pu
 
-    def getCurrentVehicle(self):
+    def getCurrentVehicle(self) -> 'Vehicle':
         return self.currentVehicle
 
-    def setCurrentVehicle(self, current_vehicle):
+    def setCurrentVehicle(self, current_vehicle: 'Vehicle'):
         self.currentVehicle = current_vehicle
 
     # OS time

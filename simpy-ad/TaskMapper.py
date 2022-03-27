@@ -31,7 +31,11 @@ import simpy
 from Colors import GREEN, END
 import random
 from models import TaskMapperNet
-from typing import List
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ProcessingUnit import ProcessingUnit
+    from Task import Task
 
 class TaskMapper:
 
@@ -79,7 +83,7 @@ class TaskMapper:
                 print('sorted_pu_list', sorted_pu_list)
 
                 # GET PU
-                pu = random.choice(TaskMapper.pu_list)
+                pu: ProcessingUnit = random.choice(TaskMapper.pu_list)
 
                 # distance
                 task_location = task.getCurrentVehicle().getLocation()
@@ -94,13 +98,13 @@ class TaskMapper:
             yield env.timeout(1)
 
     # called on runtime
-    def addTask(task):
+    def addTask(task: 'Task'):
         TaskMapper.task_list.append(task)
 
-    def addPU(pu):
+    def addPU(pu: 'ProcessingUnit'):
         TaskMapper.pu_list.append(pu)
 
-    def removeTask(task):
+    def removeTask(task: 'Task'):
         TaskMapper.task_list.remove(task)
 
     def log(message):
@@ -119,7 +123,7 @@ class TaskMapper:
         )
 
     # returns a list of sorted n closest PUs to a Task (Vehicle) 
-    def getClosestPUforTask(task, n) -> List:
+    def getClosestPUforTask(task, n) -> List['ProcessingUnit']:
         task_location: Location = task.getCurrentVehicle().getLocation()
         #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
