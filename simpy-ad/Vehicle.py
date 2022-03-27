@@ -3,7 +3,8 @@ import simpy
 from TaskMapper import TaskMapper
 from Colors import GREEN, END, RED
 from Task import Task
-from time import time
+from ProcessingUnit import ProcessingUnit
+from typing import Type
 
 class Vehicle(object):
     idx = 0
@@ -53,15 +54,20 @@ class Vehicle(object):
     The goal is to approach FPS by training
     """
     def run(self):
-        DELTA = 1/self.required_FPS
+        DELTA = 0
         while True:
             # sublit tasks to TaskMapper
             for _ in range(self.required_FPS):
                 for task in self.task_list:
-                    t = Task(task.flop, task.size, task.criticality)
+                    t: Task = Task(task.flop, task.size, task.criticality)
                     t.setCurrentVehicle(self)
+
+                    # execution time in place
+                    pu: ProcessingUnit = self.PU_list[0]
+                    DELTA = pu.getTaskExecutionTime(t) + pu.getTaskLoadingTime(t)
+                    # setting task deadline
                     t.setDeadline(self.env.now + DELTA)
-                    #t = task
+
                     #self.log(f"Generate Task {t} at {self.env.now}")
 
                     self.all_tasks.append(t)
