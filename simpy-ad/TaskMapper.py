@@ -74,8 +74,8 @@ class TaskMapper:
                 # FIFO
                 task = TaskMapper.task_list.pop(0)
 
-                pu_list = TaskMapper.getClosestPUforTask(task)
-                print(pu_list)
+                sorted_pu_list = TaskMapper.getClosestPUforTask(task, 5)
+                print('sorted_pu_list', sorted_pu_list)
 
                 # GET PU
                 pu = random.choice(TaskMapper.pu_list)
@@ -84,7 +84,7 @@ class TaskMapper:
                 task_location = task.getCurrentVehicle().getLocation()
                 pu_location = pu.getParent().getLocation()
                 d = Location.getDistanceInMeters(task_location, pu_location)
-                print(task_location, pu_location, d)
+                #print(task_location, pu_location, d)
 
                 TaskMapper.log(f"submit task {task.name} to {pu} at {env.now}")
                 # send task to PU
@@ -117,9 +117,9 @@ class TaskMapper:
             ((l2.longitude-l1.longitude)**2) 
         )
 
-    def getClosestPUforTask(task):
+    # returns a list of sorted n closest PUs to a Task (Vehicle) 
+    def getClosestPUforTask(task, n):
         task_location = task.getCurrentVehicle().getLocation()
-
         #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
         for pu in TaskMapper.pu_list:
@@ -127,7 +127,7 @@ class TaskMapper:
             item = (pu, dist)
             pu_distance_list.append(item)
 
-        return sorted(pu_distance_list, key=lambda item: item[1])
+        return sorted(pu_distance_list, key=lambda item: item[1])[:n]
         
     def assignTaskToPu(self):
         pass
