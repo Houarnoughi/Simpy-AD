@@ -1,11 +1,15 @@
+from turtle import color
 from Location import Location
 import simpy
 from TaskMapper import TaskMapper
 from Colors import GREEN, END, RED
 from Task import Task
-from ProcessingUnit import ProcessingUnit
-from typing import Type, List, Union
-from RoadSideUnit import RoadSideUnit
+import numpy as np
+from typing import Type, List, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ProcessingUnit import ProcessingUnit
+    from RoadSideUnit import RoadSideUnit
 
 class Vehicle(object):
     idx = 0
@@ -20,8 +24,8 @@ class Vehicle(object):
                  c_location: Location,  # Current location: source
                  f_location: Location,  # Future location: destination
                  speed,  # The car speed
-                 task_list: List[Task],  # The list of vehicle tasks
-                 PU_list: List[ProcessingUnit],  # The list of Processing units embedded on the vehicle
+                 task_list: List['Task'],  # The list of vehicle tasks
+                 PU_list: List['ProcessingUnit'],  # The list of Processing units embedded on the vehicle
                  required_FPS,
                  env: simpy.Environment,  # The simulation environment
                  capacity=1):  # The capacity of the shared resource
@@ -56,11 +60,30 @@ class Vehicle(object):
     """
     def run(self):
         DELTA = 0
+
+        # generate trip coordinates
+        STEP = 10
+        trip_lat = np.linspace(self.c_location.latitude, self.f_location.latitude, STEP)
+        trip_lon = np.linspace(self.c_location.longitude, self.f_location.longitude, STEP)
+
+        #DEVIATION = 10
+        #augm = lambda e: e + np.random.uniform(0,1)/DEVIATION
+        #trip_lon = list(map(augm, trip_lon))
+        #trip_lat = list(map(augm, trip_lat))
+
+        trip = list(zip(trip_lat, trip_lon))
+
+        #i = 0
         while True:
+            #self.c_location.longitude = trip[i][0]
+            #self.c_location.latitude = trip[i][1]
+            #i += 1
+
             # sublit tasks to TaskMapper
+            self.log(f"Generating tasks at {self.env.now}")
             for _ in range(self.required_FPS):
                 for task in self.task_list:
-                    t: Task = Task(task.flop, task.size, task.criticality)
+                    t: 'Task' = Task(task.flop, task.size, task.criticality)
                     t.setCurrentVehicle(self)
 
                     # execution time in place
@@ -120,12 +143,12 @@ class Vehicle(object):
         self.speed = speed
 
     # Get the task list assigned to the vehicle
-    def getTaskList(self) -> List[Task]:
+    def getTaskList(self) -> List['Task']:
         return self.task_list
 
     # Assign the Task list to be executed by the vehicle
-    def setTaskList(self, task_list: List[Task]):
-        task: Task = None
+    def setTaskList(self, task_list: List['Task']):
+        task: 'Task' = None
         for task in task_list:
             if task not in self.task_list:
                 task.setCurrentVehicle(self)
@@ -139,15 +162,14 @@ class Vehicle(object):
         return self.parent
 
     # Get the list of Processing Units assigned embedded in the vahicle
-    def getPUList(self) -> List[ProcessingUnit]:
+    def getPUList(self) -> List['ProcessingUnit']:
         return self.PU_list
 
     # Assign the Processing Unit list to the vehicle
-    def setPUList(self, PU_list: List[ProcessingUnit]):
+    def setPUList(self, PU_list: List['ProcessingUnit']):
         pu: ProcessingUnit = None
         for pu in PU_list:
             if pu not in self.getPUList():
-
                 pu.setCurrentCurrentVehicle(self)
                 self.PU_list.append(pu)
 
@@ -157,6 +179,7 @@ class Vehicle(object):
                 self.log(f'[INFO] Vehicle-setPUList: Processing Unit {pu.getPUName()} added to {self.getVehicleName()}')
 
     def updateTaskListExecution(self):
+        pu: ProcessingUnit = None
         for pu in self.getPUList():
             for task in pu.getTaskList():
                 with pu.request() as req:
@@ -168,7 +191,7 @@ class Vehicle(object):
                     self.log(f'[LOG] Finishing execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
 
     # Get the closest RSU among the list of all RSUs
-    def getClosestRSU(self, rsu_list: List[RoadSideUnit]) -> RoadSideUnit:
+    def getClosestRSU(self, rsu_list: List['RoadSideUnit']) -> 'RoadSideUnit':
         closest_rsu: RoadSideUnit = None
         min_distance = float("inf")
 
