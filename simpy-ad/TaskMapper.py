@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
 class TaskMapper:
 
+    CYCLE = 0.001
     pu_list = []
     task_list = []
 
@@ -77,7 +78,7 @@ class TaskMapper:
                 TaskMapper.log(f"task count {len(TaskMapper.task_list)}")
                 
                 # FIFO
-                task = TaskMapper.task_list.pop(0)
+                task: Task = TaskMapper.task_list.pop(0)
 
                 sorted_pu_list = TaskMapper.getClosestPUforTask(task, 5)
                 print('sorted_pu_list', sorted_pu_list)
@@ -91,11 +92,11 @@ class TaskMapper:
                 d = Location.getDistanceInMeters(task_location, pu_location)
                 #print(task_location, pu_location, d)
 
-                TaskMapper.log(f"submit task {task.name} to {pu} at {env.now}")
+                #TaskMapper.log(f"submit task {task.name} to {pu} at {env.now}")
                 # send task to PU
                 pu.submitTask(task)
 
-            yield env.timeout(1)
+            yield env.timeout(TaskMapper.CYCLE)
 
     # called on runtime
     def addTask(task: 'Task'):
@@ -127,6 +128,8 @@ class TaskMapper:
         task_location: Location = task.getCurrentVehicle().getLocation()
         #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
+
+        pu: ProcessingUnit = None
         for pu in TaskMapper.pu_list:
             dist = Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())
             item = (pu, dist)

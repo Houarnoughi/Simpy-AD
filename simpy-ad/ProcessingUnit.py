@@ -166,7 +166,7 @@ class ProcessingUnit(simpy.Resource):
         return self.parent
 
     def updateTaskListExecution(self):
-        CYCLE = 0.0001
+        CYCLE = 0.001
         while True:
             #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.tasks)}")
             # scheduler update tasks
@@ -174,7 +174,7 @@ class ProcessingUnit(simpy.Resource):
             try:
                 task = self.scheduler.getNextTask()
                 if task:
-                    self.log(f'got task from schedulemr {task}')
+                    self.log(f'got task from scheduler {task}')
                     yield self.env.process(self.execute_task(task))
                     self.log(f" after exec {task} at {self.env.now}, tasks={len(self.tasks)}")
 
@@ -184,7 +184,7 @@ class ProcessingUnit(simpy.Resource):
 
                     #input('enter to continue')
                 else:
-                    #self.log(f'No Task Found. CYCLE at {self.env.now}')
+                    self.log(f'No Task Found. CYCLE at {self.env.now}')
                     yield self.env.timeout(CYCLE)
             except Exception as e:
                 #self.log(f'CYCLE at {self.env.now}')
