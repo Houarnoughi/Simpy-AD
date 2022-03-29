@@ -88,9 +88,14 @@ class Vehicle(object):
 
                     # execution time in place
                     pu: ProcessingUnit = self.PU_list[0]
-                    DELTA = pu.getTaskExecutionTime(t) + pu.getTaskLoadingTime(t)
+                    #DELTA = pu.getTaskExecutionTime(t) + pu.getTaskLoadingTime(t)
+                    #DELTA = 1/self.required_FPS
+                    DELTA = 1
+
                     # setting task deadline
                     t.setDeadline(self.env.now + DELTA)
+                    # set expected exec time
+                    t.setExpectedExecTime(DELTA)
 
                     #self.log(f"Generate Task {t} at {self.env.now}")
 
@@ -99,6 +104,7 @@ class Vehicle(object):
                     
             # send all frame's tasks in a second
             yield self.env.timeout(1)
+            break
 
     def showInfo(self):
         print(
