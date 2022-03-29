@@ -32,10 +32,15 @@ class Task(object):
         self.status = status
         self.currentVehicle = currentVehicle
         self.currentPU = currentPU
+        # deadline and expected execution time for failure check
         self.deadline = 0
+        self.expected_exec_time = 0
         self.total_execution_time = 0
-        self.execution_start_time = 0
-        self.execution_end_time = 0
+        self.execution_start_time = -1
+        self.execution_end_time = -1
+
+        self.scheduler_rounds = 0
+        
 
     def getTaskName(self):
         return self.name
@@ -104,6 +109,13 @@ class Task(object):
     
     def getDeadline(self):
         return self.deadline
+
+    # Simpy time
+    def setExpectedExecTime(self, time):
+        self.expected_exec_time = time
+    
+    def getExpectedExecTime(self):
+        return self.expected_exec_time
 
     def __str__(self):
         return f"[ID: {self.id}, {self.name}]"
