@@ -125,7 +125,10 @@ class ProcessingUnit(simpy.Resource):
         return q * self.getFlops()
 
     def execute_task(self, task: 'Task'):
-        if task.execution_start_time == 0:
+        # load task in memory 
+        yield self.env.timeout(self.getTaskLoadingTime(task))
+
+        if task.execution_start_time == -1:
             task.execution_start_time = self.env.now
 
         self.log(f'execute_task: Scheduler {self.scheduler.__class__.__name__}')
@@ -144,6 +147,7 @@ class ProcessingUnit(simpy.Resource):
             # normal quantum execution
             else:
                 self.log(f'execute_task: before burst task {task} remaining flop={task.remaining_flop}')
+                self.log(f'Burst qty {qty}')
                 task.remaining_flop -= qty
                 self.log(f'execute_task:  after burst task {task} remaining flop={task.remaining_flop} at {self.env.now}')
                 yield self.env.timeout(self.scheduler.quantum) 
@@ -169,7 +173,7 @@ class ProcessingUnit(simpy.Resource):
         return self.parent
 
     def updateTaskListExecution(self):
-        CYCLE = 0.0001
+        CYCLE = 0.01
         while True:
             #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.tasks)}")
             # scheduler update tasks
@@ -197,16 +201,17 @@ class ProcessingUnit(simpy.Resource):
                         diff = finish - deadline
                         total = finish - start
 
-                        self.log(f'Took {total}')
+                        self.log(f'Took {total}, expected {task.getExpectedExecTime()}, diff {task.getExpectedExecTime() - total}')
 
                         if diff > 0:
                             print(f'FAILED')
                         else:
                             print(f'SUCCESS')
-                        self.log(f'{task}, deadline={deadline}, ended={task.execution_end_time}')
+                        #self.log(f'{task}, deadline={deadline}, ended={task.execution_end_time}')
                         #self.log(f'Took {task.execution_end_time - task.execution_start_time} time')
                         #self.log(f'diff={diff}')
                         #input('task done, enter to continue')
+                    yield self.env.timeout(CYCLE)
                 else:
                     #self.log(f'No Task Found. CYCLE at {self.env.now}')
                     yield self.env.timeout(CYCLE)
