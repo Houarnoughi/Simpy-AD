@@ -71,6 +71,7 @@ class TaskSchedulingPolicy(object):
 
 class FIFOSchedulingPolicy(TaskScheduling):
     def addTaskInQueue(self, task):
+        task.scheduler_rounds += 1
         self.task_list.append(task)
     
     def getNextTask(self):
@@ -82,6 +83,7 @@ class FIFOSchedulingPolicy(TaskScheduling):
 
 class SJFSchedulingPolicy(TaskScheduling):
     def addTaskInQueue(self, task):
+        task.scheduler_rounds += 1
         self.task_list.append(task)
     
     def getNextTask(self):
@@ -106,6 +108,7 @@ class RoundRobinSchedulingPolicy(TaskScheduling):
         super().__init__()
     
     def addTaskInQueue(self, task):
+        task.scheduler_rounds += 1
         self.queue.append(task)
     
     def getNextTask(self):
