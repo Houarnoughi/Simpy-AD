@@ -100,6 +100,7 @@ class TaskMapper:
 
     # called on runtime
     def addTask(task: 'Task'):
+        TaskMapper.all_tasks.append(task)
         TaskMapper.task_list.append(task)
 
     def addPU(pu: 'ProcessingUnit'):
