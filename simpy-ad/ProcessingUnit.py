@@ -156,7 +156,7 @@ class ProcessingUnit(simpy.Resource):
             yield self.env.timeout(exec_time)
     
     def log(self, message):
-        print(f"{YELLOW}[PU] {message}{END}")
+        print(f"{YELLOW}[{self.name}] {message}{END}")
     
     def show_stats(self):
         self.log(f"{self.name} Executed {self.executed_tasks} tasks")
