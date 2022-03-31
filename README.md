@@ -1,5 +1,9 @@
 # SIMPY-AD
 
+## Version 1
+
+![Alt text](assets/schema-1.png "Title")
+
 ### Launch Simulation
 
 ```bash
