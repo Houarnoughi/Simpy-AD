@@ -1,11 +1,11 @@
 from turtle import color
 from Location import Location
 import simpy
-from TaskMapper import TaskMapper
 from Colors import GREEN, END, RED
 from Task import Task
 import numpy as np
-from typing import Type, List, Union, TYPE_CHECKING
+from Store import Store
+from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ProcessingUnit import ProcessingUnit
@@ -24,6 +24,7 @@ class Vehicle(object):
                  c_location: Location,  # Current location: source
                  f_location: Location,  # Future location: destination
                  speed,  # The car speed
+                 bw, # 4G bandwith to fog
                  task_list: List['Task'],  # The list of vehicle tasks
                  PU_list: List['ProcessingUnit'],  # The list of Processing units embedded on the vehicle
                  required_FPS,
@@ -37,6 +38,7 @@ class Vehicle(object):
         self.c_location = c_location
         self.f_location = f_location
         self.speed = speed
+        self.bw = bw
         # keep track of all generated tasks
         self.all_tasks = []
         self.task_list = []
@@ -100,7 +102,7 @@ class Vehicle(object):
                     #self.log(f"Generate Task {t} at {self.env.now}")
 
                     self.all_tasks.append(t)
-                    TaskMapper.addTask(t)
+                    Store.addTask(t)
                     
             # send all frame's tasks in a second
             yield self.env.timeout(1)

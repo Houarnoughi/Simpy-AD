@@ -30,6 +30,7 @@ from Location import Location
 import simpy
 from Colors import GREEN, END
 import random
+from Store import Store
 from models import TaskMapperNet
 from typing import List, TYPE_CHECKING
 
@@ -71,20 +72,24 @@ class TaskMapper:
     
     def work(self, env):
         while True:
-            if not TaskMapper.task_list:
+            if not Store.task_list:
                 yield env.timeout(0)
             else:
                 
-                TaskMapper.log(f"task count {len(TaskMapper.task_list)}")
+                #TaskMapper.log(f"task count {len(TaskMapper.task_list)}")
+                Store.log(f"task count {Store.getTaskCount()}")
                 
                 # FIFO
-                task: Task = TaskMapper.task_list.pop(0)
+                #task: Task = TaskMapper.task_list.pop(0)
+                task: Task = Store.getTask()
 
-                sorted_pu_list = TaskMapper.getClosestPUforTask(task, 5)
+                #sorted_pu_list = TaskMapper.getClosestPUforTask(task, 5)
+                sorted_pu_list = Store.getClosestPUforTask(task, 5)
                 print('sorted_pu_list', sorted_pu_list)
 
-                # GET PU
-                pu: ProcessingUnit = random.choice(TaskMapper.pu_list)
+                # GET Random PU
+                #pu: ProcessingUnit = random.choice(TaskMapper.pu_list)
+                pu: ProcessingUnit = Store.getRandomPU()
 
                 # distance
                 task_location = task.getCurrentVehicle().getLocation()
@@ -98,17 +103,6 @@ class TaskMapper:
 
             yield env.timeout(TaskMapper.CYCLE)
 
-    # called on runtime
-    def addTask(task: 'Task'):
-        TaskMapper.all_tasks.append(task)
-        TaskMapper.task_list.append(task)
-
-    def addPU(pu: 'ProcessingUnit'):
-        TaskMapper.pu_list.append(pu)
-
-    def removeTask(task: 'Task'):
-        TaskMapper.task_list.remove(task)
-
     def log(message):
         print(f"{GREEN}[TaskMapper] {message}{END}")
     
@@ -117,12 +111,6 @@ class TaskMapper:
 
     def showPUs():
         TaskMapper.log(f"PUs {TaskMapper.pu_list}")
-    
-    def distance(self, l1: Location, l2: Location):
-        return np.sqrt( 
-            ((l2.latitude-l1.latitude)**2) + 
-            ((l2.longitude-l1.longitude)**2) 
-        )
 
     # returns a list of sorted n closest PUs to a Task (Vehicle) 
     def getClosestPUforTask(task, n) -> List['ProcessingUnit']:

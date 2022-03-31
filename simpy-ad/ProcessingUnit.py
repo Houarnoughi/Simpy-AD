@@ -166,7 +166,6 @@ class ProcessingUnit(simpy.Resource):
         self.log(f"{self.name} Executed {self.executed_tasks} tasks")
 
     def setParent(self, parent):
-        print(f"PU setParent called with {parent}")
         self.parent=parent
     
     def getParent(self):
@@ -259,9 +258,6 @@ class ProcessingUnit(simpy.Resource):
                 """
                 # train step ?
                 TaskMapper.optimize()
-
-                # for later stats
-                TaskMapper.all_tasks.append(task)
 
                 stop = self.env.now
                 task.updateTotalExecutionTime(stop-start)

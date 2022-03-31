@@ -1,5 +1,4 @@
 from simpy import Environment
-from TaskMapper import TaskMapper
 from typing import List, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -46,7 +45,6 @@ class Server(object):
                 pu.setCurrentServer(self)
                 self.pu_list.append(pu)
 
-                #TaskMapper.addPU(pu)
                 print(f'[INFO] Server-setPUList: Processing Unit {pu.getPUName()} added to Server {self.getServerName()}')
 
     def getParent(self):
