@@ -169,6 +169,10 @@ class Vehicle(object):
     def getParent(self):
         return self.parent
 
+    # returns 1 PU (the first   )
+    def getPU(self) -> 'ProcessingUnit':
+        return self.PU_list[0]
+
     # Get the list of Processing Units assigned embedded in the vahicle
     def getPUList(self) -> List['ProcessingUnit']:
         return self.PU_list
