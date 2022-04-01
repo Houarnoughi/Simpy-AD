@@ -22,11 +22,9 @@ class TaskScheduling(ABC):
         """ return task to be executed by PU """
 
     @abstractmethod
-    def getExecutionSequence(self):
-        """
-        Imlplemented by chil class
-        """
-        
+    def getQueueSize(self):
+        """ return number of tasks in the queue """    
+
 class TaskSchedulingPolicy(object):
     """
     Scheduling policies:
@@ -80,6 +78,9 @@ class FIFOSchedulingPolicy(TaskScheduling):
 
     def getExecutionSequence(self):
         return self.task_list.copy()
+    
+    def getQueueSize(self):
+        return len(self.task_list)
 
 class SJFSchedulingPolicy(TaskScheduling):
     def addTaskInQueue(self, task):
@@ -92,6 +93,9 @@ class SJFSchedulingPolicy(TaskScheduling):
 
     def getExecutionSequence(self):
         return sorted(self.task_list, key=lambda x: x.flop, reverse=False)
+
+    def getQueueSize(self):
+        return len(self.task_list)
 
 class RoundRobinSchedulingPolicy(TaskScheduling):
     """
@@ -117,6 +121,9 @@ class RoundRobinSchedulingPolicy(TaskScheduling):
 
     def getExecutionSequence(self):
         return self.task_list
+    
+    def getQueueSize(self):
+        return len(self.queue)
 """
 fifo = FIFOSchedulingPolicy()
 fifo.addTask("sec")
