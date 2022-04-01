@@ -26,7 +26,7 @@ class ProcessingUnit(simpy.Resource):
     idx = 0
     name = ''
 
-    def __init__(self, flops, memory, power, memory_bw, task_list: List['Task'], scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
+    def __init__(self, flops, memory, power, memory_bw, task_list: List['Task'], scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1, MAX_QUEUE_SIZE=200):
         super().__init__(env, capacity)
         self.name = f'PU-{ProcessingUnit.idx}'
         ProcessingUnit.idx += 1
@@ -37,6 +37,7 @@ class ProcessingUnit(simpy.Resource):
         self.power = power
         self.memory_bw = memory_bw
         self.task_list = []
+        self.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE
         self.scheduler = scheduler
         self.setTaskList(task_list)
         self.env = env
@@ -170,6 +171,24 @@ class ProcessingUnit(simpy.Resource):
     
     def getParent(self):
         return self.parent
+    
+    def getQueueSize(self):
+        return self.scheduler.getQueueSize()
+    
+    def getAvailability(self):
+        n = self.getQueueSize() / self.getMaxQueueSize()
+        # if n < .25:
+        #     n = 0
+        # elif n < .5:
+        #     n  = 1
+        # elif n < .75:
+        #     n  = 2
+        # elif n < 1:
+        #     n  = 3
+        return n
+
+    def getMaxQueueSize(self):
+        return self.MAX_QUEUE_SIZE
 
     def updateTaskListExecution(self):
         CYCLE = 0.01
@@ -280,7 +299,7 @@ class AGX(ProcessingUnit):
         memory = 32 * Units.giga
         power = 30  # 10W / 15W / 30W
         memory_bw = 137 * Units.giga
-        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity)
+        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity, MAX_QUEUE_SIZE=200)
         super().setPuName(name)
 
     def getCurrentVehicle(self):
@@ -301,7 +320,7 @@ class TX2(ProcessingUnit):
         memory = 8 * Units.giga
         power = 15  # 7.5W / 15W
         memory_bw = 59.7 * Units.giga
-        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity)
+        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity, MAX_QUEUE_SIZE=300)
         super().setPuName(name)
 
     def getCurrentVehicle(self):
@@ -324,7 +343,7 @@ class TeslaV100(ProcessingUnit):
         memory = 32 * Units.giga
         power = 300
         memory_bw = 900 * Units.giga
-        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity)
+        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity, MAX_QUEUE_SIZE=400)
         super().setPuName(name)
 
     def getCurrentServer(self):
@@ -347,7 +366,7 @@ class DGXa100(ProcessingUnit):
         memory = 320 * Units.giga
         power = 6.5 * Units.kilo
         memory_bw = 2 * Units.tera
-        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity)
+        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity, MAX_QUEUE_SIZE=500)
         super().setPuName(name)
 
     def getCurrentServer(self):
