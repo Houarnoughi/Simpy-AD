@@ -4,7 +4,7 @@ infos about car speed and FPS : Re-thinking CNN Frameworks for Time-SensitiveAut
 Addressing anIndustrial Challenge
 """
 import pandas as pd
-
+from typing import Tuple
 
 class CNNModel(object):
     model_path = ''
@@ -46,13 +46,13 @@ class CNNModel(object):
     """
     Static methods
     """
-    def getModelFlopsMinMax():
+    def getModelFlopsMinMax() -> Tuple[float, float]:
         path = '../data/models_stats_AGX.csv'
         dataset = pd.read_csv(path)
         flops = dataset["FLOPs"]
         return flops.min(), flops.max()
 
-    def getModelMemoryMinMax():
+    def getModelMemoryMinMax() -> Tuple[float, float]:
         path = '../data/models_stats_AGX.csv'
         dataset = pd.read_csv(path)
         memory = dataset["Memory"]
