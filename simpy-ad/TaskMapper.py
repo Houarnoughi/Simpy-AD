@@ -26,7 +26,8 @@ from torch import nn
 import torch
 from TaskSchedulingPolicy import TaskSchedulingPolicy
 import numpy as np
-from Location import Location
+import math
+from Location import Location, Latitude, Longitude
 import simpy
 from Colors import GREEN, END
 import random
@@ -118,9 +119,24 @@ class TaskMapper:
         min, max = CNNModel.getModelMemoryMinMax()
         task_size = normalize(task.getSize(), min, max)
 
+        # task-pu distance
+        task_location: Location = task.getCurrentVehicle().getCurrentLocation()
+        task_lat, task_long = task_location.getLatitudeLongitude()
+        # normalization
+        task_lat = normalize(task_lat, Latitude.min, Latitude.max)
+        task_long = normalize(task_long, Longitude.min, Longitude.max)
+
+        pu_location: Location = pu.getParent().getLocation()
+        pu_lat, pu_long = pu_location.getLatitudeLongitude()
+        # normalization
+        pu_lat = normalize(pu_lat, Latitude.min, Latitude.max)
+        pu_long = normalize(pu_long, Longitude.min, Longitude.max)
+        # euclidien distance
+        distance = math.dist((task_lat, task_long), (pu_lat, pu_long))
+
         return [crit, local_pu_execution_time, remote_pu_execution_time, 
                 offload_time, vehicle_pu_queue, remote_pu_queue,
-                task_flop, task_size]
+                task_flop, task_size, distance]
 
     def log(message):
         print(f"{GREEN}[TaskMapper] {message}{END}")
