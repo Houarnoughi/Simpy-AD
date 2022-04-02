@@ -74,26 +74,24 @@ class TaskMapper:
                 # GET Random PU
                 pu: ProcessingUnit = Store.getRandomPU()
 
-                probas = []
-                for pu, dist in sorted_pu_list:
-                    # Tensor of a Task's normalized props
-                    taskTensor = TaskMapper.taskToTensor(task, pu)
+                tensors = [TaskMapper.taskToTensor(task, pu) for pu, _ in sorted_pu_list]
 
-                    res: torch.Tensor = TaskMapper.nn(taskTensor)
-                    probas.append(res.item())
-                
+                probas = TaskMapper.nn(torch.tensor(tensors).float())
+                probas = probas.detach().numpy()
+
                 index = np.argmax(probas)
-                TaskMapper.log(f"Probas {probas}, best index {index}")
+                TaskMapper.log(f"Probas {probas.tolist()}, best index {index}")
 
+                # sorted_pu_list containes tupples (pu, distance)
                 best_pu, _ = sorted_pu_list[index]
-                # send task to PU
-                best_pu.submitTask(task)
 
+                # send task to best PU
+                best_pu.submitTask(task)
                 input() 
 
             yield env.timeout(TaskMapper.CYCLE)
 
-    def taskToTensor(task: 'Task', pu: 'ProcessingUnit') -> torch.Tensor:
+    def taskToTensor(task: 'Task', pu: 'ProcessingUnit') -> List[float]:
         def normalize(data, min, max):
             return (data - min)/(max - min)
 
@@ -152,7 +150,7 @@ class TaskMapper:
         props = [crit, local_pu_execution_time, remote_pu_execution_time, 
                 offload_time, vehicle_pu_queue, remote_pu_queue,
                 task_flop, task_size, distance]
-        return torch.tensor(props).float()
+        return props
 
     def log(message):
         print(f"{GREEN}[TaskMapper] {message}{END}")
