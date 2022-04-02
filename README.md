@@ -6,6 +6,15 @@
 
 ### Launch Simulation
 
+## clone
+
+```bash
+git clone https://github.com/Houarnoughi/Simpy-AD.git
+cd Simpy-AD
+```
+
+## install dependencies
+
 ```bash
 pip3 install -r requirements.txt
 or
