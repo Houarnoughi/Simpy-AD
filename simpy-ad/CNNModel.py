@@ -42,3 +42,19 @@ class CNNModel(object):
     # Get model memory given its name and input size
     def getModelMemory(self):
         return self.getModelCharacteristicsDict()["Memory"]
+    
+    """
+    Static methods
+    """
+    def getModelFlopsMinMax():
+        path = '../data/models_flops_224.csv'
+        dataset = pd.read_csv(path)
+        flops = dataset["flops"]
+        return flops.min(), flops.max()
+
+    def getModelMemoryMinMax():
+        pass
+
+if __name__ == '__main__':
+    min, max = CNNModel.getModelFlopsMinMax()
+    print(min, max)
