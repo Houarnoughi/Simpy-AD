@@ -47,7 +47,7 @@ class CNNModel(object):
     Static methods
     """
     def getModelFlopsMinMax():
-        path = '../data/models_flops_224.csv'
+        path = '../data/sota_models.csv'
         dataset = pd.read_csv(path)
         flops = dataset["flops"]
         return flops.min(), flops.max()
