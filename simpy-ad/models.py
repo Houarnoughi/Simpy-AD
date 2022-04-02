@@ -26,10 +26,18 @@ class TaskMapperNet(nn.Module):
                 0 - 500
             pu_queue ??? (PU)
                 0 - 1000
-            bw (Vehicle to PU)
-                
-            flop (Task)
 
+            Add pu_max_queue_size in ProcessingUnit. 
+            Define tresholds - categorical instead of min max
+
+            For pu_max_queue_size=100, availability is
+                if actual_queue_size is 25% -> HIGH 3
+                if actual_queue_size is 50% -> MEDIUM 2
+                if actual_queue_size is 75% -> LOW 1
+                if actual_queue_size is >75% -> None 0
+
+            flop (Task)
+                
             size (Task)
 
             euclid(task, pu) ???
@@ -48,4 +56,8 @@ class TaskMapperNet(nn.Module):
         data = F.relu(data)
         data = self.fc2(data)
 
-        return data
+        return torch.sigmoid(data)
+
+if __name__ == "__main__":
+    pass
+
