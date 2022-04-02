@@ -35,6 +35,7 @@ from Store import Store
 from models import TaskMapperNet
 from typing import List, TYPE_CHECKING
 from CNNModel import CNNModel
+from Network import LTE, LTE_PLUS
 
 torch.set_printoptions(precision=20)
 
@@ -75,7 +76,8 @@ class TaskMapper:
                 pu: ProcessingUnit = Store.getRandomPU()
 
                 tensors = [TaskMapper.taskToTensor(task, pu) for pu, _ in sorted_pu_list]
-
+                print(tensors)
+                input()
                 probas = TaskMapper.nn(torch.tensor(tensors).float())
                 probas = probas.detach().numpy()
 
@@ -87,7 +89,7 @@ class TaskMapper:
 
                 # send task to best PU
                 best_pu.submitTask(task)
-                input() 
+                #input() 
 
             yield env.timeout(TaskMapper.CYCLE)
 
@@ -107,7 +109,8 @@ class TaskMapper:
 
         ## offloading
         # offload time (bw, distance etc)
-        offload_time = 0
+        
+        offload_time = LTE.getTransferDuration(task.getSize())
 
         ## pu_queue represents PUs availabilitys based on tasks to process 
         ## and it's max queue size, range is 0, 1, 2, 3, 0 being the less available
