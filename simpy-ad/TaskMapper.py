@@ -33,6 +33,7 @@ import random
 from Store import Store
 from models import TaskMapperNet
 from typing import List, TYPE_CHECKING
+from CNNModel import CNNModel
 
 if TYPE_CHECKING:
     from ProcessingUnit import ProcessingUnit
@@ -47,24 +48,8 @@ class TaskMapper:
     success_task_list = []
     failed_task_list = []
     all_tasks = []
-    # env = None
 
-    """
-    min-max location
-    
-    model input -> Task props, PU props, bandwidth, distance
-
-    Task -> 
-        input -> (offloading_time or total), -flop-, size, euclid(task, pu), execution_timejen, bwToEdge, bwToFog
-        
-        offloading_time = task.getSize() / (server.getBandwidth()/8)
-        total = task.getTotalExecutionTime() / 1000 + offloading_time
-
-          output -> assing to a PU 
-    """
-    input_dim = 9
-
-    nn = TaskMapperNet(input_dim=10, hidden_dim=input_dim*2)
+    nn = TaskMapperNet(input_dim=10, hidden_dim=12, output_dim=1)
 
     def __init__(self, env):
         self.env = env
@@ -75,21 +60,21 @@ class TaskMapper:
             if not Store.task_list:
                 yield env.timeout(0)
             else:
-                
-                #TaskMapper.log(f"task count {len(TaskMapper.task_list)}")
                 Store.log(f"task count {Store.getTaskCount()}")
                 
                 # FIFO
-                #task: Task = TaskMapper.task_list.pop(0)
                 task: Task = Store.getTask()
 
-                #sorted_pu_list = TaskMapper.getClosestPUforTask(task, 5)
                 sorted_pu_list = Store.getClosestPUforTask(task, 5)
                 print('sorted_pu_list', sorted_pu_list)
 
                 # GET Random PU
-                #pu: ProcessingUnit = random.choice(TaskMapper.pu_list)
                 pu: ProcessingUnit = Store.getRandomPU()
+
+                # Tensor of a Task's normalized props
+                taskTensor = TaskMapper.taskToTensor(task, pu)
+                print(taskTensor)
+                input()
 
                 # distance
                 task_location = task.getCurrentVehicle().getLocation()
@@ -97,11 +82,45 @@ class TaskMapper:
                 d = Location.getDistanceInMeters(task_location, pu_location)
                 #print(task_location, pu_location, d)
 
-                #TaskMapper.log(f"submit task {task.name} to {pu} at {env.now}")
                 # send task to PU
                 pu.submitTask(task)
 
             yield env.timeout(TaskMapper.CYCLE)
+
+    def taskToTensor(task: 'Task', pu: 'ProcessingUnit') -> torch.Tensor:
+        def normalize(data, min, max):
+            return (data - min)/(max - min)
+        # criticality
+        crit = normalize(task.criticality.value, min=1, max=3)
+        # local pu execution time
+        local_pu: ProcessingUnit = task.getCurrentVehicle().getPU()
+        local_pu_execution_time = local_pu.getTaskExecutionTime(task)
+        # remote pu execution time
+        remote_pu_execution_time = pu.getTaskExecutionTime(task)
+        # offload time (bw, distance etc)
+        offload_time = 0
+        ## pu_queue represents PUs availabilitys based on tasks to process 
+        ## and it's max queue size, range is 0, 1, 2, 3, 0 being the less available
+        # Vehicle's PU task queue size (Max=100)
+        #vehicle_pu_queue = normalize(local_pu.getAvailability(), 0, 3)
+        # Remote PU tasks queue size (Max=100)
+        #remote_pu_queue = normalize(pu.getAvailability(), 0, 3)
+
+        # for now we take queue_size/max_queue_size
+        vehicle_pu_queue = local_pu.getAvailability()
+        remote_pu_queue = pu.getAvailability()
+
+        # task.flop/pu.flops
+        min, max = CNNModel.getModelFlopsMinMax()
+        task_flop = normalize(task.getFlop(), min, max)
+
+        # task.size/pu.memory
+        min, max = CNNModel.getModelMemoryMinMax()
+        task_size = normalize(task.getSize(), min, max)
+
+        return [crit, local_pu_execution_time, remote_pu_execution_time, 
+                offload_time, vehicle_pu_queue, remote_pu_queue,
+                task_flop, task_size]
 
     def log(message):
         print(f"{GREEN}[TaskMapper] {message}{END}")
@@ -132,12 +151,3 @@ class TaskMapper:
     def optimize():
         TaskMapper.log('Training todo')
         pass
-        
-#scheduler = TaskSchedulingPolicy('FIFO')
-#t = TaskMapper(scheduler=scheduler)
-
-#t = (10,5)
-#points = [(5,12), (3,0), (1,2), (9,3), (5, 14)]
-
-#points.sort(key=lambda p: np.sqrt( ((t[0] - p[0])**2) + ((t[1] - p[1])**2) ) )
-#print(points)
