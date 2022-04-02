@@ -1,4 +1,13 @@
 import haversine as hs
+from typing import Tuple
+
+class Latitude:
+    min = -90
+    max = 90
+
+class Longitude:
+    min = -180
+    max = 180
 
 class Location(object):
 
@@ -39,6 +48,9 @@ class Location(object):
         src = (self.getLatitude(), self.getLongitude())
         coord = (dst.getLatitude(), dst.getLongitude())
         return hs.haversine(src, coord)
+
+    def getLatitudeLongitude(self) -> Tuple[float, float]:
+        return self.getLatitude(), self.getLongitude()
 
     def __str__(self):
         return f"[Location: {self.latitude}, {self.longitude}]"
