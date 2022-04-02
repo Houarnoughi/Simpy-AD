@@ -36,6 +36,8 @@ from models import TaskMapperNet
 from typing import List, TYPE_CHECKING
 from CNNModel import CNNModel
 
+torch.set_printoptions(precision=20)
+
 if TYPE_CHECKING:
     from ProcessingUnit import ProcessingUnit
     from Task import Task
@@ -50,7 +52,7 @@ class TaskMapper:
     failed_task_list = []
     all_tasks = []
 
-    nn = TaskMapperNet(input_dim=10, hidden_dim=12, output_dim=1)
+    nn = TaskMapperNet(input_dim=9, hidden_dim=12, output_dim=1)
 
     def __init__(self, env):
         self.env = env
@@ -67,39 +69,48 @@ class TaskMapper:
                 task: Task = Store.getTask()
 
                 sorted_pu_list = Store.getClosestPUforTask(task, 5)
-                print('sorted_pu_list', sorted_pu_list)
+                TaskMapper.log(f'sorted_pu_list {sorted_pu_list}')
 
                 # GET Random PU
                 pu: ProcessingUnit = Store.getRandomPU()
 
-                # Tensor of a Task's normalized props
-                taskTensor = TaskMapper.taskToTensor(task, pu)
-                print(taskTensor)
-                input()
+                probas = []
+                for pu, dist in sorted_pu_list:
+                    # Tensor of a Task's normalized props
+                    taskTensor = TaskMapper.taskToTensor(task, pu)
 
-                # distance
-                task_location = task.getCurrentVehicle().getLocation()
-                pu_location = pu.getParent().getLocation()
-                d = Location.getDistanceInMeters(task_location, pu_location)
-                #print(task_location, pu_location, d)
+                    res: torch.Tensor = TaskMapper.nn(taskTensor)
+                    probas.append(res.item())
+                
+                index = np.argmax(probas)
+                TaskMapper.log(f"Probas {probas}, best index {index}")
 
+                best_pu, _ = sorted_pu_list[index]
                 # send task to PU
-                pu.submitTask(task)
+                best_pu.submitTask(task)
+
+                input() 
 
             yield env.timeout(TaskMapper.CYCLE)
 
     def taskToTensor(task: 'Task', pu: 'ProcessingUnit') -> torch.Tensor:
         def normalize(data, min, max):
             return (data - min)/(max - min)
-        # criticality
+
+        ## criticality
         crit = normalize(task.criticality.value, min=1, max=3)
+
+        ## execution time
         # local pu execution time
         local_pu: ProcessingUnit = task.getCurrentVehicle().getPU()
         local_pu_execution_time = local_pu.getTaskExecutionTime(task)
         # remote pu execution time
         remote_pu_execution_time = pu.getTaskExecutionTime(task)
+
+        ## offloading
         # offload time (bw, distance etc)
         offload_time = 0
+
         ## pu_queue represents PUs availabilitys based on tasks to process 
         ## and it's max queue size, range is 0, 1, 2, 3, 0 being the less available
         # Vehicle's PU task queue size (Max=100)
@@ -107,36 +118,41 @@ class TaskMapper:
         # Remote PU tasks queue size (Max=100)
         #remote_pu_queue = normalize(pu.getAvailability(), 0, 3)
 
+        ## queue
         # for now we take queue_size/max_queue_size
         vehicle_pu_queue = local_pu.getAvailability()
         remote_pu_queue = pu.getAvailability()
 
+        ## model props
         # task.flop/pu.flops
         min, max = CNNModel.getModelFlopsMinMax()
         task_flop = normalize(task.getFlop(), min, max)
-
         # task.size/pu.memory
         min, max = CNNModel.getModelMemoryMinMax()
         task_size = normalize(task.getSize(), min, max)
 
-        # task-pu distance
+        ## distance
+        # task location
         task_location: Location = task.getCurrentVehicle().getCurrentLocation()
         task_lat, task_long = task_location.getLatitudeLongitude()
         # normalization
         task_lat = normalize(task_lat, Latitude.min, Latitude.max)
         task_long = normalize(task_long, Longitude.min, Longitude.max)
 
+        # pu location
         pu_location: Location = pu.getParent().getLocation()
         pu_lat, pu_long = pu_location.getLatitudeLongitude()
         # normalization
         pu_lat = normalize(pu_lat, Latitude.min, Latitude.max)
         pu_long = normalize(pu_long, Longitude.min, Longitude.max)
-        # euclidien distance
+
+        # task-pu distance (euclidien)
         distance = math.dist((task_lat, task_long), (pu_lat, pu_long))
 
-        return [crit, local_pu_execution_time, remote_pu_execution_time, 
+        props = [crit, local_pu_execution_time, remote_pu_execution_time, 
                 offload_time, vehicle_pu_queue, remote_pu_queue,
                 task_flop, task_size, distance]
+        return torch.tensor(props).float()
 
     def log(message):
         print(f"{GREEN}[TaskMapper] {message}{END}")
