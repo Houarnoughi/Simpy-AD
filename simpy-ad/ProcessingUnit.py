@@ -207,6 +207,7 @@ class ProcessingUnit(simpy.Resource):
 
                     if task.remaining_flop > 0:
                         self.log(f"Back to scheduler {task}")
+                        task.scheduler_rounds += 1
                         self.scheduler.addTaskInQueue(task)
                     
                     if task.remaining_flop == 0:
