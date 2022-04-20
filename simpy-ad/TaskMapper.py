@@ -69,22 +69,22 @@ class TaskMapper:
                 # FIFO
                 task: Task = Store.getTask()
 
+                # Task's closest n PUs
                 sorted_pu_list = Store.getClosestPUforTask(task, 5)
                 TaskMapper.log(f'sorted_pu_list {sorted_pu_list}')
 
-                # GET Random PU
-                pu: ProcessingUnit = Store.getRandomPU()
-
+                # (task, pu) props batch
                 tensors = [TaskMapper.taskToTensor(task, pu) for pu, _ in sorted_pu_list]
                 print(tensors)
-                input()
+                #input()
                 probas = TaskMapper.nn(torch.tensor(tensors).float())
                 probas = probas.detach().numpy()
 
+                # get index of highest proba PU
                 index = np.argmax(probas)
                 TaskMapper.log(f"Probas {probas.tolist()}, best index {index}")
 
-                # sorted_pu_list containes tupples (pu, distance)
+                # sorted_pu_list contains tupples (pu, dist), ignore dist
                 best_pu, _ = sorted_pu_list[index]
 
                 # send task to best PU
