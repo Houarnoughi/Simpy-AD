@@ -112,7 +112,6 @@ class RoundRobinSchedulingPolicy(TaskScheduling):
         super().__init__()
     
     def addTaskInQueue(self, task):
-        task.scheduler_rounds += 1
         self.queue.append(task)
     
     def getNextTask(self):
