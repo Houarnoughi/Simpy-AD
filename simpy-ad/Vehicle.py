@@ -106,7 +106,6 @@ class Vehicle(object):
                     
             # send all frame's tasks in a second
             yield self.env.timeout(1)
-            break
 
     def showInfo(self):
         print(

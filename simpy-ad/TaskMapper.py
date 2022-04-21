@@ -36,6 +36,7 @@ from models import TaskMapperNet
 from typing import List, TYPE_CHECKING
 from CNNModel import CNNModel
 from Network import LTE, LTE_PLUS
+import config
 
 torch.set_printoptions(precision=20)
 
@@ -86,6 +87,10 @@ class TaskMapper:
 
                 # sorted_pu_list contains tupples (pu, dist), ignore dist
                 best_pu, _ = sorted_pu_list[index]
+
+                # send to random pu whithin range
+                if config.RANDOM:
+                    best_pu, _ = random.choice(sorted_pu_list)
 
                 # send task to best PU
                 best_pu.submitTask(task)
