@@ -33,6 +33,7 @@ from Colors import END, GREEN, YELLOW, RED
 from TaskCriticality import TaskCriticality
 from Store import Store
 from Plotter import Plotter
+import config
 
 env = simpy.Environment()
 
@@ -42,7 +43,7 @@ Vehicle init
 start = Location("Gare VA", 50.36328322047431, 3.5171747551323005)
 final = Location("Gare Lille", 50.63725143907785, 3.0702985651377745)
 ## PU init
-pu1 = AGX(task_list=[], scheduler=RoundRobinSchedulingPolicy(0.005), env=env)
+pu1 = AGX(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.QUANTUM), env=env)
 Store.addPU(pu1)
 
 inception = CNNModel('Inception-v3', 1024)
@@ -59,17 +60,20 @@ vehicle = Vehicle(
     f_location=final, 
     speed=10, 
     bw = 10e6,
-    task_list=vehicle_tasks, PU_list=[pu1], required_FPS=60, env=env)
+    task_list=vehicle_tasks, PU_list=[pu1], required_FPS=config.FPS, env=env)
 """
 RSU init
 """
 location = Location("", 50, 45)
 # PU init
-pu2 = TeslaV100(task_list=[], scheduler=RoundRobinSchedulingPolicy(0.01), env=env)
+pu2 = TeslaV100(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.QUANTUM), env=env)
 Store.addPU(pu2)
 
+pu3 = TeslaV100(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.QUANTUM), env=env)
+Store.addPU(pu3)
+
 ## Server init
-server = Server(pu_list=[pu2], bw=1, env=env)
+server = Server(pu_list=[pu2, pu3], bw=1, env=env)
 
 rsu = RoadSideUnit(activity_range=100, location=location, server_list=[server], to_vehicle_bw=1, to_cloud_bw=1, env=env)
 
@@ -80,7 +84,7 @@ Store.showPUs()
 
 taskMapper = TaskMapper(env)
 
-SIM_TIME = 10**0
+SIM_TIME = 10 #10**1
 print("Enter to start Simulation")
 input()
 
@@ -88,31 +92,4 @@ input()
 
 env.run(until=SIM_TIME)
 
-print("\n")
-print("-------------------- Stats ----------------------")
-for pu in TaskMapper.pu_list:
-    pu.show_stats()
-
-# success
-print(f'{GREEN}Success tasks')
-t: Task = None
-ended_lambda = lambda t: t.execution_start_time != -1 and t.execution_end_time != -1
-ended_list = list(filter(ended_lambda, Store.all_tasks))
-for t in ended_list:
-    print(f'{t} started at {t.execution_start_time} ended {t.execution_end_time}, sched rounds {t.scheduler_rounds}, total {t.getFlop()}, remaining {t.remaining_flop} flop, {t.currentPU}')
-
-print(f'{YELLOW}Not complete tasks')
-started_not_ended_lambda = lambda t: t.execution_start_time != -1 and t.execution_end_time == -1
-started_not_ended_list = list(filter(started_not_ended_lambda, Store.all_tasks))
-for t in started_not_ended_list:
-    print(f'{t} started at {t.execution_start_time} ended {t.execution_end_time}, sched rounds {t.scheduler_rounds}, total {t.getFlop()}, remaining {t.remaining_flop} flop, {t.currentPU}')
-
-print(f'{RED}Not started tasks')
-not_started_lambda = lambda t: t.execution_start_time == -1 and t.execution_end_time == -1
-not_started_list = list(filter(not_started_lambda, Store.all_tasks))
-for t in not_started_list:
-    print(f'{t} started at {t.execution_start_time} ended {t.execution_end_time}, sched rounds {t.scheduler_rounds}, total {t.getFlop()}, remaining {t.remaining_flop} flop, {t.currentPU}')
-
-print(f'{GREEN} Success {len(ended_list)}  {YELLOW} Incomplete {len(started_not_ended_list)}  {RED} Not finished {len(not_started_list)}')
-
-print(f"{YELLOW}-------------------- Stats ----------------------")
+Store.showStats()
