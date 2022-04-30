@@ -28,6 +28,7 @@ cd simpy-ad
 ```bash
 python3 Simulation.py
 ```
+## Simulation options are defined in simpy-ad/config.py
 
 ## References:
 - Emmanuelle Grislin-Le Strugeon, Hamza Ouarnoughi, Smaïl Niar: "A Multi-Agent Approach for Vehicle-to-Fog Fair Computation Offloading". 17th IEEE/ACS International Conference on Computer Systems and Applications, AICCSA 2020, Antalya, Turkey, November 2-5, 2020
