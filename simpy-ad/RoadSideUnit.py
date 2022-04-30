@@ -13,14 +13,15 @@ to_vehicle_bw -
 to_cloud_bw - 
 """
 class RoadSideUnit(simpy.Resource):
-    idx = 0
+    idx = 1
     name = ''
-    server_list = []
+    #server_list = []
 
     def __init__(self, location: Location, server_list: List[Server], to_vehicle_bw, to_cloud_bw, env: simpy.Environment, activity_range=0, capacity=1):
         self.id = RoadSideUnit.idx
         self.name = f'RSU-{self.id}'
         RoadSideUnit.idx += 1
+        self.server_list = []
         self.setServerList(server_list)
         self.to_vehicle_bw = to_vehicle_bw
         self.to_cloud_bw = to_cloud_bw
