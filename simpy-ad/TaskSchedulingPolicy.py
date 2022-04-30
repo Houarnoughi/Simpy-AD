@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import deque
+from Exceptions import NoMoreTasksException
+
 """
 Abstract class for task scheduling policy. 
 Abstract methods must be implemented in a unique way
@@ -75,7 +77,9 @@ class FIFOSchedulingPolicy(TaskScheduling):
     def getNextTask(self):
         if self.task_list:
             return self.task_list.pop()
-
+        else:
+            raise NoMoreTasksException()
+            
     def getExecutionSequence(self):
         return self.task_list.copy()
     
@@ -90,6 +94,8 @@ class SJFSchedulingPolicy(TaskScheduling):
     def getNextTask(self):
         if self.task_list:
             return self.task_list.pop()
+        else:
+            raise NoMoreTasksException()
 
     def getExecutionSequence(self):
         return sorted(self.task_list, key=lambda x: x.flop, reverse=False)
@@ -117,6 +123,8 @@ class RoundRobinSchedulingPolicy(TaskScheduling):
     def getNextTask(self):
         if self.queue:
             return self.queue.popleft()
+        else:
+            raise NoMoreTasksException()
 
     def getExecutionSequence(self):
         return self.task_list
