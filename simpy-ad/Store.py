@@ -103,8 +103,6 @@ class Store:
         if config.OFFLOAD_TO_DATACENTER:
             pu_list += list(filter(lambda pu: isinstance(pu.getParent(), DataCenter.DataCenter), Store.pu_list))
  
-        print(pu_list)
-        input()
         pu: ProcessingUnit = None
         for pu in pu_list:
             dist = Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())
