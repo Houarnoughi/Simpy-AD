@@ -2,11 +2,12 @@ from Units import Units
 import simpy
 from Server import Server
 import Vehicle
-from TaskSchedulingPolicy import TaskSchedulingPolicy, TaskScheduling
+from TaskSchedulingPolicy import TaskSchedulingPolicy, TaskScheduling, NoMoreTasksException
 from Colors import YELLOW, END
 from time import time
 from TaskMapper import TaskMapper
 from typing import List, TYPE_CHECKING
+from Exceptions import OutOfMemoryException
 
 if TYPE_CHECKING:
     from Task import Task
@@ -34,6 +35,7 @@ class ProcessingUnit(simpy.Resource):
         self.parent = None
         self.flops = flops
         self.memory = memory
+        self.actual_memory = 0
         self.power = power
         self.memory_bw = memory_bw
         self.task_list = []
@@ -104,8 +106,13 @@ class ProcessingUnit(simpy.Resource):
         return self.getTaskExecutionTime(task) * self.getPower()
 
     def submitTask(self, task: 'Task'):
-        
+
         if task not in self.getTaskList():
+            if self.actual_memory + task.getSize() > self.memory:
+                raise OutOfMemoryException()
+            else:
+                self.actual_memory += task.getSize()
+
             task.setCurrentPU(self)
             self.task_list.append(task)
 
@@ -113,7 +120,7 @@ class ProcessingUnit(simpy.Resource):
             self.scheduler.addTaskInQueue(task)
 
             self.executed_tasks += 1
-            self.log(f'submitTask: {task.getTaskName()} submitted to {self.getPUName()} at {self.env.now}')
+            self.log(f'submitTask: {task.getTaskName()} submitted to {self.getPUName()}')
         else:
             self.log(f'submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
 
@@ -132,7 +139,9 @@ class ProcessingUnit(simpy.Resource):
         if task.execution_start_time == -1:
             task.execution_start_time = self.env.now
 
-        self.log(f'execute_task: Scheduler {self.scheduler.__class__.__name__}')
+        TIMEOUT = 0
+
+        #self.log(f'execute_task: Scheduler {self.scheduler.__class__.__name__}')
         if hasattr(self.getScheduler(), 'quantum'):
             qty = self.getQuantumFlop()
 
@@ -142,26 +151,29 @@ class ProcessingUnit(simpy.Resource):
                 current_quantum = task.remaining_flop/self.flops
                 # task finished
                 task.remaining_flop = 0
-                self.log(f'execute_task: Task {task} finished at {self.env.now}')
-                self.log(f"execute_task: quantum {current_quantum}")
-                yield self.env.timeout(current_quantum)
+                #self.log(f'execute_task: Task {task} finished at {self.env.now}')
+                #self.log(f"execute_task: quantum {current_quantum}")
+                TIMEOUT = current_quantum
             # normal quantum execution
             else:
-                self.log(f'execute_task: before burst task {task} remaining flop={task.remaining_flop}')
-                self.log(f'Burst qty {qty}')
+                #self.log(f'execute_task: before burst task {task} remaining flop={task.remaining_flop}')
+                #self.log(f'Burst qty {qty}')
                 task.remaining_flop -= qty
-                self.log(f'execute_task:  after burst task {task} remaining flop={task.remaining_flop} at {self.env.now}')
-                yield self.env.timeout(self.scheduler.quantum) 
+                #self.log(f'execute_task:  after burst task {task} remaining flop={task.remaining_flop} at {self.env.now}')
+                TIMEOUT = self.scheduler.quantum
         else:
-            self.log("execute_task: No quantum")
+            #self.log("execute_task: No quantum")
             exec_time = self.getTaskExecutionTime(task) * 1000
             task.execution_start_time = time()
             # task finished
             task.remaining_flop = 0
-            yield self.env.timeout(exec_time)
+            TIMEOUT = exec_time
+
+        #self.log(f"execute_task: TIMEOUT {TIMEOUT}")
+        yield self.env.timeout(TIMEOUT)
     
     def log(self, message):
-        print(f"{YELLOW}[{self.name}] {message}{END}")
+        print(f"{END}{self.env.now}: {YELLOW}[{self.name}] {message}{END}")
     
     def show_stats(self):
         self.log(f"{self.name} Executed {self.executed_tasks} tasks")
@@ -198,46 +210,30 @@ class ProcessingUnit(simpy.Resource):
             #print(f"sched tasks {len(self.scheduler.task_list)}")
             try:
                 task: 'Task' = self.scheduler.getNextTask()
-                if task:
-                    self.log(f'got task from scheduler {task} at {self.env.now}')
-                    yield self.env.process(self.execute_task(task))
-                    
-                    #self.log(f" after exec {task}-flop={task.remaining_flop} at {self.env.now}, tasks={len(self.tasks)}")
-                    self.log(f" after exec {task}-flop={task.remaining_flop} at {self.env.now}")
+                
+                self.log(f"run: processing task {task}")
+                yield self.env.process(self.execute_task(task))
+                self.log(f"run: processed task {task}")
+                #self.log(f" after exec {task}-flop={task.remaining_flop} at {self.env.now}, tasks={len(self.tasks)}")
+                #self.log(f" after exec {task}-flop={task.remaining_flop} at {self.env.now}")
 
-                    if task.remaining_flop > 0:
-                        self.log(f"Back to scheduler {task}")
-                        task.scheduler_rounds += 1
-                        self.scheduler.addTaskInQueue(task)
-                    
-                    if task.remaining_flop == 0:
-                        task.execution_end_time = self.env.now
+                if task.remaining_flop > 0:
+                    self.log(f"Back to scheduler {task}")
+                    task.scheduler_rounds += 1
+                    self.scheduler.addTaskInQueue(task)
+                
+                if task.remaining_flop == 0:
+                    task.execution_end_time = self.env.now
+                    self.actual_memory -= task.getSize()
 
-                        start = task.execution_start_time
-                        finish = task.execution_end_time
-
-                        deadline = task.deadline
-                        diff = finish - deadline
-                        total = finish - start
-
-                        self.log(f'Took {total}, expected {task.getExpectedExecTime()}, diff {task.getExpectedExecTime() - total}')
-
-                        if diff > 0:
-                            print(f'FAILED')
-                        else:
-                            print(f'SUCCESS')
-                        #self.log(f'{task}, deadline={deadline}, ended={task.execution_end_time}')
-                        #self.log(f'Took {task.execution_end_time - task.execution_start_time} time')
-                        #self.log(f'diff={diff}')
-                        #input('task done, enter to continue')
-                    yield self.env.timeout(CYCLE)
-                else:
-                    #self.log(f'No Task Found. CYCLE at {self.env.now}')
-                    yield self.env.timeout(CYCLE)
-            except Exception as e:
-                self.log(f'{e} CYCLE at {self.env.now}')
+                    # task.isSuccess()
+                    #self.log(f'Took {total}, expected {task.getExpectedExecTime()}, diff {task.getExpectedExecTime() - total}')
+            except NoMoreTasksException as e:
+                self.log(f'No more tasks to execute')
                 yield self.env.timeout(CYCLE)
-
+            except Exception as e:
+                self.log(f'{e} CYCLE')
+                yield self.env.timeout(CYCLE)
 
     def old_updateTaskListExecution(self):
         while True:
