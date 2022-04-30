@@ -41,6 +41,14 @@ class Task(object):
 
         self.scheduler_rounds = 0
         
+    def isStarted(self):
+        return self.execution_start_time != -1
+    
+    def isFinished(self):
+        return self.execution_end_time != -1
+    
+    def isFinishedBeforeDeadline(self):
+        return self.execution_end_time < self.deadline
 
     def getTaskName(self):
         return self.name
@@ -92,14 +100,6 @@ class Task(object):
         #return self.total_execution_time
         return self.execution_end_time - self.execution_start_time
     
-    # if ended after deadline (deadline fixed by Vehicle)
-    def isFailed(self):
-        return self.execution_end_time > self.deadline
-
-    # 
-    def isFinished(self):
-        return self.remaining_flop <= 0
-
     def updateTotalExecutionTime(self, time):
         self.total_execution_time = self.getTotalExecutionTime() + time
     
