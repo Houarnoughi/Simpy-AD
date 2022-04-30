@@ -1,14 +1,14 @@
 """
-Task Mapper 
+Task Mapper
     - keeps refs of every Processing Unit in the simulation context
     - has refs to every task at runtime
 
     - stores processed Tasks, completed or failed for later stats
 
-We can access their location via 
-    - Task: 
+We can access their location via
+    - Task:
         Task.getCurrentVehicle().getCurrentLocation()
-    - Vehicle PU: 
+    - Vehicle PU:
         (AGX, TX2).getCurrentVehicle().getCurrentLocation()
     - RSU PU:
         (TeslaV100).getCurrentServer().getParent().getCurrentLocation()
@@ -20,7 +20,7 @@ We can access their location via
     t1, t2, t3
     pu1, pu2, pu3, pu4, pu5
 
-    t3, 
+    t3,
 """
 from torch import nn
 import torch
@@ -37,6 +37,8 @@ from typing import List, TYPE_CHECKING
 from CNNModel import CNNModel
 from Network import LTE, LTE_PLUS
 import config
+import copy
+from Exceptions import OutOfMemoryException, NoMoreTasksException
 
 torch.set_printoptions(precision=20)
 
@@ -46,7 +48,6 @@ if TYPE_CHECKING:
 
 class TaskMapper:
 
-    CYCLE = 0.001
     pu_list = []
     task_list = []
 
@@ -59,88 +60,146 @@ class TaskMapper:
     def __init__(self, env):
         self.env = env
         self.process = env.process(self.work(env))
-    
+
     def work(self, env):
+        CYCLE = 0.0001
         while True:
-            if not Store.task_list:
-                yield env.timeout(0)
-            else:
-                Store.log(f"task count {Store.getTaskCount()}")
-                
+            try:
+                #Store.log(f"tasks to execute count {Store.getTasksToExecuteCount()}")
                 # FIFO
                 task: Task = Store.getTask()
 
-                # Task's closest n PUs
-                sorted_pu_list = Store.getClosestPUforTask(task, 5)
-                TaskMapper.log(f'sorted_pu_list {sorted_pu_list}')
+                # if config.DATA_GENERATION_MODE:
+                #     for i, (pu, _) in enumerate(sorted_pu_list):
+                #         task_copy = copy.copy(task)
+                #         setattr(task_copy, 'new_id', i)
+                #         data = (task_copy, TaskMapper.taskPuToDict(task_copy, pu), pu)
+                #         Store.task_pu_props.append(data)
+                #         pu.submitTask(task_copy)
 
-                # (task, pu) props batch
-                tensors = [TaskMapper.taskToTensor(task, pu) for pu, _ in sorted_pu_list]
-                print(tensors)
-                #input()
-                probas = TaskMapper.nn(torch.tensor(tensors).float())
-                probas = probas.detach().numpy()
+                best_pu: 'ProcessingUnit' = None
+                if config.OFFLOAD:
+                    # Task's closest n PUs
+                    # filtered by config
+                    sorted_pu_list = Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
+                    
+                    #TaskMapper.log(f'sorted_pu_list {sorted_pu_list}')
+                    if config.RANDOM:
+                        # send to random pu whithin range
+                        best_pu, _ = random.choice(sorted_pu_list)
+                    else:
+                        # (task, pu) props batch
+                        tensors = [TaskMapper.taskToTensor(task, pu) for pu, _ in sorted_pu_list]
+                        # input()
+                        probas = TaskMapper.nn(torch.tensor(tensors).float())
+                        probas = probas.detach().numpy()
+                        # get index of highest proba PU
+                        index = np.argmax(probas)
+                        #TaskMapper.log(f"Probas {probas.tolist()}, best index {index}")
+                        # sorted_pu_list contains tupples (pu, dist), ignore dist
+                        best_pu, _ = sorted_pu_list[index]
+                else:
+                    # When OFFLOAD is false, we just send back to vehicle's PU
+                    best_pu = task.getCurrentVehicle().getPU()
 
-                # get index of highest proba PU
-                index = np.argmax(probas)
-                TaskMapper.log(f"Probas {probas.tolist()}, best index {index}")
+                try:
+                    best_pu.submitTask(task)
+                except OutOfMemoryException as e:
+                    self.log("OutOfMemoryException")
+                    input()
+            except NoMoreTasksException as e:
+                #self.log("NoMoreTasksException")
+                pass
+                
+            yield env.timeout(CYCLE)
 
-                # sorted_pu_list contains tupples (pu, dist), ignore dist
-                best_pu, _ = sorted_pu_list[index]
-
-                # send to random pu whithin range
-                if config.RANDOM:
-                    best_pu, _ = random.choice(sorted_pu_list)
-
-                # send task to best PU
-                best_pu.submitTask(task)
-                #input() 
-
-            yield env.timeout(TaskMapper.CYCLE)
+    def taskPuToDict(task: 'Task', pu: 'ProcessingUnit'):
+        inputs_dict = dict()
+        inputs_dict['task_id'] = task.id
+        inputs_dict['new_id'] = task.new_id
+        inputs_dict["criticality"] = task.criticality.value
+        local_pu: ProcessingUnit = task.getCurrentVehicle().getPU()
+        local_pu_execution_time = local_pu.getTaskExecutionTime(task)
+        inputs_dict["local_pu_execution_time"] = local_pu_execution_time
+        remote_pu_execution_time = pu.getTaskExecutionTime(task)
+        inputs_dict["remote_pu_execution_time"] = remote_pu_execution_time
+        offload_time = LTE.getTransferDuration(task.getSize())
+        inputs_dict["offload_time"] = offload_time
+        inputs_dict["deadline"] = task.deadline
+        inputs_dict["vehicle_pu_queue"] = local_pu.getQueueSize()
+        inputs_dict["remote_pu_queue"] = pu.getQueueSize()
+        inputs_dict["task_flop"] = task.getFlop()
+        inputs_dict["pu_flops"] = pu.getFlops()
+        inputs_dict["task_size"] = task.getSize()
+        task_location: Location = task.getCurrentVehicle().getCurrentLocation()
+        inputs_dict["task_location_lat"] = task_location.getLatitude()
+        inputs_dict["task_location_long"] = task_location.getLongitude()
+        pu_location: Location = pu.getParent().getLocation()
+        inputs_dict["pu_location_lat"] = pu_location.getLatitude()
+        inputs_dict["pu_location_long"] = pu_location.getLongitude()
+        inputs_dict["label"] = None
+        return inputs_dict
 
     def taskToTensor(task: 'Task', pu: 'ProcessingUnit') -> List[float]:
         def normalize(data, min, max):
             return (data - min)/(max - min)
 
-        ## criticality
-        crit = normalize(task.criticality.value, min=1, max=3)
+        inputs_dict = dict()
 
-        ## execution time
+        inputs_dict['task_id'] = task.id
+        # criticality
+        crit = normalize(task.criticality.value, min=1, max=3)
+        inputs_dict["criticality"] = task.criticality.value
+
+        # execution time
         # local pu execution time
         local_pu: ProcessingUnit = task.getCurrentVehicle().getPU()
         local_pu_execution_time = local_pu.getTaskExecutionTime(task)
+        inputs_dict["local_pu_execution_time"] = local_pu_execution_time
+        
         # remote pu execution time
         remote_pu_execution_time = pu.getTaskExecutionTime(task)
-
-        ## offloading
+        inputs_dict["remote_pu_execution_time"] = remote_pu_execution_time
+        
+        # offloading
         # offload time (bw, distance etc)
         
         offload_time = LTE.getTransferDuration(task.getSize())
+        inputs_dict["offload_time"] = offload_time
 
-        ## pu_queue represents PUs availabilitys based on tasks to process 
-        ## and it's max queue size, range is 0, 1, 2, 3, 0 being the less available
+        # pu_queue represents PUs availabilitys based on tasks to process 
+        # and it's max queue size, range is 0, 1, 2, 3, 0 being the less available
         # Vehicle's PU task queue size (Max=100)
-        #vehicle_pu_queue = normalize(local_pu.getAvailability(), 0, 3)
+        # vehicle_pu_queue = normalize(local_pu.getAvailability(), 0, 3)
         # Remote PU tasks queue size (Max=100)
-        #remote_pu_queue = normalize(pu.getAvailability(), 0, 3)
+        # remote_pu_queue = normalize(pu.getAvailability(), 0, 3)
 
-        ## queue
+        # queue
         # for now we take queue_size/max_queue_size
         vehicle_pu_queue = local_pu.getAvailability()
-        remote_pu_queue = pu.getAvailability()
+        inputs_dict["vehicle_pu_queue"] = local_pu.getQueueSize()
 
-        ## model props
+        remote_pu_queue = pu.getAvailability()
+        inputs_dict["remote_pu_queue"] = pu.getQueueSize()
+
+        # model props
         # task.flop/pu.flops
         min, max = CNNModel.getModelFlopsMinMax()
         task_flop = normalize(task.getFlop(), min, max)
+        inputs_dict["task_flop"] = task.getFlop()
+
         # task.size/pu.memory
         min, max = CNNModel.getModelMemoryMinMax()
         task_size = normalize(task.getSize(), min, max)
+        inputs_dict["task_size"] = task.getSize()
 
-        ## distance
+        # distance
         # task location
         task_location: Location = task.getCurrentVehicle().getCurrentLocation()
         task_lat, task_long = task_location.getLatitudeLongitude()
+        inputs_dict["task_location_lat"] = task_location.getLatitude()
+        inputs_dict["task_location_long"] = task_location.getLongitude()
+
         # normalization
         task_lat = normalize(task_lat, Latitude.min, Latitude.max)
         task_long = normalize(task_long, Longitude.min, Longitude.max)
@@ -148,12 +207,18 @@ class TaskMapper:
         # pu location
         pu_location: Location = pu.getParent().getLocation()
         pu_lat, pu_long = pu_location.getLatitudeLongitude()
+        inputs_dict["pu_location_lat"] = pu_location.getLatitude()
+        inputs_dict["pu_location_long"] = pu_location.getLongitude()
+
         # normalization
         pu_lat = normalize(pu_lat, Latitude.min, Latitude.max)
         pu_long = normalize(pu_long, Longitude.min, Longitude.max)
 
         # task-pu distance (euclidien)
         distance = math.dist((task_lat, task_long), (pu_lat, pu_long))
+  
+        inputs_dict["label"] = None
+        Store.input_list.append(inputs_dict)
 
         props = [crit, local_pu_execution_time, remote_pu_execution_time, 
                 offload_time, vehicle_pu_queue, remote_pu_queue,
@@ -172,7 +237,7 @@ class TaskMapper:
     # returns a list of sorted n closest PUs to a Task (Vehicle) 
     def getClosestPUforTask(task, n) -> List['ProcessingUnit']:
         task_location: Location = task.getCurrentVehicle().getLocation()
-        #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
+        # pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
 
         pu: ProcessingUnit = None
@@ -184,8 +249,4 @@ class TaskMapper:
         return sorted(pu_distance_list, key=lambda item: item[1])[:n]
         
     def assignTaskToPu(self):
-        pass
-
-    def optimize():
-        TaskMapper.log('Training todo')
         pass
