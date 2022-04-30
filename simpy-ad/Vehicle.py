@@ -6,10 +6,14 @@ from Task import Task
 import numpy as np
 from Store import Store
 from typing import List, TYPE_CHECKING
+from TaskMapper import TaskMapper
+import random
+import config
 
 if TYPE_CHECKING:
     from ProcessingUnit import ProcessingUnit
     from RoadSideUnit import RoadSideUnit
+
 
 class Vehicle(object):
     idx = 0
@@ -39,6 +43,7 @@ class Vehicle(object):
         self.f_location = f_location
         self.speed = speed
         self.bw = bw
+        self.env = env
         # keep track of all generated tasks
         self.all_tasks = []
         self.task_list = []
@@ -46,7 +51,6 @@ class Vehicle(object):
         self.required_FPS = required_FPS
         self.PU_list = []
         self.setPUList(PU_list)
-        self.env = env
         self.capacity = capacity
         # self.updateTaskListExecution()
         # simpy.Resource.__init__(self, env, capacity)
@@ -82,37 +86,47 @@ class Vehicle(object):
             #i += 1
 
             # sublit tasks to TaskMapper
-            self.log(f"Generating tasks at {self.env.now}")
-            for _ in range(self.required_FPS):
-                for task in self.task_list:
+            # random.randint(10, 30)#self.required_FPS - random.randint(10, 30)
+            FPS = self.required_FPS
+            for frame in range(FPS):
+                for i, task in enumerate(self.task_list):
                     t: 'Task' = Task(task.flop, task.size, task.criticality)
                     t.setCurrentVehicle(self)
 
                     # execution time in place
                     pu: ProcessingUnit = self.PU_list[0]
-                    #DELTA = pu.getTaskExecutionTime(t) + pu.getTaskLoadingTime(t)
-                    #DELTA = 1/self.required_FPS
-                    DELTA = 1
-
-                    # setting task deadline
-                    t.setDeadline(self.env.now + DELTA)
                     # set expected exec time
-                    t.setExpectedExecTime(DELTA)
-
-                    #self.log(f"Generate Task {t} at {self.env.now}")
-
+                    EXPECTED_EXEC_TIME = pu.getTaskExecutionTime(t) + pu.getTaskLoadingTime(t)
+                    t.setExpectedExecTime(EXPECTED_EXEC_TIME)
+                    # setting task deadline
+                    DEADLINE = self.env.now + EXPECTED_EXEC_TIME
+                    ## delta is task's offset in the frame
+                    DELTA = i * (1/FPS)/len(self.task_list)
+                    t.setDeadline(DEADLINE + DELTA)
+                    
                     self.all_tasks.append(t)
                     Store.addTask(t)
-                    
-            # send all frame's tasks in a second
-            yield self.env.timeout(1)
+
+                    self.log(f'task deadline {t} {t.getDeadline()}')
+
+                #self.moveToRandomLocation()
+
+                # send frame's tasks
+                TIMEOUT = 1 / FPS
+                self.log(f"Generated {len(self.task_list)} tasks, TIMEOUT {TIMEOUT}, Store: to execute {Store.getTasksToExecuteCount()}, incomplete {Store.getIncompleteTasksCount()}")
+                yield self.env.timeout(TIMEOUT)
+
+    def moveToRandomLocation(self):
+        lat = random.uniform(config.MIN_LAT, config.MAX_LAT)
+        long = random.uniform(config.MIN_LONG, config.MAX_LONG)
+        self.c_location = Location("random", lat, long)
 
     def showInfo(self):
         print(
             f"{GREEN}Vehicle [{self.name}, PUs: {self.PU_list}, Tasks: {self.task_list} ]{END}")
 
     def log(self, message):
-        print(f"{RED}[{self.name}] {message}{END}")
+        print(f"{END}{self.env.now}: {RED}[{self.name}] {message}{END}")
 
     # Get the name of the vehicle
     def getVehicleName(self):
@@ -160,11 +174,12 @@ class Vehicle(object):
             if task not in self.task_list:
                 task.setCurrentVehicle(self)
                 self.task_list.append(task)
-                self.log(f'[INFO] Vehicle-setTaskList: Task {task.getTaskName()} submitted to {self.getVehicleName()}')
+                self.log(
+                    f'[INFO] Vehicle-setTaskList: Task {task.getTaskName()} submitted to {self.getVehicleName()}')
 
     def setParent(self, parent):
-        self.parent=parent
-    
+        self.parent = parent
+
     def getParent(self):
         return self.parent
 
@@ -186,8 +201,9 @@ class Vehicle(object):
 
                 pu.setParent(self)
 
-                #TaskMapper.addPU(pu)
-                self.log(f'[INFO] Vehicle-setPUList: Processing Unit {pu.getPUName()} added to {self.getVehicleName()}')
+                # TaskMapper.addPU(pu)
+                self.log(
+                    f'[INFO] Vehicle-setPUList: Processing Unit {pu.getPUName()} added to {self.getVehicleName()}')
 
     def updateTaskListExecution(self):
         pu: ProcessingUnit = None
@@ -195,11 +211,13 @@ class Vehicle(object):
             for task in pu.getTaskList():
                 with pu.request() as req:
                     yield req
-                    self.log(f'[LOG] Starting execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
+                    self.log(
+                        f'[LOG] Starting execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
                     # Multiply to adjust precision to simulation
                     execution_time = pu.getTaskExecutionTime(task) * 1000
                     yield self.env.timeout(execution_time)
-                    self.log(f'[LOG] Finishing execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
+                    self.log(
+                        f'[LOG] Finishing execution {task.getTaskName()} on {pu.getPUName()} at {self.env.now}')
 
     # Get the closest RSU among the list of all RSUs
     def getClosestRSU(self, rsu_list: List['RoadSideUnit']) -> 'RoadSideUnit':
