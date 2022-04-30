@@ -203,7 +203,7 @@ class ProcessingUnit(simpy.Resource):
         return self.MAX_QUEUE_SIZE
 
     def updateTaskListExecution(self):
-        CYCLE = 0.01
+        CYCLE = 0.001
         while True:
             #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.tasks)}")
             # scheduler update tasks
@@ -218,7 +218,7 @@ class ProcessingUnit(simpy.Resource):
                 #self.log(f" after exec {task}-flop={task.remaining_flop} at {self.env.now}")
 
                 if task.remaining_flop > 0:
-                    self.log(f"Back to scheduler {task}")
+                    self.log(f"run: Back to scheduler {task}")
                     task.scheduler_rounds += 1
                     self.scheduler.addTaskInQueue(task)
                 
@@ -226,10 +226,11 @@ class ProcessingUnit(simpy.Resource):
                     task.execution_end_time = self.env.now
                     self.actual_memory -= task.getSize()
 
+                    self.log(f"run: Finished task execution {task}, Success: {task.isSuccess()}")
                     # task.isSuccess()
                     #self.log(f'Took {total}, expected {task.getExpectedExecTime()}, diff {task.getExpectedExecTime() - total}')
             except NoMoreTasksException as e:
-                self.log(f'No more tasks to execute')
+                #self.log(f'No more tasks to execute')
                 yield self.env.timeout(CYCLE)
             except Exception as e:
                 self.log(f'{e} CYCLE')
