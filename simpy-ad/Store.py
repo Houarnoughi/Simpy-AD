@@ -3,12 +3,17 @@ Static class that holds Simulation's that keeps track of
     - all PUs
     -  all Tasks
 """
+from dataclasses import dataclass
 from Colors import END, GREEN, YELLOW, RED, BLUE
 from typing import List, TYPE_CHECKING
 from Location import Location
 import random
 import config
 import os
+from Exceptions import NoMoreTasksException
+import Vehicle
+import RoadSideUnit
+import DataCenter
 
 if TYPE_CHECKING:
     from Task import Task
@@ -42,9 +47,9 @@ class Store:
     input_list = []
 
     # lambda expressions to filter tasks
-    success_lambda = lambda t: t.isStarted() and t.isFinished() and t.isFinishedBeforeDeadline()
-    started_failed_lambda = lambda t: (t.isStarted() and t.isFinished()) and not t.isFinishedBeforeDeadline()
-    started_not_finished_lambda = lambda t: t.isStarted() and not t.isFinished()
+    success_lambda = lambda t: t.isSuccess()
+    started_failed_lambda = lambda t: t.isFailed()
+    started_not_finished_lambda = lambda t: t.isIncomplete()
     not_started_lambda = lambda t: not t.isStarted()
 
     def log(message):
@@ -52,7 +57,10 @@ class Store:
 
     # FIFO
     def getTask() -> 'Task':
-        return Store.tasks_to_execute.pop(0)
+        if Store.tasks_to_execute:
+            return Store.tasks_to_execute.pop(0)
+        else:
+            raise NoMoreTasksException()
 
     def addTask(task: 'Task'):
         Store.tasks_to_execute.append(task)
@@ -65,9 +73,11 @@ class Store:
         Store.pu_list.append(pu)
     
     def getTasksToExecuteCount():
-        #return len(Store.tasks_to_execute)
         return len(list(filter(Store.not_started_lambda, Store.all_tasks)))
     
+    def getIncompleteTasksCount():
+        return len(list(filter(Store.started_not_finished_lambda, Store.all_tasks)))
+
     def getTotalTaskCount():
         return len(Store.all_tasks)
 
@@ -78,13 +88,25 @@ class Store:
         return random.choice(Store.pu_list)
     
     # returns a list of sorted n closest PUs to a Task (Vehicle) 
+    # authorized offload options are defined in config.py
     def getClosestPUforTask(task: 'Task', n) -> List['ProcessingUnit']:
         task_location: Location = task.getCurrentVehicle().getLocation()
         #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
 
+        pu_list = []
+        
+        if config.OFFLOAD_TO_VEHICLE:
+            pu_list += list(filter(lambda pu: isinstance(pu.getParent(), Vehicle.Vehicle), Store.pu_list))
+        if config.OFFLOAD_TO_RSU:
+            pu_list += list(filter(lambda pu: isinstance(pu.getParent(), RoadSideUnit.RoadSideUnit), Store.pu_list))
+        if config.OFFLOAD_TO_DATACENTER:
+            pu_list += list(filter(lambda pu: isinstance(pu.getParent(), DataCenter.DataCenter), Store.pu_list))
+ 
+        print(pu_list)
+        input()
         pu: ProcessingUnit = None
-        for pu in Store.pu_list:
+        for pu in pu_list:
             dist = Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())
             item = (pu, dist)
             pu_distance_list.append(item)
@@ -192,7 +214,6 @@ class Store:
         started_failed_list = list(filter(Store.started_failed_lambda, tasks))
         # for t in started_not_ended_list:
         #     print(f'{t} started at {t.execution_start_time} ended {t.execution_end_time}, sched rounds {t.scheduler_rounds}, total {t.getFlop()}, remaining {t.remaining_flop} flop, {t.currentPU}')
-
 
         started_not_finished_list = list(filter(Store.started_not_finished_lambda, tasks))
 
