@@ -40,7 +40,16 @@ class Task(object):
         self.execution_end_time = -1
 
         self.scheduler_rounds = 0
-        
+    
+    def isSuccess(self):
+        return self.isStarted() and self.isFinished() and self.isFinishedBeforeDeadline()
+
+    def isFailed(self):
+        return (self.isStarted() and self.isFinished()) and not self.isFinishedBeforeDeadline()
+
+    def isIncomplete(self):
+        return self.isStarted() and not self.isFinished()
+    
     def isStarted(self):
         return self.execution_start_time != -1
     
