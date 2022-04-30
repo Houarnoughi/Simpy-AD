@@ -83,6 +83,10 @@ class TaskMapper:
                     # filtered by config
                     sorted_pu_list = Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
                     
+                    # add Vehicle (PU, dist) to the list
+                    if not config.OFFLOAD_TO_VEHICLE:
+                        sorted_pu_list.append( (task.getCurrentVehicle().getPU(), 0) )
+
                     #TaskMapper.log(f'sorted_pu_list {sorted_pu_list}')
                     if config.RANDOM:
                         # send to random pu whithin range
@@ -105,10 +109,13 @@ class TaskMapper:
                 try:
                     best_pu.submitTask(task)
                 except OutOfMemoryException as e:
-                    self.log("OutOfMemoryException")
-                    input()
+                    TaskMapper.log("OutOfMemoryException")
+            
+            except IndexError as e:
+                #TaskMapper.log("No PUs to assign")
+                pass
             except NoMoreTasksException as e:
-                #self.log("NoMoreTasksException")
+                #TaskMapper.log("NoMoreTasksException")
                 pass
                 
             yield env.timeout(CYCLE)
