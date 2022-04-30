@@ -9,18 +9,18 @@ MIN_LONG, MAX_LONG = 3.032710061899567, 3.08480585127184
 
 # vehicle
 VEHICLES = 10
-FPS = 30 
-N_CLOSEST_PU = 5
+FPS = 30
 OFFLOAD = True
-OFFLOAD_TO_VEHICLE = True
-OFFLOAD_TO_RSU= True
+OFFLOAD_TO_VEHICLE = False
+OFFLOAD_TO_RSU = True
 OFFLOAD_TO_DATACENTER = False
 
 # task mapper, task to PU attribution
+N_CLOSEST_PU = 2
 RANDOM = True
 
 # steps
-SIM_TIME = 1
+SIM_TIME = 10
 
 # scheduler
 QUANTUM = 0.01
