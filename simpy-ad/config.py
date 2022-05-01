@@ -8,13 +8,16 @@ MIN_LAT, MAX_LAT = 50.63089852336916, 50.650796308194764
 MIN_LONG, MAX_LONG = 3.032710061899567, 3.08480585127184
 
 # vehicle
-VEHICLES = 1
-FPS = 30
+VEHICLE_COUNT = 1
+FPS = 60
+
+# rsu, 0 to 5 for this area
+RSU_COUNT = 0
 
 # Task offloading
 OFFLOAD = True
 OFFLOAD_TO_VEHICLE = False
-OFFLOAD_TO_RSU = True
+OFFLOAD_TO_RSU = False
 OFFLOAD_TO_DATACENTER = False
 
 # Task Mapping, task to PU attribution
@@ -25,7 +28,9 @@ RANDOM = True
 SIM_TIME = 1
 
 # scheduler
-QUANTUM = 0.01
+AGX_QUANTUM = 0.01
+TESLA_QUANTUM = 0.01
+DGX_QUANTUM = 0.01
 
 # export results
 OUT_FILE_PATH = f'output/results.csv'
