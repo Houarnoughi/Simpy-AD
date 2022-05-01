@@ -50,21 +50,22 @@ vehicle_tasks = [
     Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
     Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
     Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
+    Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
+    Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
+    Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
 ]
 """
-Vehicle init x10
+Vehicle init
 
 Lille triangle limits
 
 50.650796308194764, 3.037816505423616 - 50.649129252863915, 3.0776296527024805
-                
-                
 50.63089852336916, 3.032710061899567 - 50.631246374330935, 3.08480585127184
 """
 
-for _ in range(config.VEHICLES):
+for _ in range(config.VEHICLE_COUNT):
     ## PU init
-    pu1 = AGX(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.QUANTUM), env=env)
+    pu1 = AGX(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.AGX_QUANTUM), env=env)
     Store.addPU(pu1)
 
     vehicle = Vehicle(
@@ -79,7 +80,7 @@ for _ in range(config.VEHICLES):
     vehicle.showInfo()
     Store.vehicle_list.append(vehicle)
 """
-RSU init  x3
+RSU init  x5
 """
 locations = [
     Location("Zoo de Lille", 50.64099393427632, 3.044548801247785),
@@ -88,21 +89,19 @@ locations = [
     Location("Moulins", 50.620905648844506, 3.06973893974428),
     Location("wazemmes", 50.627218409442975, 3.0400339217074266)
 ]
-for loc in locations:
-
-    pu = TeslaV100(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.QUANTUM), env=env)
+for i in range(config.RSU_COUNT):
+    pu = TeslaV100(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.TESLA_QUANTUM), env=env)
     Store.addPU(pu)
 
     rsu = RoadSideUnit(
         activity_range=100, 
-        location=loc, 
+        location=locations[i], 
         server_list=[
             Server(pu_list=[pu], bw=1, env=env)
         ], 
         to_vehicle_bw=1, to_cloud_bw=1, env=env)
     rsu.showInfo()
     Store.rsu_list.append(rsu)
-
 
 Store.showPUs()
 
