@@ -50,9 +50,6 @@ class TaskMapper:
 
     pu_list = []
     task_list = []
-
-    success_task_list = []
-    failed_task_list = []
     all_tasks = []
 
     nn = TaskMapperNet(input_dim=9, hidden_dim=12, output_dim=1)
@@ -98,6 +95,9 @@ class TaskMapper:
 
                 try:
                     best_pu.submitTask(task)
+                    # dump task.pu props before assinging for later stats
+                    task_pu_props = TaskMapper.taskPuToDict(task, best_pu)
+                    Store.task_pu_props.append( (task, best_pu, task_pu_props) )
                 except OutOfMemoryException as e:
                     TaskMapper.log("OutOfMemoryException")
             
@@ -113,7 +113,6 @@ class TaskMapper:
     def taskPuToDict(task: 'Task', pu: 'ProcessingUnit'):
         inputs_dict = dict()
         inputs_dict['task_id'] = task.id
-        inputs_dict['new_id'] = task.new_id
         inputs_dict["criticality"] = task.criticality.value
         local_pu: ProcessingUnit = task.getCurrentVehicle().getPU()
         local_pu_execution_time = local_pu.getTaskExecutionTime(task)
@@ -134,7 +133,6 @@ class TaskMapper:
         pu_location: Location = pu.getParent().getLocation()
         inputs_dict["pu_location_lat"] = pu_location.getLatitude()
         inputs_dict["pu_location_long"] = pu_location.getLongitude()
-        inputs_dict["label"] = None
         return inputs_dict
 
     def taskToTensor(task: 'Task', pu: 'ProcessingUnit') -> List[float]:
@@ -143,18 +141,14 @@ class TaskMapper:
 
         # criticality
         crit = normalize(task.criticality.value, min=1, max=3)
-
         # execution time
         # local pu execution time
         local_pu: ProcessingUnit = task.getCurrentVehicle().getPU()
         local_pu_execution_time = local_pu.getTaskExecutionTime(task)
-
         # remote pu execution time
         remote_pu_execution_time = pu.getTaskExecutionTime(task)
-
         # offloading
         # offload time (bw, distance etc)
-
         offload_time = LTE.getTransferDuration(task.getSize())
 
         # pu_queue represents PUs availabilitys based on tasks to process
@@ -167,35 +161,27 @@ class TaskMapper:
         # queue
         # for now we take queue_size/max_queue_size
         vehicle_pu_queue = local_pu.getAvailability()
-
         remote_pu_queue = pu.getAvailability()
-
         # model props
         # task.flop/pu.flops
         min, max = CNNModel.getModelFlopsMinMax()
         task_flop = normalize(task.getFlop(), min, max)
-
         # task.size/pu.memory
         min, max = CNNModel.getModelMemoryMinMax()
         task_size = normalize(task.getSize(), min, max)
-
         # distance
         # task location
         task_location: Location = task.getCurrentVehicle().getCurrentLocation()
         task_lat, task_long = task_location.getLatitudeLongitude()
-
         # normalization
         task_lat = normalize(task_lat, Latitude.min, Latitude.max)
         task_long = normalize(task_long, Longitude.min, Longitude.max)
-
         # pu location
         pu_location: Location = pu.getParent().getLocation()
         pu_lat, pu_long = pu_location.getLatitudeLongitude()
-
         # normalization
         pu_lat = normalize(pu_lat, Latitude.min, Latitude.max)
         pu_long = normalize(pu_long, Longitude.min, Longitude.max)
-
         # task-pu distance (euclidien)
         distance = math.dist((task_lat, task_long), (pu_lat, pu_long))
 
