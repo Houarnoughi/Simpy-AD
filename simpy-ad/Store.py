@@ -93,7 +93,6 @@ class Store:
         task_location: Location = task.getCurrentVehicle().getLocation()
         #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
-
         pu_list = []
         
         if config.OFFLOAD_TO_VEHICLE:
@@ -124,14 +123,7 @@ class Store:
         return None
     
     def getTaskList():
-        if config.DATA_GENERATION_MODE:
-            tasks = [t for t,_,_ in Store.task_pu_props]
-            for t in tasks:
-                pass
-                print(t.new_id, t, t.execution_start_time, t.execution_end_time, t.deadline, t.getCurrentPU())
-        else:
-            tasks = Store.all_tasks
-        return tasks
+        tasks = Store.all_tasks
 
     def getSuccessTaskCount():
         tasks = Store.getTaskList()
@@ -194,17 +186,9 @@ class Store:
         # success
         # print(f'{GREEN}Success tasks')
 
-        if config.DATA_GENERATION_MODE:
-            tasks = [t for t,_,_ in Store.task_pu_props]
-            for t in tasks:
-                pass
-                #print(t.new_id, t, t.execution_start_time, t.execution_end_time, t.deadline, t.getCurrentPU())
-        else:
-            tasks = Store.all_tasks
-
+        tasks = Store.all_tasks
         t: Task = None
 
-        
         success_list = list(filter(Store.success_lambda, tasks))
         # for t in ended_list:
         #     print(f'{t} started at {t.execution_start_time} ended {t.execution_end_time}, sched rounds {t.scheduler_rounds}, total {t.getFlop()}, remaining {t.remaining_flop} flop, {t.currentPU}')

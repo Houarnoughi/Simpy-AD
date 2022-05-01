@@ -69,32 +69,22 @@ class TaskMapper:
                 # FIFO
                 task: Task = Store.getTask()
 
-                # if config.DATA_GENERATION_MODE:
-                #     for i, (pu, _) in enumerate(sorted_pu_list):
-                #         task_copy = copy.copy(task)
-                #         setattr(task_copy, 'new_id', i)
-                #         data = (task_copy, TaskMapper.taskPuToDict(task_copy, pu), pu)
-                #         Store.task_pu_props.append(data)
-                #         pu.submitTask(task_copy)
-
                 best_pu: 'ProcessingUnit' = None
                 if config.OFFLOAD:
                     # Task's closest n PUs
                     # filtered by config
                     sorted_pu_list = Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
-                    
+
                     # add Vehicle (PU, dist) to the list
                     if not config.OFFLOAD_TO_VEHICLE:
-                        sorted_pu_list.append( (task.getCurrentVehicle().getPU(), 0) )
+                        sorted_pu_list.append((task.getCurrentVehicle().getPU(), 0))
 
-                    #TaskMapper.log(f'sorted_pu_list {sorted_pu_list}')
                     if config.RANDOM:
                         # send to random pu whithin range
                         best_pu, _ = random.choice(sorted_pu_list)
                     else:
                         # (task, pu) props batch
                         tensors = [TaskMapper.taskToTensor(task, pu) for pu, _ in sorted_pu_list]
-                        # input()
                         probas = TaskMapper.nn(torch.tensor(tensors).float())
                         probas = probas.detach().numpy()
                         # get index of highest proba PU
@@ -151,30 +141,23 @@ class TaskMapper:
         def normalize(data, min, max):
             return (data - min)/(max - min)
 
-        inputs_dict = dict()
-
-        inputs_dict['task_id'] = task.id
         # criticality
         crit = normalize(task.criticality.value, min=1, max=3)
-        inputs_dict["criticality"] = task.criticality.value
 
         # execution time
         # local pu execution time
         local_pu: ProcessingUnit = task.getCurrentVehicle().getPU()
         local_pu_execution_time = local_pu.getTaskExecutionTime(task)
-        inputs_dict["local_pu_execution_time"] = local_pu_execution_time
-        
+
         # remote pu execution time
         remote_pu_execution_time = pu.getTaskExecutionTime(task)
-        inputs_dict["remote_pu_execution_time"] = remote_pu_execution_time
-        
+
         # offloading
         # offload time (bw, distance etc)
-        
-        offload_time = LTE.getTransferDuration(task.getSize())
-        inputs_dict["offload_time"] = offload_time
 
-        # pu_queue represents PUs availabilitys based on tasks to process 
+        offload_time = LTE.getTransferDuration(task.getSize())
+
+        # pu_queue represents PUs availabilitys based on tasks to process
         # and it's max queue size, range is 0, 1, 2, 3, 0 being the less available
         # Vehicle's PU task queue size (Max=100)
         # vehicle_pu_queue = normalize(local_pu.getAvailability(), 0, 3)
@@ -184,28 +167,22 @@ class TaskMapper:
         # queue
         # for now we take queue_size/max_queue_size
         vehicle_pu_queue = local_pu.getAvailability()
-        inputs_dict["vehicle_pu_queue"] = local_pu.getQueueSize()
 
         remote_pu_queue = pu.getAvailability()
-        inputs_dict["remote_pu_queue"] = pu.getQueueSize()
 
         # model props
         # task.flop/pu.flops
         min, max = CNNModel.getModelFlopsMinMax()
         task_flop = normalize(task.getFlop(), min, max)
-        inputs_dict["task_flop"] = task.getFlop()
 
         # task.size/pu.memory
         min, max = CNNModel.getModelMemoryMinMax()
         task_size = normalize(task.getSize(), min, max)
-        inputs_dict["task_size"] = task.getSize()
 
         # distance
         # task location
         task_location: Location = task.getCurrentVehicle().getCurrentLocation()
         task_lat, task_long = task_location.getLatitudeLongitude()
-        inputs_dict["task_location_lat"] = task_location.getLatitude()
-        inputs_dict["task_location_long"] = task_location.getLongitude()
 
         # normalization
         task_lat = normalize(task_lat, Latitude.min, Latitude.max)
@@ -214,8 +191,6 @@ class TaskMapper:
         # pu location
         pu_location: Location = pu.getParent().getLocation()
         pu_lat, pu_long = pu_location.getLatitudeLongitude()
-        inputs_dict["pu_location_lat"] = pu_location.getLatitude()
-        inputs_dict["pu_location_long"] = pu_location.getLongitude()
 
         # normalization
         pu_lat = normalize(pu_lat, Latitude.min, Latitude.max)
@@ -223,18 +198,15 @@ class TaskMapper:
 
         # task-pu distance (euclidien)
         distance = math.dist((task_lat, task_long), (pu_lat, pu_long))
-  
-        inputs_dict["label"] = None
-        Store.input_list.append(inputs_dict)
 
-        props = [crit, local_pu_execution_time, remote_pu_execution_time, 
-                offload_time, vehicle_pu_queue, remote_pu_queue,
-                task_flop, task_size, distance]
+        props = [crit, local_pu_execution_time, remote_pu_execution_time,
+                 offload_time, vehicle_pu_queue, remote_pu_queue,
+                 task_flop, task_size, distance]
         return props
 
     def log(message):
         print(f"{GREEN}[TaskMapper] {message}{END}")
-    
+
     def showTasks():
         TaskMapper.log(f"Tasks {TaskMapper.task_list}")
 
