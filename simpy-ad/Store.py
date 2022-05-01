@@ -39,8 +39,8 @@ class Store:
 
     # TaskMapper sends tuple 
     #   task
-    #   taskPu props
     #   pu
+    #   taskPu props
     task_pu_props = []
 
     # list of TaskMapperNet inputs dict(task, pu)
@@ -141,9 +141,15 @@ class Store:
         tasks = Store.getTaskList()
         return len(list(filter(Store.not_started_lambda, tasks)))
 
-    # export tasks
     def export():
+        """
+        Export statistics to config.OUT_FILE_PATH
 
+        Each csv row contains:
+            task properties
+            pu properties
+            task execution properties (start, end, deadline, duration)
+        """
         if not Store.task_pu_props:
             print("Store input list is empty")
             return
@@ -151,16 +157,23 @@ class Store:
         if not os.path.exists(config.OUT_FILE_PATH):
             with open(config.OUT_FILE_PATH, "w") as f:
                 pass
-
-        for i, (task, data, pu) in enumerate(Store.task_pu_props):
-            if task.isStarted() and task.isFinished() and task.isFinishedBeforeDeadline():
-                data["label"] = 1
-            else:
-                data["label"] = 0
+        
+        for i, (task, pu, data) in enumerate(Store.task_pu_props):
+            data["execution_start_time"] = task.execution_start_time
+            data["execution_end_time"] = task.execution_end_time
+            data["deadline"] = task.deadline
+            if task.isSuccess():
+                data["state"] = "SUCCESS"
+            elif task.isFailed():
+                data["state"] = "FAILED"
+            elif task.isIncomplete():
+                data["state"] = "INCOMPLETE"
+            elif not task.isStarted():
+                data["state"] = "UNSTARTED"
 
         # features
         with open(config.OUT_FILE_PATH, "w") as f:
-            _, sample, _ = Store.task_pu_props[0]
+            _, _, sample = Store.task_pu_props[0]
             params = list(sample.keys())
             for param in params:
                 f.write(f'{param}')
@@ -169,7 +182,7 @@ class Store:
                 #     f.write(',')
             f.write('\n')
 
-            for task, input, pu in Store.task_pu_props:
+            for task, pu, input in Store.task_pu_props:
                 features = list(input.values())
                 #print(features)
                 for feature in features:
@@ -206,10 +219,10 @@ class Store:
         for pu in Store.pu_list:
             pu.show_stats()
 
-        print(f'{GREEN}Success {len(success_list)}') 
-        print(f'{YELLOW}After deadline {len(started_failed_list)}')  
-        print(f'{BLUE}Not finished {len(started_not_finished_list)}') 
-        print(f'{RED}Not started {len(not_started_list)}') 
+        print(f'{GREEN}Tasks started and finished before fixed deadline {len(success_list)}') 
+        print(f'{YELLOW}Tasks finished after fixed deadline {len(started_failed_list)}')  
+        print(f'{BLUE}Tasks started but not finished {len(started_not_finished_list)}') 
+        print(f'{RED}Not started tasks {len(not_started_list)}') 
 
         print(f"{YELLOW}-------------------- Stats ----------------------")
 
