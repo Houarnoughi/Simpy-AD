@@ -2,3 +2,4 @@ simpy~=4.0.1
 pandas~=1.2.4
 folium~=0.12.1
 haversine~=2.3.1
+flask
