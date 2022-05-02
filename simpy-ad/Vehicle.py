@@ -68,16 +68,16 @@ class Vehicle(object):
         DELTA = 0
 
         # generate trip coordinates
-        STEP = 10
-        trip_lat = np.linspace(self.c_location.latitude, self.f_location.latitude, STEP)
-        trip_lon = np.linspace(self.c_location.longitude, self.f_location.longitude, STEP)
+        #STEP = 10
+        #trip_lat = np.linspace(self.c_location.latitude, self.f_location.latitude, STEP)
+        #trip_lon = np.linspace(self.c_location.longitude, self.f_location.longitude, STEP)
 
         #DEVIATION = 10
         #augm = lambda e: e + np.random.uniform(0,1)/DEVIATION
         #trip_lon = list(map(augm, trip_lon))
         #trip_lat = list(map(augm, trip_lat))
 
-        trip = list(zip(trip_lat, trip_lon))
+        #trip = list(zip(trip_lat, trip_lon))
 
         #i = 0
         while True:
@@ -107,13 +107,13 @@ class Vehicle(object):
                     self.all_tasks.append(t)
                     Store.addTask(t)
 
-                    self.log(f'task deadline {t} {t.getDeadline()}')
-
-                #self.moveToRandomLocation()
+                    #self.log(f'task deadline {t} {t.getDeadline()}')
 
                 # send frame's tasks
                 TIMEOUT = 1 / FPS
-                self.log(f"Generated {len(self.task_list)} tasks, TIMEOUT {TIMEOUT}, Store: to execute {Store.getTasksToExecuteCount()}, incomplete {Store.getIncompleteTasksCount()}")
+                if config.RANDOM_MOVE:
+                    self.moveToRandomLocation()
+                #self.log(f"Generated {len(self.task_list)} tasks, TIMEOUT {TIMEOUT}, Store: to execute {Store.getTasksToExecuteCount()}, incomplete {Store.getIncompleteTasksCount()}")
                 yield self.env.timeout(TIMEOUT)
 
     def moveToRandomLocation(self):
