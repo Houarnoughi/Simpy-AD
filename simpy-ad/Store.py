@@ -14,6 +14,7 @@ from Exceptions import NoMoreTasksException
 import Vehicle
 import RoadSideUnit
 import DataCenter
+from requests import post
 
 if TYPE_CHECKING:
     from Task import Task
@@ -52,6 +53,46 @@ class Store:
     started_not_finished_lambda = lambda t: t.isIncomplete()
     not_started_lambda = lambda t: not t.isStarted()
 
+    def __init__(self, env):
+        self.env = env
+        self.proc = env.process(self.run())
+
+    def run(self):
+        while True:
+            
+            vehicles = [
+                {
+                    "name": v.name,
+                    "lat": v.getLocation().latitude,
+                    "long": v.getLocation().longitude
+                } for v in Store.vehicle_list
+            ]
+            rsus = [
+                {
+                    "name": r.name,
+                    "lat": r.getLocation().latitude,
+                    "long": r.getLocation().longitude
+                } for r in Store.rsu_list
+            ]
+            stats = {
+                "all_tasks": Store.getTotalTaskCount(),
+                "success_tasks": Store.getSuccessTaskCount(),
+                "failed_tasks": Store.getStartedFailedTaskCount(),
+                "tasks_to_execute": Store.getTasksToExecuteCount(),
+                "incomplete_tasks": Store.getIncompleteTasksCount(),
+                "finished_tasks": Store.getSuccessTaskCount()
+            }
+            try:
+                post(f"{config.SERVER_URL}/vehicle", json={"vehicles": vehicles})
+                post(f"{config.SERVER_URL}/rsu", json={"rsus": rsus})
+                post(f"{config.SERVER_URL}/stats", json={"data": stats})
+            except Exception as e:
+                print(e)
+                input()
+                pass
+            # update every 0.1 sec
+            yield self.env.timeout(0.01)
+
     def log(message):
         print(f'{GREEN}[Store] {message} {END}')
 
@@ -73,13 +114,13 @@ class Store:
         Store.pu_list.append(pu)
     
     def getTasksToExecuteCount():
-        return len(list(filter(Store.not_started_lambda, Store.all_tasks)))
+        return len(list(filter(Store.not_started_lambda, Store.all_tasks))) if Store.all_tasks else 0
     
     def getIncompleteTasksCount():
-        return len(list(filter(Store.started_not_finished_lambda, Store.all_tasks)))
+        return len(list(filter(Store.started_not_finished_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def getTotalTaskCount():
-        return len(Store.all_tasks)
+        return len(Store.all_tasks) if Store.all_tasks else 0
 
     def getPuCount():
         return len(Store.pu_list)
@@ -126,20 +167,19 @@ class Store:
         tasks = Store.all_tasks
 
     def getSuccessTaskCount():
-        tasks = Store.getTaskList()
-        return len(list(filter(Store.success_lambda, tasks)))
+        return len(list(filter(Store.success_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def getStartedFailedTaskCount():
         tasks = Store.getTaskList()
-        return len(list(filter(Store.started_failed_lambda, tasks)))
+        return len(list(filter(Store.started_failed_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def getStartedNotFinishedTaskCount():
         tasks = Store.getTaskList()
-        return len(list(filter(Store.started_not_finished_lambda, tasks)))
+        return len(list(filter(Store.started_not_finished_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def getNotStartedTaskCount():
         tasks = Store.getTaskList()
-        return len(list(filter(Store.not_started_lambda, tasks)))
+        return len(list(filter(Store.not_started_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def export():
         """

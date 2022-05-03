@@ -39,6 +39,8 @@ import random
 
 env = simpy.Environment()
 
+store = Store(env=env)
+
 """
 vehicle task types
 """
@@ -50,9 +52,9 @@ vehicle_tasks = [
     Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
     Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
     Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
-    Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
-    Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
-    Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
+    #Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
+    #Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
+    #Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
 ]
 """
 Vehicle init
@@ -110,7 +112,7 @@ taskMapper = TaskMapper(env)
 print("Enter to start Simulation")
 input()
 
-p = Plotter(env)
+#p = Plotter(env)
 
 env.run(until=config.SIM_TIME)
 
