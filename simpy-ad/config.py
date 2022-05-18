@@ -3,6 +3,7 @@ Global variables defining the simulation
 """
 import os
 from TaskMappingPolicy import RandomTaskMappingPolicy, InplaceMappingPolicy, CustomTaskMappingPolicy
+from TaskSchedulingPolicy import RoundRobinSchedulingPolicy, FIFOSchedulingPolicy, SJFSchedulingPolicy
 from Networking import LTE, LTE_PLUS
 
 ## simulation area
@@ -39,6 +40,7 @@ SIM_TIME = 1000
 MAX_TASK_COUNT = SIM_TIME * VEHICLE_COUNT * FPS * 3
 
 # scheduler
+TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
 AGX_QUANTUM = 0.01
 TESLA_QUANTUM = 0.01
 DGX_QUANTUM = 0.01
