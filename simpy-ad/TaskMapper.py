@@ -24,27 +24,27 @@ We can access their location via
 """
 from torch import nn
 import torch
-from TaskSchedulingPolicy import TaskSchedulingPolicy
 import numpy as np
 import math
 from Location import Location, Latitude, Longitude
 import simpy
 from Colors import GREEN, END
 import random
-from Store import Store
+import Store
 from models import TaskMapperNet
 from typing import List, TYPE_CHECKING
 from CNNModel import CNNModel
-from Network import LTE, LTE_PLUS
+from Networking import LTE, LTE_PLUS
 import config
 import copy
 from Exceptions import OutOfMemoryException, NoMoreTasksException
+from TaskMappingPolicy import TaskMappingPolicy
 
 torch.set_printoptions(precision=20)
 
 if TYPE_CHECKING:
     from ProcessingUnit import ProcessingUnit
-    from Task import Task
+    from Task import Task, _Task
 
 class TaskMapper:
 
@@ -54,18 +54,32 @@ class TaskMapper:
 
     nn = TaskMapperNet(input_dim=9, hidden_dim=12, output_dim=1)
 
-    def __init__(self, env):
+    def __init__(self, env: simpy.Environment, taskMappingPolicy: TaskMappingPolicy):
+        TaskMapper.env = env
         self.env = env
+        self.taskMappingPolicy = taskMappingPolicy
         self.process = env.process(self.work(env))
 
     def work(self, env):
-        CYCLE = 0.0001
+        #CYCLE = 0.001
         while True:
             try:
                 #Store.log(f"tasks to execute count {Store.getTasksToExecuteCount()}")
                 # FIFO
-                task: Task = Store.getTask()
+                task: _Task = Store.Store.getTask()
+                TaskMapper.log(f'Got task {task} from Stores')
 
+                if config.OFFLOAD:
+                    sorted_pu_list = Store.Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
+                    sorted_pu_list = [pu_dist[0] for pu_dist in sorted_pu_list]
+                    
+                    # add Vehicle (PU, dist) to the list
+                    if not config.OFFLOAD_TO_VEHICLE:
+                        sorted_pu_list.append(task.getCurrentVehicle().getPU())
+
+                    self.taskMappingPolicy.assignToPu(task, sorted_pu_list)
+
+                """
                 best_pu: 'ProcessingUnit' = None
                 if config.OFFLOAD:
                     # Task's closest n PUs
@@ -92,7 +106,7 @@ class TaskMapper:
                 else:
                     # When OFFLOAD is false, we just send back to vehicle's PU
                     best_pu = task.getCurrentVehicle().getPU()
-
+                    
                 try:
                     best_pu.submitTask(task)
                     # dump task.pu props before assinging for later stats
@@ -100,17 +114,17 @@ class TaskMapper:
                     Store.task_pu_props.append( (task, best_pu, task_pu_props) )
                 except OutOfMemoryException as e:
                     TaskMapper.log("OutOfMemoryException")
-            
+                """
             except IndexError as e:
-                #TaskMapper.log("No PUs to assign")
+                TaskMapper.log("No PUs to assign")
                 pass
             except NoMoreTasksException as e:
                 #TaskMapper.log("NoMoreTasksException")
                 pass
                 
-            yield env.timeout(CYCLE)
+            yield env.timeout(config.TASK_MAPPER_CYCLE)
 
-    def taskPuToDict(task: 'Task', pu: 'ProcessingUnit'):
+    def taskPuToDict(task: '_Task', pu: 'ProcessingUnit'):
         inputs_dict = dict()
         inputs_dict['task_id'] = task.id
         inputs_dict["criticality"] = task.criticality.value
@@ -191,7 +205,7 @@ class TaskMapper:
         return props
 
     def log(message):
-        print(f"{GREEN}[TaskMapper] {message}{END}")
+        print(f"{TaskMapper.env.now}: {GREEN}[TaskMapper] {message}{END}")
 
     def showTasks():
         TaskMapper.log(f"Tasks {TaskMapper.task_list}")
