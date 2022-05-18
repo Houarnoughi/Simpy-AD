@@ -1,40 +1,29 @@
 <header>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </header>
 
 <div id="carte_campus"></div>
 
-<div class="flex " style="display: flex; border: 1px solid; justify-content: space-around;">
+<!-- <div class="flex " style="display: flex; border: 1px solid; justify-content: space-around;">
     <div class="text-center font-size-20">
         <div>All tasks</div>
         <span id="all_tasks"></span>
     </div>
-    <div class="text-center font-size-20">
-        <div>Success</div>
-        <span id="success_tasks"></span>
-    </div>
-    <div class="text-center font-size-20">
-        <div>Failed</div>
-        <span id="failed_tasks"></span>
-    </div>
-    <div class="text-center font-size-20">
-        <div>To execute</div>
-        <span id="tasks_to_execute"></span>
-    </div>
-    <div class="text-center font-size-20">
-        <div>Incomplete</div>
-        <span id="incomplete_tasks"></span>
-    </div>
-    <div class="text-center font-size-20">
-        <div>Finished</div>
-        <span id="finished_tasks"></span>
-    </div>
+</div> -->
+
+<div style="height:30%; width: 80%; margin-left: auto; margin-right: auto;">
+    <canvas id="myChart"></canvas>
 </div>
+
+<button onclick="fetch('/simulation/start')">start</button>
+<button onclick="fetch('/simulation/stop')">finish</button>
 
 <script>
     window.addEventListener('DOMContentLoaded', () => {
         const refreshInterval = 50
+        const statsRefreshInterval = 1000
 
         let map = L.map('carte_campus');
 
@@ -44,7 +33,7 @@
 
         // focus on Lille
         map.setView([50.631583072533594, 3.057713469569928], 13);
-
+        /*
         let rsuMarkers = []
         fetch('/rsu/all')
             .then(response => response.json())
@@ -63,9 +52,13 @@
 
 
         let vehicleMarkers = []
+        let tripMarkers = []
         setInterval(() => {
             vehicleMarkers.forEach(marker => {
                 marker.remove()
+            })
+            tripMarkers.forEach(line => {
+                map.removeLayer(line)
             })
             fetch('/vehicle/all')
                 .then(response => response.json())
@@ -78,33 +71,108 @@
                         });
                         let marker = L.marker([v.lat, v.long], { icon: icon }).addTo(map).bindPopup(v.name);
                         vehicleMarkers.push(marker)
+
+                        // add trip
+                        let coordinates = v.coordinates.map(tuple => tuple.reverse())
+
+                        var r = Math.floor(Math.random() * 255);
+                        var g = Math.floor(Math.random() * 255);
+                        var b = Math.floor(Math.random() * 255);
+                        let color = "rgb(" + r + " ," + g + "," + b + ")";
+                        color = 'blue'
+
+                        let line = L.polyline(v.coordinates, { color: color, weight: 2 }).addTo(map);
+                        tripMarkers.push(line)
+
                     });
                 })
         }, 1000);
+
+        // stats
+        let allTasksCountList = []
+        let successTasksCountList = []
+        let failedTasksCountList = []
+        let toExecuteTasksCountList = []
+        let incompleteTasksCountList = []
+        let simulationSteps = []
+        let simulationStep = 0
+        let simulationTime = 0
+
+        let myChart = new Chart(
+            document.getElementById('myChart'),
+            {}
+        );
 
         setInterval(() => {
             fetch('/stats')
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data)
-                    let div = document.getElementById('all_tasks')
-                    div.innerHTML = data.all_tasks
-                    div = document.getElementById('success_tasks')
-                    div.innerHTML = data.success_tasks
-                    div = document.getElementById('failed_tasks')
-                    div.innerHTML = data.failed_tasks
-                    div = document.getElementById('tasks_to_execute')
-                    div.innerHTML = data.tasks_to_execute
-                    div = div = document.getElementById('incomplete_tasks')
-                    div.innerHTML = data.incomplete_tasks
-                    div = div = document.getElementById('finished_tasks')
-                    div.innerHTML = data.finished_tasks
-                })
-        }, 1000);
+                    if (Object.keys(data).length === 0) {
+                        return
+                    }
+                    // let div = document.getElementById('all_tasks')
+                    // div.innerHTML = (data.all_tasks != undefined) ? data.all_tasks : 0
+                    //console.log(data)
+                    allTasksCountList.push(data.all_tasks)
+                    successTasksCountList.push(data.success_tasks)
+                    failedTasksCountList.push(data.failed_tasks)
+                    toExecuteTasksCountList.push(data.tasks_to_execute)
+                    incompleteTasksCountList.push(data.incomplete_tasks)
+                    simulationSteps.push(simulationStep)
+                    simulationStep += 1
 
+                    const _labels = ['All Tasks', 'Success', 'Failed', 'To execute', 'Incomplete']
+                    const _colors = ['black', 'green', 'red', 'blue', 'orange']
+                    let _counters = [allTasksCountList, successTasksCountList, failedTasksCountList, toExecuteTasksCountList, incompleteTasksCountList]
+                    let _datasets = []
+                    for (let i = 0; i < _labels.length; i++) {
+                        _data = {
+                            label: _labels[i],
+                            backgroundColor: _colors[i],
+                            borderColor: _colors[i],
+                            data: _counters[i]
+                        }
+                        _datasets.push(_data)
+                    }
+
+                    const chartData = {
+                        labels: range(0, simulationStep, 1),
+                        datasets: _datasets
+                    };
+                    const config = {
+                        type: 'line',
+                        data: chartData,
+                        options: {
+                            animation: {
+                                duration: 0
+                            },
+                            elements: {
+                                point: {
+                                    radius: 0
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    //max: data.maxTaskCount
+                                },
+                                x: {
+                                    //max: 10000,
+                                    //min: 5000
+                                }
+                            }
+                        }
+                    };
+
+                    myChart.destroy()
+                    myChart = new Chart(
+                        document.getElementById('myChart'),
+                        config
+                    );
+                })
+        }, statsRefreshInterval);
+        */
         // handle zoom
         map.on('zoomend', function (e) {
-
             let level = map.getZoom();
             console.log("zoom level", level)
 
@@ -125,8 +193,30 @@
                 });
                 marker.setIcon(icon);
             });
-
         });
+
+        map.on('click', function (e) {
+            console.log("e", e.latlng)
+            var bounds = [[yMin, xMax], [yMax, xMax]];
+            L.rectangle(bounds, { color: "#red", weight: 1 }).addTo(map);
+        })
+
+        // helper functions
+        const range = (start, end, step) => {
+            let output = [];
+
+            if (typeof end === 'undefined') {
+                end = start;
+                start = 0;
+            }
+
+            for (let i = start; i < end; i += step) {
+                output.push(i);
+            }
+
+            return output;
+        };
+
     });
 
 </script>
@@ -137,12 +227,11 @@
         height: 75%;
     }
 
-.text-center {
-    text-align: center;
-}
+    .text-center {
+        text-align: center;
+    }
 
-.font-size-20 {
-    font-size: 20px;
-}
-
+    .font-size-20 {
+        font-size: 20px;
+    }
 </style>

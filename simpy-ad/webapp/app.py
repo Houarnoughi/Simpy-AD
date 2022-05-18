@@ -3,6 +3,7 @@ from flask import Flask, render_template, request
 import os
 import random
 import sys
+from Simulation import Simulation
 
 from numpy import vectorize
 sys.path.insert(1, "../simpy-ad")
@@ -21,6 +22,32 @@ global vehicles
 vehicles = []
 global rsus
 rsus = []
+
+global simulation
+simulation = None
+
+@app.get('/simulation/start')
+def startSimulation():
+    print("starting simulation")
+    try:
+        global simulation
+        simulation = Simulation()
+        simulation.start()
+        return "started"
+    except Exception as e:
+        print(e)
+        return e
+
+@app.get('/simulation/stop')
+def stopSimulation():
+    print("stopping simulation")
+    global simulation
+    try:
+        simulation.terminate()
+        return "stopped"
+    except Exception as e:
+        print(e)
+        return e
 
 """
 From Simulation
@@ -71,7 +98,6 @@ def setStats():
     global stats
 
     newStats = request.json.get('data', {})
-    print(newStats)
     stats = newStats
 
     return "ok"
