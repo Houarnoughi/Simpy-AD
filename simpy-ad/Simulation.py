@@ -67,7 +67,7 @@ Lille triangle limits
 
 for _ in range(config.VEHICLE_COUNT):
     ## PU init
-    pu1 = AGX(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.AGX_QUANTUM), env=env)
+    pu1 = AGX(task_list=[], scheduler=config.TASK_MAPPING_POLICY(config.AGX_QUANTUM), env=env)
     Store.addPU(pu1)
 
     vehicle = Vehicle(

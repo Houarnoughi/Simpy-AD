@@ -4,7 +4,7 @@ import simpy
 from Colors import GREEN, END, RED
 from Task import Task, _Task
 import numpy as np
-from Store import Store
+import Store
 from typing import List, TYPE_CHECKING
 from TaskMapper import TaskMapper
 import random
@@ -112,7 +112,7 @@ class Vehicle(object):
                     t.setDeadline(DEADLINE + DELTA)
                     
                     self.all_tasks.append(t)
-                    Store.addTask(t)
+                    Store.Store.addTask(t)
 
                     #self.log(f'task deadline {t} {t.getDeadline()}')
                     TIMEOUT = 1 / (FPS*len(self.task_list))

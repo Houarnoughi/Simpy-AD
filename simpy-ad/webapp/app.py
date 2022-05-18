@@ -48,6 +48,7 @@ def stopSimulation():
     global simulation
     try:
         simulation.terminate()
+        simulation = None
         return "stopped"
     except Exception as e:
         print(e)
