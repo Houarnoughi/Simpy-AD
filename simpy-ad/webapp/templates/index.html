@@ -12,15 +12,32 @@
         <span id="all_tasks"></span>
     </div>
 </div> -->
+<button onclick="startSimulation()">start</button>
+<button onclick="stopSimulation()">finish</button>
 
 <div style="height:30%; width: 80%; margin-left: auto; margin-right: auto;">
     <canvas id="myChart"></canvas>
 </div>
 
-<button onclick="fetch('/simulation/start')">start</button>
-<button onclick="fetch('/simulation/stop')">finish</button>
-
 <script>
+
+    function startSimulation() {
+        fetch('/simulation/start', {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: 'manu'
+            })
+        })
+    }
+
+    function stopSimulation() {
+        fetch('/simulation/stop', { method: "POST" })
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         const refreshInterval = 50
         const statsRefreshInterval = 1000

@@ -26,19 +26,23 @@ rsus = []
 global simulation
 simulation = None
 
-@app.get('/simulation/start')
+@app.post('/simulation/start')
 def startSimulation():
-    print("starting simulation")
     try:
+        print("starting simulation with ", request.json)
         global simulation
+
+        if simulation:
+            print("already running a simu, please stop it first")
+            return "already running a simu, please stop it first"
         simulation = Simulation()
         simulation.start()
         return "started"
     except Exception as e:
         print(e)
-        return e
+        return "error"
 
-@app.get('/simulation/stop')
+@app.post('/simulation/stop')
 def stopSimulation():
     print("stopping simulation")
     global simulation
@@ -47,7 +51,7 @@ def stopSimulation():
         return "stopped"
     except Exception as e:
         print(e)
-        return e
+        return "error"
 
 """
 From Simulation
