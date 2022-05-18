@@ -2,13 +2,15 @@ from turtle import color
 from Location import Location
 import simpy
 from Colors import GREEN, END, RED
-from Task import Task
+from Task import Task, _Task
 import numpy as np
 from Store import Store
 from typing import List, TYPE_CHECKING
 from TaskMapper import TaskMapper
 import random
 import config
+from ProcessingUnit import AGX
+from Maps import PathPlanner
 
 if TYPE_CHECKING:
     from ProcessingUnit import ProcessingUnit
@@ -41,6 +43,7 @@ class Vehicle(object):
 
         self.c_location = c_location
         self.f_location = f_location
+        self.trip_coordinates = []
         self.speed = speed
         self.bw = bw
         self.env = env
@@ -68,6 +71,9 @@ class Vehicle(object):
         DELTA = 0
 
         # generate trip coordinates
+        self.trip_coordinates = PathPlanner.getPath(self.c_location, self.f_location)
+        self.log(f'Trip Coordinates {self.trip_coordinates}')
+        #input()
         #STEP = 10
         #trip_lat = np.linspace(self.c_location.latitude, self.f_location.latitude, STEP)
         #trip_lon = np.linspace(self.c_location.longitude, self.f_location.longitude, STEP)
@@ -90,36 +96,58 @@ class Vehicle(object):
             FPS = self.required_FPS
             for frame in range(FPS):
                 for i, task in enumerate(self.task_list):
-                    t: 'Task' = Task(task.flop, task.size, task.criticality)
+                    t: '_Task' = _Task(flop=task.flop, size=task.size, criticality=task.criticality)
                     t.setCurrentVehicle(self)
 
                     # execution time in place
                     pu: ProcessingUnit = self.PU_list[0]
                     # set expected exec time
                     EXPECTED_EXEC_TIME = pu.getTaskExecutionTime(t) + pu.getTaskLoadingTime(t)
-                    t.setExpectedExecTime(EXPECTED_EXEC_TIME)
+                    #t.setExpectedExecTime(EXPECTED_EXEC_TIME)
                     # setting task deadline
                     DEADLINE = self.env.now + EXPECTED_EXEC_TIME
+
                     ## delta is task's offset in the frame
-                    DELTA = i * (1/FPS)/len(self.task_list)
+                    DELTA = config.PU_CYCLE
                     t.setDeadline(DEADLINE + DELTA)
                     
                     self.all_tasks.append(t)
                     Store.addTask(t)
 
                     #self.log(f'task deadline {t} {t.getDeadline()}')
+                    TIMEOUT = 1 / (FPS*len(self.task_list))
+                    yield self.env.timeout(TIMEOUT)
 
                 # send frame's tasks
-                TIMEOUT = 1 / FPS
-                if config.RANDOM_MOVE:
-                    self.moveToRandomLocation()
+                #TIMEOUT = 1 / FPS
+                #if config.RANDOM_MOVE:
+                #    self.moveToRandomLocation()
                 #self.log(f"Generated {len(self.task_list)} tasks, TIMEOUT {TIMEOUT}, Store: to execute {Store.getTasksToExecuteCount()}, incomplete {Store.getIncompleteTasksCount()}")
-                yield self.env.timeout(TIMEOUT)
+                #yield self.env.timeout(TIMEOUT)
+            self.move()
+
+    def getTripCoordinates(self) -> List:
+        return self.trip_coordinates
 
     def moveToRandomLocation(self):
         lat = random.uniform(config.MIN_LAT, config.MAX_LAT)
         long = random.uniform(config.MIN_LONG, config.MAX_LONG)
         self.c_location = Location("random", lat, long)
+    
+    def move(self):
+        """
+        Moves to next coordinates tuple according to speed
+        From current location to 
+        """
+        try:
+            current_location = self.getCurrentLocation().getLatitudeLongitude()
+            long, lat = self.trip_coordinates.pop(0)
+            future_location = Location("", lat, long)
+            #distance = Location.getDistanceInKmFromTuples(current_location, new_location)
+
+            self.setCurrentLocation(future_location)
+        except IndexError:
+            self.log("Trip Finished")
 
     def showInfo(self):
         print(
@@ -183,9 +211,12 @@ class Vehicle(object):
     def getParent(self):
         return self.parent
 
-    # returns 1 PU (the first   )
+    # returns vehicle's main PU (AGX)
     def getPU(self) -> 'ProcessingUnit':
-        return self.PU_list[0]
+        for pu in self.PU_list:
+            if isinstance(pu, AGX):
+                return pu
+        #return self.PU_list[0]
 
     # Get the list of Processing Units assigned embedded in the vahicle
     def getPUList(self) -> List['ProcessingUnit']:

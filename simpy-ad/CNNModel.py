@@ -46,12 +46,14 @@ class CNNModel(object):
     """
     Static methods
     """
+    @staticmethod
     def getModelFlopsMinMax() -> Tuple[float, float]:
         path = '../data/models_stats_AGX.csv'
         dataset = pd.read_csv(path)
         flops = dataset["FLOPs"]
         return flops.min(), flops.max()
 
+    @staticmethod
     def getModelMemoryMinMax() -> Tuple[float, float]:
         path = '../data/models_stats_AGX.csv'
         dataset = pd.read_csv(path)

@@ -1,109 +1,75 @@
 from abc import ABC, abstractmethod
 from collections import deque
 from Exceptions import NoMoreTasksException
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from Task import Task, _Task
 """
 Abstract class for task scheduling policy. 
 Abstract methods must be implemented in a unique way
 by each scheduling policy
 """
-class TaskScheduling(ABC):
+class TaskSchedulingPolicy(ABC):
     def __init__(self, parallel=False) -> None:
         self.parallel=parallel
         self.task_list = []
+        self.quantum = None
 
     def getParallel(self):
         return self.parallel
     
     @abstractmethod
-    def addTaskInQueue(self, task):
+    def addTaskInQueue(self, task: '_Task'):
         """ impl by Policy """
     
     @abstractmethod
-    def getNextTask(self):
+    def getNextTask(self) -> '_Task':
         """ return task to be executed by PU """
 
     @abstractmethod
-    def getQueueSize(self):
+    def getQueueSize(self) -> int:
         """ return number of tasks in the queue """    
 
-class TaskSchedulingPolicy(object):
-    """
-    Scheduling policies:
-    - FIFO: First In First Out
-    - SJF: Shortest Job First
-    - TODO RoundRobin: need to implement an execution qeuegive each task a time slot (amount of flop). Decrease Task remaining FLOP.
-    End when there is no more tasks in the execution qeue.
-    """
+    @abstractmethod
+    def getQuantum(self) -> float:
+        """ return number of tasks in the queue """  
 
-    def __init__(self, preemptive=False, policy='FIFO', parallel=False):
-        self.preemptive = preemptive
-        self.policy = policy
-        self.parallel = parallel
-
-    def getPreemptive(self):
-        return self.preemptive
-
-    def setPreemptive(self, preemptive):
-        self.preemptive = preemptive
-
-    def getPolicy(self):
-        return self.policy
-
-    def setPolicy(self, policy):
-        self.policy = policy
-
-    def getParallel(self):
-        return self.parallel
-
-    def setParallel(self, parallel):
-        self.parallel = parallel
-
-    def getExecutionSequence(self, task_list):
-        new_task_list = []
-
-        if self.getPolicy() == 'FIFO':
-            new_task_list = task_list
-        if self.getPolicy() == 'SJF':
-            new_task_list = sorted(task_list, key=lambda x: x.flop, reverse=False)
-        return new_task_list
-
-
-class FIFOSchedulingPolicy(TaskScheduling):
+class FIFOSchedulingPolicy(TaskSchedulingPolicy):
     def addTaskInQueue(self, task):
         task.scheduler_rounds += 1
         self.task_list.append(task)
     
-    def getNextTask(self):
+    def getNextTask(self) -> '_Task':
         if self.task_list:
             return self.task_list.pop()
         else:
             raise NoMoreTasksException()
-            
-    def getExecutionSequence(self):
-        return self.task_list.copy()
     
-    def getQueueSize(self):
+    def getQueueSize(self) -> int:
         return len(self.task_list)
+    
+    def getQuantum(self) -> float:
+        return None
 
-class SJFSchedulingPolicy(TaskScheduling):
-    def addTaskInQueue(self, task):
+class SJFSchedulingPolicy(TaskSchedulingPolicy):
+    def addTaskInQueue(self, task: '_Task'):
         task.scheduler_rounds += 1
         self.task_list.append(task)
     
-    def getNextTask(self):
+    def getNextTask(self) -> '_Task':
         if self.task_list:
             return self.task_list.pop()
         else:
             raise NoMoreTasksException()
 
-    def getExecutionSequence(self):
-        return sorted(self.task_list, key=lambda x: x.flop, reverse=False)
-
-    def getQueueSize(self):
+    def getQueueSize(self) -> int:
         return len(self.task_list)
+    
+    def getQuantum(self) -> float:
+        return None
 
-class RoundRobinSchedulingPolicy(TaskScheduling):
+class RoundRobinSchedulingPolicy(TaskSchedulingPolicy):
     """
     Quantum is time amount (q=10ms for example)
     Each PU will burst (q/1000)*pu.flops of Task's flops
@@ -112,32 +78,35 @@ class RoundRobinSchedulingPolicy(TaskScheduling):
     
     repeated until no flops remaining
     """
-    def __init__(self, quantum):
-        self.quantum = quantum
-        self.queue = deque()
+    def __init__(self, quantum: float):
         super().__init__()
+        self.quantum: float = quantum
+        self.queue = deque()
     
-    def addTaskInQueue(self, task):
+    def addTaskInQueue(self, task: '_Task'):
         self.queue.append(task)
     
-    def getNextTask(self):
+    def getNextTask(self) -> '_Task':
         if self.queue:
             return self.queue.popleft()
         else:
             raise NoMoreTasksException()
 
-    def getExecutionSequence(self):
-        return self.task_list
-    
-    def getQueueSize(self):
+    def getQueueSize(self) -> int:
         return len(self.queue)
-"""
-fifo = FIFOSchedulingPolicy()
-fifo.addTask("sec")
-sjf = SJFSchedulingPolicy()
+    
+    def getQuantum(self) -> float:
+        return self.quantum
 
-rr = RoundRobinSchedulingPolicy(10)
-rr.addTask('ok')
 
-print(fifo.task_list, sjf.task_list, rr.task_list, rr.quantum)
-"""
+if __name__ == '__main__':
+    
+    fifo = FIFOSchedulingPolicy()
+    fifo.addTaskInQueue("sec")
+    sjf = SJFSchedulingPolicy()
+
+    rr = RoundRobinSchedulingPolicy(10)
+    rr.addTaskInQueue('ok')
+
+    print(fifo.task_list, sjf.task_list, rr.task_list, rr.quantum)
+    

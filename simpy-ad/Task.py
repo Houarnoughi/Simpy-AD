@@ -1,3 +1,4 @@
+from logging import critical
 from TaskCriticality import TaskCriticality
 from typing import TYPE_CHECKING
 from enum import Enum
@@ -6,6 +7,7 @@ from abc import ABC, abstractmethod
 if TYPE_CHECKING:
     from Vehicle import Vehicle
     from ProcessingUnit import ProcessingUnit
+
 
 class TaskStatus(Enum):
     CREATED = 0
@@ -18,6 +20,7 @@ class TaskStatus(Enum):
     PAUSED = 7
     RESUMED = 8
     FAILED_RESOURCE_UNAVAILABLE = 9
+
 
 class _Task(ABC):
     """
@@ -35,7 +38,7 @@ class _Task(ABC):
     """
     idx = 0
 
-    def __init__(self, vehicle: 'Vehicle' = None, deadline=0, pu: 'ProcessingUnit' = None, flop: float = 0, size: float = 0):
+    def __init__(self, vehicle: 'Vehicle' = None, deadline=0, pu: 'ProcessingUnit' = None, flop: float = 0, size: float = 0, criticality: TaskCriticality = None):
         self.id = _Task.idx
         self.name = f'Task-{self.id}'
         _Task.idx += 1
@@ -50,8 +53,9 @@ class _Task(ABC):
         self.flop: float = flop
         self.remaining_flop: float = flop
         self.size: float = size
+        self.criticality: TaskCriticality = criticality
 
-        # execution 
+        # execution
         self.deadline: float = deadline
         self.execution_start_time: float = -1
         self.execution_end_time: float = -1
@@ -59,10 +63,29 @@ class _Task(ABC):
         # scheduler
         self.scheduler_rounds = 0
 
-    def setVehicle(self, vehicle: 'Vehicle'):
+    # for stats
+    def isSuccess(self):
+        return self.isStarted() and self.isFinished() and self.isFinishedBeforeDeadline()
+
+    def isFailed(self):
+        return (self.isStarted() and self.isFinished()) and not self.isFinishedBeforeDeadline()
+
+    def isIncomplete(self):
+        return self.isStarted() and not self.isFinished()
+
+    def isStarted(self):
+        return self.execution_start_time != -1
+
+    def isFinished(self):
+        return self.execution_end_time != -1
+
+    def isFinishedBeforeDeadline(self):
+        return self.execution_end_time <= self.deadline
+
+    def setCurrentVehicle(self, vehicle: 'Vehicle'):
         self.vehicle = vehicle
 
-    def getVehicle(self) -> 'Vehicle':
+    def getCurrentVehicle(self) -> 'Vehicle':
         return self.vehicle
 
     def setFlop(self, flop: float):
@@ -91,6 +114,9 @@ class _Task(ABC):
 
     def getDeadline(self) -> float:
         return self.deadline
+    
+    def getCriticality(self) -> TaskCriticality:
+        return self.criticality
 
     def setStatus(self, status: TaskStatus):
         self.status = status
@@ -98,10 +124,10 @@ class _Task(ABC):
     def getStatus(self) -> TaskStatus:
         return self.status
 
-    def setPu(self, pu: 'ProcessingUnit'):
+    def setCurrentPu(self, pu: 'ProcessingUnit'):
         self.pu = pu
 
-    def getPu(self) -> 'ProcessingUnit':
+    def getCurrentPu(self) -> 'ProcessingUnit':
         return self.pu
 
     def setExecutionStartTime(self, time: float):
@@ -121,6 +147,9 @@ class _Task(ABC):
 
     def getSchedulerRounds(self) -> int:
         return self.scheduler_rounds
+
+    def getTaskName(self) -> str:
+        return self.name
 
     def getInfos(self) -> str:
         return f'[{self.name}, flop={self.flop}, remainingFlop={self.remaining_flop}, size={self.size}, startTime={self.execution_start_time}, endTime={self.execution_end_time}, pu={self.pu}, vehicle={self.vehicle}, status={self.status}, rounds={self.scheduler_rounds}]'

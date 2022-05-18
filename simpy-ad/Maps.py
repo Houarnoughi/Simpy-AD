@@ -14,7 +14,7 @@ class OpenStreetAPI:
     URI = 'https://api.openrouteservice.org'
     TOKEN = '5b3ce3597851110001cf62480a421079db594016b4d5c12fc6980fcd'
     REQUEST_HEADERS = {
-        'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
+        'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8'
     }
 
 class PathPlanner(object):
@@ -28,11 +28,18 @@ class PathPlanner(object):
         startLat, startLong = start_node.getLatitudeLongitude()
         endLat, endLong = end_node.getLatitudeLongitude()
 
-        res = requests.get(f'{OpenStreetAPI.URI}/v2/directions/driving-car?api_key={OpenStreetAPI.TOKEN}&start={startLat},{startLong}&end={endLat},{endLong}', headers=OpenStreetAPI.REQUEST_HEADERS)
+        response = requests.get(
+            f'{OpenStreetAPI.URI}/v2/directions/driving-car?api_key={OpenStreetAPI.TOKEN}&start={startLong},{startLat}&end={endLong},{endLat}', 
+            headers=OpenStreetAPI.REQUEST_HEADERS
+        )
+        json = response.json()
 
-        print(res.json().get('features')[0].get('geometry').get('coordinates'))
-        
         coordinates = []
+
+        if json.get('error'):
+            print("Path error ", json.get('error').get('message'))
+        else:
+            coordinates = response.json().get('features')[0].get('geometry').get('coordinates')
 
         return coordinates
 

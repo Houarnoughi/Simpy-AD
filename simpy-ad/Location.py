@@ -36,18 +36,21 @@ class Location(object):
     
     def getDistanceInMetersBetween(src: 'Location', dst: 'Location'):
         source = (src.getLatitude(), src.getLongitude())
-        coord = (dst.getLatitude(), dst.getLongitude())
-        return hs.haversine(source, coord, hs.Unit.METERS)
+        dst_location = (dst.getLatitude(), dst.getLongitude())
+        return hs.haversine(source, dst_location, hs.Unit.METERS)
 
     def getDistanceInMeters(self, dst: 'Location'):
         src = (self.getLatitude(), self.getLongitude())
-        coord = (dst.getLatitude(), dst.getLongitude())
-        return hs.haversine(src, coord, hs.Unit.METERS)
+        dst_location = (dst.getLatitude(), dst.getLongitude())
+        return hs.haversine(src, dst_location, hs.Unit.METERS)
 
     def getDistanceInKm(self, dst: 'Location'):
         src = (self.getLatitude(), self.getLongitude())
-        coord = (dst.getLatitude(), dst.getLongitude())
-        return hs.haversine(src, coord)
+        dst_location = (dst.getLatitude(), dst.getLongitude())
+        return hs.haversine(src, dst_location)
+    
+    def getDistanceInKmFromTuples(src: Tuple[float, float], dst: Tuple[float, float]) -> float:
+        return hs.haversine(src, dst)
 
     def getLatitudeLongitude(self) -> Tuple[float, float]:
         return self.getLatitude(), self.getLongitude()

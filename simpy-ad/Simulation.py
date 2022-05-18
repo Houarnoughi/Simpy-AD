@@ -27,7 +27,7 @@ from TaskSchedulingPolicy import RoundRobinSchedulingPolicy, FIFOSchedulingPolic
 from RoadSideUnit import RoadSideUnit
 from Server import Server
 from CNNModel import CNNModel
-from Task import Task
+from Task import Task, _Task
 from TaskMapper import TaskMapper
 from Colors import END, GREEN, YELLOW, RED, BLUE
 from TaskCriticality import TaskCriticality
@@ -49,9 +49,9 @@ resnet18 = CNNModel('ResNet-18', 480)
 mobilenet = CNNModel('MobileNet0.25-v1', 240)
 
 vehicle_tasks = [
-    Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
-    Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
-    Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
+    _Task(flop=inception.getModelFLOPS(), size=inception.getModelMemory(), criticality=TaskCriticality.HIGH),
+    #_Task(flop=resnet18.getModelFLOPS(), size=resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
+    #_Task(flop=mobilenet.getModelFLOPS(), size=mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
     #Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
     #Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
     #Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
@@ -81,6 +81,7 @@ for _ in range(config.VEHICLE_COUNT):
         env=env)
     vehicle.showInfo()
     Store.vehicle_list.append(vehicle)
+    
 """
 RSU init  x5
 """
@@ -107,7 +108,8 @@ for i in range(config.RSU_COUNT):
 
 Store.showPUs()
 
-taskMapper = TaskMapper(env)
+taskMappingPolicy=config.TASK_MAPPING_POLICY(env=env)
+taskMapper = TaskMapper(env=env, taskMappingPolicy=taskMappingPolicy)
 
 print("Enter to start Simulation")
 input()

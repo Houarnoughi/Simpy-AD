@@ -15,9 +15,10 @@ import Vehicle
 import RoadSideUnit
 import DataCenter
 from requests import post
+import math
 
 if TYPE_CHECKING:
-    from Task import Task
+    from Task import Task, _Task
     from ProcessingUnit import ProcessingUnit
     from Location import Location
 
@@ -64,7 +65,8 @@ class Store:
                 {
                     "name": v.name,
                     "lat": v.getLocation().latitude,
-                    "long": v.getLocation().longitude
+                    "long": v.getLocation().longitude,
+                    "coordinates": v.getTripCoordinates()
                 } for v in Store.vehicle_list
             ]
             rsus = [
@@ -80,30 +82,31 @@ class Store:
                 "failed_tasks": Store.getStartedFailedTaskCount(),
                 "tasks_to_execute": Store.getTasksToExecuteCount(),
                 "incomplete_tasks": Store.getIncompleteTasksCount(),
-                "finished_tasks": Store.getSuccessTaskCount()
+                "finished_tasks": Store.getSuccessTaskCount(),
+                "simulationTime": math.ceil(self.env.now),
+                "maxTaskCount": config.MAX_TASK_COUNT
             }
             try:
                 post(f"{config.SERVER_URL}/vehicle", json={"vehicles": vehicles})
                 post(f"{config.SERVER_URL}/rsu", json={"rsus": rsus})
                 post(f"{config.SERVER_URL}/stats", json={"data": stats})
             except Exception as e:
-                print(e)
-                input()
+                #print(e)
                 pass
             # update every 0.1 sec
-            yield self.env.timeout(0.01)
+            yield self.env.timeout(config.POST_TIMEOUT)
 
     def log(message):
         print(f'{GREEN}[Store] {message} {END}')
 
     # FIFO
-    def getTask() -> 'Task':
+    def getTask() -> '_Task':
         if Store.tasks_to_execute:
             return Store.tasks_to_execute.pop(0)
         else:
             raise NoMoreTasksException()
 
-    def addTask(task: 'Task'):
+    def addTask(task: '_Task'):
         Store.tasks_to_execute.append(task)
         Store.all_tasks.append(task)
         
@@ -130,7 +133,7 @@ class Store:
     
     # returns a list of sorted n closest PUs to a Task (Vehicle) 
     # authorized offload options are defined in config.py
-    def getClosestPUforTask(task: 'Task', n) -> List['ProcessingUnit']:
+    def getClosestPUforTask(task: '_Task', n) -> List[tuple['ProcessingUnit', float]]:
         task_location: Location = task.getCurrentVehicle().getLocation()
         #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
@@ -240,7 +243,7 @@ class Store:
         # print(f'{GREEN}Success tasks')
 
         tasks = Store.all_tasks
-        t: Task = None
+        t: _Task = None
 
         success_list = list(filter(Store.success_lambda, tasks))
         # for t in ended_list:

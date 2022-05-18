@@ -1,16 +1,19 @@
+from distutils.command.config import config
+import sched
 from Units import Units
 import simpy
 from Server import Server
 import Vehicle
-from TaskSchedulingPolicy import TaskSchedulingPolicy, TaskScheduling, NoMoreTasksException
+from TaskSchedulingPolicy import TaskSchedulingPolicy, NoMoreTasksException
 from Colors import YELLOW, END
 from time import time
 from TaskMapper import TaskMapper
 from typing import List, TYPE_CHECKING
+import config
 from Exceptions import OutOfMemoryException
 
 if TYPE_CHECKING:
-    from Task import Task
+    from Task import Task, _Task
 '''
 Benchmarks sources : https://developer.nvidia.com/embedded/jetson-modules 
 and https://developer.nvidia.com/blog/nvidia-jetson-agx-xavier-32-teraops-ai-robotics/
@@ -43,7 +46,7 @@ class ProcessingUnit(simpy.Resource):
         self.scheduler = scheduler
         self.setTaskList(task_list)
         self.env = env
-        self.proc = env.process(self.updateTaskListExecution())
+        self.proc = env.process(self.run())
 
         self.executed_tasks = 0
 
@@ -77,43 +80,44 @@ class ProcessingUnit(simpy.Resource):
     def setMemoryBandwidth(self, memory_bw):
         self.memory_bw = memory_bw
 
-    def getTaskList(self) -> List['Task']:
+    def getTaskList(self) -> List['_Task']:
         return self.task_list
 
-    def setTaskList(self, task_list: List['Task']):
-        task: Task = None
+    def setTaskList(self, task_list: List['_Task']):
+        task: '_Task' = None
         for task in task_list:
             task.setCurrentPU(self)
             self.task_list.append(task)
             self.log(f'ProcessingUnit-setTaskList: {task.getTaskName()} submitted to {self.getPUName()}')
 
-    def getScheduler(self) -> TaskScheduling:
+    def getScheduler(self) -> TaskSchedulingPolicy:
         return self.scheduler
 
     def setScheduler(self, scheduler: TaskSchedulingPolicy):
         self.scheduler = scheduler
 
-    def getTaskLoadingTime(self, task: 'Task'):
+    def getTaskLoadingTime(self, task: '_Task'):
         return task.getSize() / self.getMemoryBandwidth()
 
-    def getTaskExecutionTime(self, task: 'Task'):
+    def getTaskExecutionTime(self, task: '_Task'):
         flops = self.getFlops()
         if self.getScheduler().getParallel():
             flops = int(self.getFlops()/len(self.getTaskList()))
         return task.getFlop() / flops
 
-    def getTaskEnergyConsumption(self, task: 'Task'):
+    def getTaskEnergyConsumption(self, task: '_Task'):
         return self.getTaskExecutionTime(task) * self.getPower()
 
-    def submitTask(self, task: 'Task'):
+    def submitTask(self, task: '_Task'):
 
         if task not in self.getTaskList():
             if self.actual_memory + task.getSize() > self.memory:
                 raise OutOfMemoryException()
             else:
                 self.actual_memory += task.getSize()
-
-            task.setCurrentPU(self)
+                #print(f"PU memory {self.actual_memory}/{self.memory}")
+                #input()
+            task.setCurrentPu(self)
             self.task_list.append(task)
 
             # add task to scheduler
@@ -124,15 +128,15 @@ class ProcessingUnit(simpy.Resource):
         else:
             self.log(f'submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
 
-    def removeTask(self, task):
+    def removeTask(self, task: '_Task'):
         if task in self.task_list:
             self.task_list.remove(task)
     
     def getQuantumFlop(self):
-        q = self.scheduler.quantum
+        q = self.scheduler.getQuantum()
         return q * self.getFlops()
 
-    def execute_task(self, task: 'Task'):
+    def execute_task(self, task: '_Task'):
         # load task in memory 
         yield self.env.timeout(self.getTaskLoadingTime(task))
 
@@ -141,8 +145,9 @@ class ProcessingUnit(simpy.Resource):
 
         TIMEOUT = 0
 
-        #self.log(f'execute_task: Scheduler {self.scheduler.__class__.__name__}')
-        if hasattr(self.getScheduler(), 'quantum'):
+        scheduler = self.getScheduler()
+        QUANTUM = scheduler.getQuantum()
+        if QUANTUM:
             qty = self.getQuantumFlop()
 
             # if have less to burn in 1 quantum
@@ -160,16 +165,16 @@ class ProcessingUnit(simpy.Resource):
                 #self.log(f'Burst qty {qty}')
                 task.remaining_flop -= qty
                 #self.log(f'execute_task:  after burst task {task} remaining flop={task.remaining_flop} at {self.env.now}')
-                TIMEOUT = self.scheduler.quantum
+                TIMEOUT = QUANTUM
         else:
             #self.log("execute_task: No quantum")
             exec_time = self.getTaskExecutionTime(task) * 1000
-            task.execution_start_time = time()
             # task finished
             task.remaining_flop = 0
             TIMEOUT = exec_time
 
         #self.log(f"execute_task: TIMEOUT {TIMEOUT}")
+        print("timeout quantum", TIMEOUT)
         yield self.env.timeout(TIMEOUT)
     
     def log(self, message):
@@ -202,14 +207,14 @@ class ProcessingUnit(simpy.Resource):
     def getMaxQueueSize(self):
         return self.MAX_QUEUE_SIZE
 
-    def updateTaskListExecution(self):
-        CYCLE = 0.001
+    def run(self):
+        #CYCLE = 0.0001
         while True:
             #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.tasks)}")
             # scheduler update tasks
             #print(f"sched tasks {len(self.scheduler.task_list)}")
             try:
-                task: 'Task' = self.scheduler.getNextTask()
+                task: '_Task' = self.scheduler.getNextTask()
                 
                 self.log(f"run: processing task {task}")
                 yield self.env.process(self.execute_task(task))
@@ -218,23 +223,23 @@ class ProcessingUnit(simpy.Resource):
                 #self.log(f" after exec {task}-flop={task.remaining_flop} at {self.env.now}")
 
                 if task.remaining_flop > 0:
-                    self.log(f"run: Back to scheduler {task}")
+                    #self.log(f"run: Back to scheduler {task}")
                     task.scheduler_rounds += 1
                     self.scheduler.addTaskInQueue(task)
                 
-                if task.remaining_flop == 0:
+                if task.remaining_flop <= 0:
                     task.execution_end_time = self.env.now
                     self.actual_memory -= task.getSize()
 
-                    self.log(f"run: Finished task execution {task}, Success: {task.isSuccess()}")
+                    self.log(f"run: Finished task execution {task}, deadline={task.getDeadline()} Success: {task.isSuccess()}")
                     # task.isSuccess()
                     #self.log(f'Took {total}, expected {task.getExpectedExecTime()}, diff {task.getExpectedExecTime() - total}')
             except NoMoreTasksException as e:
                 #self.log(f'No more tasks to execute')
-                yield self.env.timeout(CYCLE)
+                yield self.env.timeout(config.PU_CYCLE)
             except Exception as e:
                 self.log(f'{e} CYCLE')
-                yield self.env.timeout(CYCLE)
+                yield self.env.timeout(config.PU_CYCLE)
 
     def old_updateTaskListExecution(self):
         while True:
