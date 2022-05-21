@@ -50,8 +50,8 @@ mobilenet = CNNModel('MobileNet0.25-v1', 240)
 
 vehicle_tasks = [
     _Task(flop=inception.getModelFLOPS(), size=inception.getModelMemory(), criticality=TaskCriticality.HIGH),
-    #_Task(flop=resnet18.getModelFLOPS(), size=resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
-    #_Task(flop=mobilenet.getModelFLOPS(), size=mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
+    _Task(flop=resnet18.getModelFLOPS(), size=resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
+    _Task(flop=mobilenet.getModelFLOPS(), size=mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
     #Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
     #Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
     #Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
@@ -67,7 +67,7 @@ Lille triangle limits
 
 for _ in range(config.VEHICLE_COUNT):
     ## PU init
-    pu1 = AGX(task_list=[], scheduler=config.TASK_MAPPING_POLICY(config.AGX_QUANTUM), env=env)
+    pu1 = AGX(task_list=[], scheduler=config.EDGE_TASK_SCHEDULING_POLICY(config.AGX_QUANTUM), env=env)
     Store.addPU(pu1)
 
     vehicle = Vehicle(
@@ -93,7 +93,7 @@ locations = [
     Location("wazemmes", 50.627218409442975, 3.0400339217074266)
 ]
 for i in range(config.RSU_COUNT):
-    pu = TeslaV100(task_list=[], scheduler=RoundRobinSchedulingPolicy(config.TESLA_QUANTUM), env=env)
+    pu = TeslaV100(task_list=[], scheduler=config.FOG_TASK_SCHEDULING_POLICY(config.TESLA_QUANTUM), env=env)
     Store.addPU(pu)
 
     rsu = RoadSideUnit(
