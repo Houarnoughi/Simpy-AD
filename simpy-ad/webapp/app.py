@@ -4,8 +4,9 @@ import os
 import random
 import sys
 from Simulation import Simulation
-
 from numpy import vectorize
+from controllers import stats, simulation, scheduler, mapper, vehicle, rsu, datacenter
+
 sys.path.insert(1, "../simpy-ad")
 import config
 from Store import Store
@@ -13,12 +14,22 @@ from Store import Store
 app = Flask(__name__)
 app.debug = True
 
+app.register_blueprint(stats.bp, url_prefix='/stats')
+app.register_blueprint(simulation.bp, url_prefix='/simulation')
+app.register_blueprint(scheduler.bp, url_prefix='/scheduler')
+app.register_blueprint(mapper.bp, url_prefix='/mapper')
+app.register_blueprint(vehicle.bp, url_prefix='/vehicle')
+app.register_blueprint(rsu.bp, url_prefix='/rsu')
+app.register_blueprint(datacenter.bp, url_prefix='/datacenter')
+
+print(app.blueprints.keys())
+
 @app.route('/', methods=['GET'])
 def index():
     """
     stop running simu if refresh
     """
-    stopSimulation()
+    simulation.stopSimulation()
     return render_template('ui.html')
 
 
@@ -27,48 +38,6 @@ global vehicles
 vehicles = []
 global rsus
 rsus = []
-
-global simulation
-simulation = None
-
-@app.post('/simulation/start')
-def startSimulation():
-    try:
-        global simulation
-
-        if simulation:
-            print("already running a simu, please stop it first")
-            return "already running a simu, please stop it first"
-        
-        print(request.json)
-        steps = request.json.get("steps", 99)
-        vehicle_count = request.json.get("vehicle_count", 99)
-        vehicle_fps = request.json.get("vehicle_fps", 99)
-        simulation = Simulation(
-            steps=int(steps), 
-            vehicle_count=int(vehicle_count), 
-            vehicle_fps=int(vehicle_fps)
-        )
-        simulation.start()
-        return "started"
-    except Exception as e:
-        print("app.startSimulation ", e)
-        return "error"
-
-@app.post('/simulation/stop')
-def stopSimulation():
-    print("stopping simulation")
-    global simulation
-    try:
-        simulation.stop()
-        simulation = None
-
-        Store.clear()
-
-        return "stopped"
-    except Exception as e:
-        print(e)
-        return "error"
 
 """
 From Simulation
@@ -110,44 +79,7 @@ def getRsus():
     }
     return data
 
-# stats
-global stats 
-stats = dict()
 
-@app.route('/stats', methods=['GET'])
-def getStats():
-    stats = {
-        "all_tasks": Store.getTotalTaskCount(),
-        "success_tasks": Store.getSuccessTaskCount(),
-        "failed_tasks": Store.getStartedFailedTaskCount(),
-        "tasks_to_execute": Store.getTasksToExecuteCount(),
-        "incomplete_tasks": Store.getIncompleteTasksCount(),
-        "finished_tasks": Store.getSuccessTaskCount(),
-        "maxTaskCount": config.MAX_TASK_COUNT
-    }
-    return stats
-
-@app.get('/scheduler/options')
-def schedulerOptions():
-
-    from TaskSchedulingPolicy import UI_OPTIONS
-    
-    response = list(map(lambda o: o.__name__, UI_OPTIONS))
-    print("response", response)
-    return {
-        'task_scheduling_options': response
-    }
-
-@app.get('/mapping/options')
-def mappingOptions():
-
-    from TaskMappingPolicy import UI_OPTIONS
-    
-    response = list(map(lambda o: o.__name__, UI_OPTIONS))
-    print("response", response)
-    return {
-        'task_mapping_options': response
-    } 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)

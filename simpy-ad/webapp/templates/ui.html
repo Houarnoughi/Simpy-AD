@@ -89,6 +89,11 @@
             toExecuteTasksCountList: [],
             incompleteTasksCountList: [],
             simulationStep: 0,
+            // map markers
+            map: null,
+            rsuMarkers: [],
+            vehicleMarkers: [],
+            tripMarkers: [],
             // simu props
             schedulerOptions: [],
             mappingOptions: [],
@@ -116,28 +121,28 @@
             await this.loadSchedulerOptions()
             await this.loadMappingOptions()
             setInterval(this.statsCallback, 100)
-            //setInterval(this.vehiclesCallback, 1000)
             setInterval(this.rsusCallback, 1000)
+            setInterval(this.vehiclesCallback, 100)
         },
         methods: {
             setupMap() {
-                
-                let map = L.map('map');
+
+                this.map = L.map('map');
                 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                     attribution: '©️ OpenStreetMap contributors'
-                }).addTo(map);
+                }).addTo(this.map);
 
                 // focus on Lille
-                map.setView([50.631583072533594, 3.057713469569928], 13);
+                this.map.setView([50.631583072533594, 3.057713469569928], 13);
 
                 // handle zoom
-                map.on('zoomend', function (e) {
-                    let level = map.getZoom();
+                this.map.on('zoomend', function (e) {
+                    let level = this.map.getZoom();
                     console.log("zoom level", level)
                 });
 
                 // handle click
-                map.on('click', function (e) {
+                this.map.on('click', function (e) {
                     console.log("e", e.latlng)
                     //var bounds = [[yMin, xMax], [yMax, xMax]];
                     //L.rectangle(bounds, { color: "#red", weight: 1 }).addTo(map);
@@ -200,7 +205,7 @@
                         console.log("data", data, data.values)
 
                         // if simu ended (Store is cleared)
-                        if (data.all_tasks === 0) return 
+                        if (data.all_tasks === 0) return
 
                         this.allTasksCountList.push(data.all_tasks)
                         this.successTasksCountList.push(data.success_tasks)
@@ -212,10 +217,59 @@
                     })
             },
             vehiclesCallback() {
-                //console.log("vehicles")
+                fetch('/vehicle')
+                    .then(response => response.json())
+                    .then(data => {
+                        // clean
+                        this.vehicleMarkers.forEach(marker => {
+                            this.map.removeLayer(marker)
+                        })
+                        this.tripMarkers.forEach(line => {
+                            this.map.removeLayer(line)
+                        })
+                        const vehicles = data.vehicles
+                        vehicles.forEach(v => {
+                            var icon = L.icon({
+                                iconUrl: 'https://static.vecteezy.com/system/resources/previews/001/193/920/non_2x/convertible-car-png.png',
+                                iconSize: [20, 10]
+                            });
+                            let marker = L.marker([v.lat, v.long], { icon: icon }).addTo(this.map).bindPopup(v.name);
+                            this.vehicleMarkers.push(marker)
+
+                            // add trip
+                            let coordinates = v.coordinates.map(tuple => tuple.reverse())
+
+                            var r = Math.floor(Math.random() * 255);
+                            var g = Math.floor(Math.random() * 255);
+                            var b = Math.floor(Math.random() * 255);
+                            let color = "rgb(" + r + " ," + g + "," + b + ")";
+                            color = 'blue'
+
+                            let line = L.polyline(v.coordinates, { color: color, weight: 2 }).addTo(this.map);
+                            this.tripMarkers.push(line)
+                        });
+
+                    })
             },
             rsusCallback() {
-                
+                fetch('/rsu')
+                    .then(response => response.json())
+                    .then(data => {
+                        // clean
+                        this.rsuMarkers.forEach(marker => {
+                            this.map.removeLayer(marker)
+                        })
+                        const rsus = data.rsus
+                        rsus.forEach(r => {
+                            var icon = L.icon({
+                                iconUrl: 'https://cdn.iconscout.com/icon/premium/png-256-thumb/data-center-1646945-1397355.png',
+                                iconSize: [40, 40]
+                            });
+                            let marker = L.marker([r.lat, r.long], { icon: icon }).addTo(this.map).bindPopup(r.name);
+                            this.rsuMarkers.push(marker)
+                        });
+
+                    })
             },
             // simulation
             startSimulation() {
@@ -255,7 +309,7 @@
                     })
             },
             async loadMappingOptions() {
-                await fetch('/mapping/options')
+                await fetch('/mapper/options')
                     .then(response => response.json())
                     .then(data => {
                         console.log("data", data)
