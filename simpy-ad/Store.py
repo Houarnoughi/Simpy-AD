@@ -1,7 +1,7 @@
 """
 Static class that holds Simulation's that keeps track of
     - all PUs
-    -  all Tasks
+    - all Tasks
 """
 from dataclasses import dataclass
 from Colors import END, GREEN, YELLOW, RED, BLUE
@@ -56,7 +56,7 @@ class Store:
 
     def __init__(self, env):
         self.env = env
-        self.proc = env.process(self.run())
+        #self.proc = env.process(self.run())
 
     def run(self):
         while True:
@@ -112,6 +112,9 @@ class Store:
         
     def clearTasks():
         Store.tasks_to_execute.clear()
+
+    def addRSU(rsu: 'RoadSideUnit'):
+        Store.rsu_list.append(rsu)
 
     def addPU(pu: 'ProcessingUnit'):
         Store.pu_list.append(pu)
@@ -173,15 +176,12 @@ class Store:
         return len(list(filter(Store.success_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def getStartedFailedTaskCount():
-        tasks = Store.getTaskList()
         return len(list(filter(Store.started_failed_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def getStartedNotFinishedTaskCount():
-        tasks = Store.getTaskList()
         return len(list(filter(Store.started_not_finished_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def getNotStartedTaskCount():
-        tasks = Store.getTaskList()
         return len(list(filter(Store.not_started_lambda, Store.all_tasks))) if Store.all_tasks else 0
 
     def export():
@@ -235,6 +235,16 @@ class Store:
                     # if feature != features[-1]:
                     #     f.write(',')
                 f.write('\n')
+    
+    def clear():
+        Store.vehicle_list.clear()
+        Store.rsu_list.clear()
+        Store.datacenter_list.clear()
+        Store.all_tasks.clear()
+        Store.tasks_to_execute.clear()
+        Store.pu_list.clear()
+        Store.task_pu_props.clear()
+        Store.input_list.clear()
 
     def showStats():
         print("\n")
@@ -259,6 +269,8 @@ class Store:
         not_started_list = list(filter(Store.not_started_lambda, tasks))
         # for t in not_started_list:
         #     print(f'{t} started at {t.execution_start_time} ended {t.execution_end_time}, sched rounds {t.scheduler_rounds}, total {t.getFlop()}, remaining {t.remaining_flop} flop, {t.currentPU}')
+        print(Store.pu_list)
+        pu: 'ProcessingUnit'
         for pu in Store.pu_list:
             pu.show_stats()
 
