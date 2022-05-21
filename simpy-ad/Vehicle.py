@@ -124,7 +124,11 @@ class Vehicle(object):
                 #    self.moveToRandomLocation()
                 #self.log(f"Generated {len(self.task_list)} tasks, TIMEOUT {TIMEOUT}, Store: to execute {Store.getTasksToExecuteCount()}, incomplete {Store.getIncompleteTasksCount()}")
                 #yield self.env.timeout(TIMEOUT)
-            self.move()
+            try:
+                self.move()
+            except IndexError:
+                self.log("Trip Finished")
+                break
 
     def getTripCoordinates(self) -> List:
         return self.trip_coordinates
