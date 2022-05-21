@@ -58,9 +58,9 @@ class TaskMapper:
         TaskMapper.env = env
         self.env = env
         self.taskMappingPolicy = taskMappingPolicy
-        self.process = env.process(self.work(env))
+        self.process = env.process(self.run(env))
 
-    def work(self, env):
+    def run(self, env):
         #CYCLE = 0.001
         while True:
             try:
