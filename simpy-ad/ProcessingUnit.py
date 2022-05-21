@@ -86,7 +86,7 @@ class ProcessingUnit(simpy.Resource):
     def setTaskList(self, task_list: List['_Task']):
         task: '_Task' = None
         for task in task_list:
-            task.setCurrentPU(self)
+            task.setCurrentPu(self)
             self.task_list.append(task)
             self.log(f'ProcessingUnit-setTaskList: {task.getTaskName()} submitted to {self.getPUName()}')
 
@@ -140,22 +140,21 @@ class ProcessingUnit(simpy.Resource):
         # load task in memory 
         yield self.env.timeout(self.getTaskLoadingTime(task))
 
-        if task.execution_start_time == -1:
-            task.execution_start_time = self.env.now
+        if task.getExecutionStartTime() == -1:
+            task.setExecutionStartTime(self.env.now)
 
         TIMEOUT = 0
 
-        scheduler = self.getScheduler()
-        QUANTUM = scheduler.getQuantum()
+        QUANTUM = self.getScheduler().getQuantum()
         if QUANTUM:
             qty = self.getQuantumFlop()
 
             # if have less to burn in 1 quantum
-            if qty >= task.remaining_flop:
+            if qty >= task.getRemainingFlop():
                 # get needed quantum for remaining flop to be yielded
-                current_quantum = task.remaining_flop/self.flops
+                current_quantum = task.getRemainingFlop()/self.flops
                 # task finished
-                task.remaining_flop = 0
+                task.setRemainingFlop(0)
                 #self.log(f'execute_task: Task {task} finished at {self.env.now}')
                 #self.log(f"execute_task: quantum {current_quantum}")
                 TIMEOUT = current_quantum
@@ -163,18 +162,18 @@ class ProcessingUnit(simpy.Resource):
             else:
                 #self.log(f'execute_task: before burst task {task} remaining flop={task.remaining_flop}')
                 #self.log(f'Burst qty {qty}')
-                task.remaining_flop -= qty
+                task.decreaseRemainingFlop(qty)
                 #self.log(f'execute_task:  after burst task {task} remaining flop={task.remaining_flop} at {self.env.now}')
                 TIMEOUT = QUANTUM
         else:
             #self.log("execute_task: No quantum")
             exec_time = self.getTaskExecutionTime(task) * 1000
             # task finished
-            task.remaining_flop = 0
+            task.setRemainingFlop(0)
             TIMEOUT = exec_time
 
         #self.log(f"execute_task: TIMEOUT {TIMEOUT}")
-        print("timeout quantum", TIMEOUT)
+        #print("timeout quantum", TIMEOUT)
         yield self.env.timeout(TIMEOUT)
     
     def log(self, message):
@@ -216,19 +215,19 @@ class ProcessingUnit(simpy.Resource):
             try:
                 task: '_Task' = self.scheduler.getNextTask()
                 
-                self.log(f"run: processing task {task}")
+                #self.log(f"run: processing task {task}")
                 yield self.env.process(self.execute_task(task))
-                self.log(f"run: processed task {task}")
+                #self.log(f"run: processed task {task}")
                 #self.log(f" after exec {task}-flop={task.remaining_flop} at {self.env.now}, tasks={len(self.tasks)}")
                 #self.log(f" after exec {task}-flop={task.remaining_flop} at {self.env.now}")
 
-                if task.remaining_flop > 0:
+                if task.getRemainingFlop() > 0:
                     #self.log(f"run: Back to scheduler {task}")
-                    task.scheduler_rounds += 1
+                    task.addSchedulerRound()
                     self.scheduler.addTaskInQueue(task)
                 
-                if task.remaining_flop <= 0:
-                    task.execution_end_time = self.env.now
+                if task.getRemainingFlop() <= 0:
+                    task.setExecutionEndTime(self.env.now)
                     self.actual_memory -= task.getSize()
 
                     self.log(f"run: Finished task execution {task}, deadline={task.getDeadline()} Success: {task.isSuccess()}")
