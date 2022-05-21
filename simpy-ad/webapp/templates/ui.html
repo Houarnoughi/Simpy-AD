@@ -13,9 +13,10 @@
 </header>
 
 <div id="app">
-    <v-app>
-
-        <div id="map"></div>
+    <v-app class="">
+        <v-container class="" fluid>
+            <div class="text-h4">Simulation Config</div>
+        </v-container>
 
         <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
             <v-col cols="2">
@@ -26,6 +27,25 @@
             </v-col>
             <v-col cols="2">
                 <v-text-field v-model="simulation.vehicle_fps" label="Vehicle FPS" type="number"></v-text-field>
+            </v-col>
+            <v-col cols="3">
+                <v-select v-model="simulation.vehicle_mapping" :items="mappingOptions" label="Task Mapping Policy">
+                </v-select>
+            </v-col>
+        </v-row>
+
+        <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
+            <v-col cols="3">
+                <v-select v-model="simulation.edge_scheduler" :items="schedulerOptions" label="Edge Scheduling Policy">
+                </v-select>
+            </v-col>
+            <v-col cols="3">
+                <v-select v-model="simulation.fog_scheduler" :items="schedulerOptions" label="FOG Scheduling Policy">
+                </v-select>
+            </v-col>
+            <v-col cols="3">
+                <v-select v-model="simulation.cloud_scheduler" :items="schedulerOptions"
+                    label="Cloud Scheduling Policy"></v-select>
             </v-col>
         </v-row>
 
@@ -38,11 +58,18 @@
             </v-col>
         </v-row>
 
-        <!-- <v-select :items="items" filled label="Filled style" dense></v-select> -->
+        <v-row class="">
+            <v-col class="" cols="6">
+                <div id="map"></div>
+            </v-col>
+            <v-col class="" cols="6">
+                <div style="height:100%; width: 100%;">
+                    <canvas id="chart"></canvas>
+                </div>
+            </v-col>
+        </v-row>
 
-        <div style="height:30%; width: 80%; margin-left: auto; margin-right: auto;">
-            <canvas id="chart"></canvas>
-        </div>
+
     </v-app>
 </div>
 
@@ -53,10 +80,7 @@
         delimiters: ['[[', ']]'],
         data: {
             RUNNING: false,
-            chart: new Chart(
-                document.getElementById('chart'),
-                {}
-            ),
+            chart: null,
             chartLabels: ['All Tasks', 'Success', 'Failed', 'To execute', 'Incomplete'],
             chartColors: ['black', 'green', 'red', 'blue', 'orange'],
             allTasksCountList: [],
@@ -66,24 +90,38 @@
             incompleteTasksCountList: [],
             simulationStep: 0,
             // simu props
+            schedulerOptions: [],
+            mappingOptions: [],
             simulation: {
                 steps: 100,
                 vehicle_count: 1,
-                vehicle_fps: 30
+                vehicle_fps: 30,
+                vehicle_mapping: '',
+                edge_scheduler: '',
+                fog_scheduler: '',
+                cloud_scheduler: ''
             }
         },
-        mounted() {
+        async mounted() {
             window.addEventListener('load', () => {
                 this.setupMap()
             })
 
-            //setInterval(this.chartCallback, 100)
+            this.chart = new Chart(
+                document.getElementById('chart'),
+                {}
+            )
+            this.drawChart()
+
+            await this.loadSchedulerOptions()
+            await this.loadMappingOptions()
             setInterval(this.statsCallback, 100)
             //setInterval(this.vehiclesCallback, 1000)
-            //setInterval(this.rsusCallback, 1000)
+            setInterval(this.rsusCallback, 1000)
         },
         methods: {
             setupMap() {
+                
                 let map = L.map('map');
                 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                     attribution: '©️ OpenStreetMap contributors'
@@ -126,6 +164,7 @@
                     type: 'line',
                     data: chartData,
                     options: {
+                        resposive: true,
                         animation: {
                             duration: 0
                         },
@@ -158,7 +197,10 @@
                 fetch('/stats')
                     .then(response => response.json())
                     .then(data => {
-                        console.log("data", data)
+                        console.log("data", data, data.values)
+
+                        // if simu ended (Store is cleared)
+                        if (data.all_tasks === 0) return 
 
                         this.allTasksCountList.push(data.all_tasks)
                         this.successTasksCountList.push(data.success_tasks)
@@ -173,7 +215,7 @@
                 //console.log("vehicles")
             },
             rsusCallback() {
-                //console.log("vehicles")
+                
             },
             // simulation
             startSimulation() {
@@ -203,6 +245,22 @@
                     output.push(i);
                 }
                 return output;
+            },
+            async loadSchedulerOptions() {
+                await fetch('/scheduler/options')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("data", data)
+                        this.schedulerOptions = data.task_scheduling_options
+                    })
+            },
+            async loadMappingOptions() {
+                await fetch('/mapping/options')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("data", data)
+                        this.mappingOptions = data.task_mapping_options
+                    })
             }
 
         },
@@ -223,7 +281,7 @@
 <style>
     #map {
         width: 100%;
-        height: 50%;
+        height: 100%;
     }
 
     .text-center {

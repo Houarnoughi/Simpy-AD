@@ -19,6 +19,9 @@ class TaskSchedulingPolicy(ABC):
     def getParallel(self):
         return self.parallel
     
+    def toJSON(self):
+        return 'manu'
+    
     @abstractmethod
     def addTaskInQueue(self, task: '_Task'):
         """ impl by Policy """
@@ -98,6 +101,11 @@ class RoundRobinSchedulingPolicy(TaskSchedulingPolicy):
     def getQuantum(self) -> float:
         return self.quantum
 
+UI_OPTIONS = [
+    FIFOSchedulingPolicy,
+    SJFSchedulingPolicy,
+    RoundRobinSchedulingPolicy
+]
 
 if __name__ == '__main__':
     

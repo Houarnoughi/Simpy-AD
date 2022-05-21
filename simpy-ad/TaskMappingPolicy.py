@@ -71,7 +71,6 @@ class RandomTaskMappingPolicy(TaskMappingPolicy):
         random_pu: 'ProcessingUnit' = random.choice(pu_list)
         random_pu.submitTask(task)
     
-
 class InplaceMappingPolicy(TaskMappingPolicy):
     """
     Get tasks vehicle's main PU and assign task to it
@@ -161,6 +160,12 @@ class CustomTaskMappingPolicy(TaskMappingPolicy):
                  task_flop, task_size, distance]
         #print(features)
         return features
+
+UI_OPTIONS = [
+    RandomTaskMappingPolicy,
+    InplaceMappingPolicy,
+    CustomTaskMappingPolicy
+]
 
 if __name__ == "__main__":
     env = simpy.Environment()

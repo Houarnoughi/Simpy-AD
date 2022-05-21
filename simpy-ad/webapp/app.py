@@ -15,7 +15,10 @@ app.debug = True
 
 @app.route('/', methods=['GET'])
 def index():
-    #return render_template('index.html')
+    """
+    stop running simu if refresh
+    """
+    stopSimulation()
     return render_template('ui.html')
 
 
@@ -123,6 +126,28 @@ def getStats():
         "maxTaskCount": config.MAX_TASK_COUNT
     }
     return stats
+
+@app.get('/scheduler/options')
+def schedulerOptions():
+
+    from TaskSchedulingPolicy import UI_OPTIONS
+    
+    response = list(map(lambda o: o.__name__, UI_OPTIONS))
+    print("response", response)
+    return {
+        'task_scheduling_options': response
+    }
+
+@app.get('/mapping/options')
+def mappingOptions():
+
+    from TaskMappingPolicy import UI_OPTIONS
+    
+    response = list(map(lambda o: o.__name__, UI_OPTIONS))
+    print("response", response)
+    return {
+        'task_mapping_options': response
+    } 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
