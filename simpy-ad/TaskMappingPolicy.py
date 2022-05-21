@@ -58,7 +58,8 @@ class TaskMappingPolicy(ABC):
         raise NotImplemented("Please implement this method")
 
     def log(self, msg: str):
-        print(f'{self.env.now}: {GREEN}{self.__class__.__name__}: {msg}{END}')
+        pass
+        #print(f'{self.env.now}: {GREEN}{self.__class__.__name__}: {msg}{END}')
 
 
 class RandomTaskMappingPolicy(TaskMappingPolicy):
@@ -101,7 +102,8 @@ class CustomTaskMappingPolicy(TaskMappingPolicy):
         self.nn = TaskMapperNet(input_dim=9, hidden_dim=12, output_dim=1)
 
     def callback(self):
-        self.log('callback called')
+        pass
+        #self.log('callback called')
         #input()
 
     def assignToPu(self, task: '_Task', pu_list: list['ProcessingUnit'] = None):
