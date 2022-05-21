@@ -8,13 +8,15 @@ from Simulation import Simulation
 from numpy import vectorize
 sys.path.insert(1, "../simpy-ad")
 import config
+from Store import Store
 
 app = Flask(__name__)
 app.debug = True
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    #return render_template('index.html')
+    return render_template('ui.html')
 
 
 # global vars
@@ -29,17 +31,25 @@ simulation = None
 @app.post('/simulation/start')
 def startSimulation():
     try:
-        print("starting simulation with ", request.json)
         global simulation
 
         if simulation:
             print("already running a simu, please stop it first")
             return "already running a simu, please stop it first"
-        simulation = Simulation()
+        
+        print(request.json)
+        steps = request.json.get("steps", 99)
+        vehicle_count = request.json.get("vehicle_count", 99)
+        vehicle_fps = request.json.get("vehicle_fps", 99)
+        simulation = Simulation(
+            steps=int(steps), 
+            vehicle_count=int(vehicle_count), 
+            vehicle_fps=int(vehicle_fps)
+        )
         simulation.start()
         return "started"
     except Exception as e:
-        print(e)
+        print("app.startSimulation ", e)
         return "error"
 
 @app.post('/simulation/stop')
@@ -47,8 +57,11 @@ def stopSimulation():
     print("stopping simulation")
     global simulation
     try:
-        simulation.terminate()
+        simulation.stop()
         simulation = None
+
+        Store.clear()
+
         return "stopped"
     except Exception as e:
         print(e)
@@ -98,19 +111,17 @@ def getRsus():
 global stats 
 stats = dict()
 
-@app.route('/stats', methods=['POST'])
-def setStats():
-    global stats
-
-    newStats = request.json.get('data', {})
-    stats = newStats
-
-    return "ok"
-
 @app.route('/stats', methods=['GET'])
 def getStats():
-    global stats
-    
+    stats = {
+        "all_tasks": Store.getTotalTaskCount(),
+        "success_tasks": Store.getSuccessTaskCount(),
+        "failed_tasks": Store.getStartedFailedTaskCount(),
+        "tasks_to_execute": Store.getTasksToExecuteCount(),
+        "incomplete_tasks": Store.getIncompleteTasksCount(),
+        "finished_tasks": Store.getSuccessTaskCount(),
+        "maxTaskCount": config.MAX_TASK_COUNT
+    }
     return stats
 
 if __name__ == '__main__':
