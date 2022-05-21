@@ -58,11 +58,28 @@
             </v-col>
         </v-row>
 
+        <v-row no-gutters class="pt-0 pb-0">
+            <v-switch class="pl-5" v-model="verticalView" inset label="Vertical view"></v-switch>
+        </v-row>
+
+        <v-row no-gutters class="pa-5 pb-0 " justify="center">
+            <v-col cols="2">
+                <v-text-field v-model="mapLat" label="Latitude" @input="changeMap" ></v-text-field>
+            </v-col>
+            
+            <v-col cols="2">
+                <v-text-field v-model="mapLong" label="Longitude" @input="changeMap" ></v-text-field>
+            </v-col>
+            <v-col cols="2">
+                <v-text-field v-model="mapRange" label="Area"  ></v-text-field>
+            </v-col>
+        </v-row>
+
         <v-row class="">
-            <v-col class="" cols="6">
+            <v-col class="" style="margin-left: auto; margin-right: auto;" :cols="verticalView ? 6:8">
                 <div id="map"></div>
             </v-col>
-            <v-col class="" cols="6">
+            <v-col class="" style="margin-left: auto; margin-right: auto;" :cols="verticalView ? 6:8">
                 <div style="height:100%; width: 100%;">
                     <canvas id="chart"></canvas>
                 </div>
@@ -79,6 +96,7 @@
         vuetify: new Vuetify(),
         delimiters: ['[[', ']]'],
         data: {
+            verticalView: false,
             RUNNING: false,
             chart: null,
             chartLabels: ['All Tasks', 'Success', 'Failed', 'To execute', 'Incomplete'],
@@ -90,6 +108,9 @@
             incompleteTasksCountList: [],
             simulationStep: 0,
             // map markers
+            mapLat: 50.631583072533594,
+            mapLong: 3.057713469569928,
+            mapRange: 10,
             map: null,
             rsuMarkers: [],
             vehicleMarkers: [],
@@ -133,7 +154,7 @@
                 }).addTo(this.map);
 
                 // focus on Lille
-                this.map.setView([50.631583072533594, 3.057713469569928], 13);
+                this.map.setView([this.mapLat, this.mapLong], 13);
 
                 // handle zoom
                 this.map.on('zoomend', function (e) {
@@ -147,6 +168,10 @@
                     //var bounds = [[yMin, xMax], [yMax, xMax]];
                     //L.rectangle(bounds, { color: "#red", weight: 1 }).addTo(map);
                 })
+            },
+            changeMap() {
+                console.log("her")
+                this.map.setView([this.mapLat, this.mapLong], 13);
             },
             // set interval callbacks
             drawChart() {
@@ -217,6 +242,7 @@
                     })
             },
             vehiclesCallback() {
+                if (!this.RUNNING) return
                 fetch('/vehicle')
                     .then(response => response.json())
                     .then(data => {
@@ -252,6 +278,7 @@
                     })
             },
             rsusCallback() {
+                if (!this.RUNNING) return
                 fetch('/rsu')
                     .then(response => response.json())
                     .then(data => {
