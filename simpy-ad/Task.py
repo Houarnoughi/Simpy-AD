@@ -94,8 +94,8 @@ class _Task(ABC):
     def getFlop(self) -> float:
         return self.flop
 
-    def setRemainingFlop(self, flop: float):
-        self.flop = flop
+    def setRemainingFlop(self, remaining_flop: float):
+        self.remaining_flop = remaining_flop
 
     def decreaseRemainingFlop(self, flop: float):
         self.remaining_flop -= flop
