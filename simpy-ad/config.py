@@ -11,12 +11,12 @@ MIN_LAT, MAX_LAT = 50.63089852336916, 50.650796308194764
 MIN_LONG, MAX_LONG = 3.032710061899567, 3.08480585127184
 
 # vehicle
-VEHICLE_COUNT = 1
+VEHICLE_COUNT = 10
 FPS = 30
 RANDOM_MOVE = True
 
 # rsu, 0 to 5 for this area
-RSU_COUNT = 5
+RSU_COUNT = 1
 """
 RSU_LOCATIONS = 
 addr1, 50.63725143907785, 3.0702985651377745
@@ -32,15 +32,17 @@ OFFLOAD_TO_DATACENTER = False
 
 # Task Mapping, task to PU attribution
 N_CLOSEST_PU = 2
-TASK_MAPPING_POLICY = CustomTaskMappingPolicy #RandomTaskMappingPolicy #InplaceMappingPolicy #RandomTaskMappingPolicy
+TASK_MAPPING_POLICY = RandomTaskMappingPolicy #CustomTaskMappingPolicy #RandomTaskMappingPolicy #InplaceMappingPolicy #RandomTaskMappingPolicy
 TASK_MAPPING_CALLBACK_INTERVAL = 1
 
 # steps
-SIM_TIME = 1000
+SIM_TIME = 100
 MAX_TASK_COUNT = SIM_TIME * VEHICLE_COUNT * FPS * 3
 
 # scheduler
-TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
+EDGE_TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
+FOG_TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
+CLOUD_TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
 AGX_QUANTUM = 0.01
 TESLA_QUANTUM = 0.01
 DGX_QUANTUM = 0.01
