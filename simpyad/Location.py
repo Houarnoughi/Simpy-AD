@@ -36,6 +36,12 @@ class Location(object):
 
     def setLongitude(self, longitude):
         self.longitude = longitude
+    
+    def getLocationInRange(src: 'Location', range: float) -> 'Location':
+        src_location = (src.getLatitude(), src.getLongitude())
+
+        point = hs.inverse_haversine(src_location, range, range)
+        return Location("", point[0], point[1])
 
     def getDistanceInMetersBetween(src: 'Location', dst: 'Location'):
         source = (src.getLatitude(), src.getLongitude())
@@ -60,7 +66,7 @@ class Location(object):
 
     def json(self) -> dict:
         return {
-            'town': self.address,
+            'name': self.address,
             'latitude': self.latitude,
             'longitude': self.longitude
         }
@@ -73,9 +79,9 @@ class Location(object):
 
 
 UI_OPTIONS = [
-    Location("Paris", 48.857234818870474, 2.3405088720080602),
     Location("Lille", 50.631583072533594, 3.057713469569928),
+    Location("Paris", 48.857234818870474, 2.3405088720080602),
     Location("Bordeaux", 44.83911345093876, -0.5775176280843897),
-    Location("Lyon", 45.764043, 4.835658),
-    Location("London", 51.509865, -0.118092),
+    #Location("Lyon", 45.764043, 4.835658),
+    #Location("London", 51.509865, -0.118092),
 ]

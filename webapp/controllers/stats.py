@@ -1,6 +1,5 @@
 from flask import Blueprint, Flask
 from Store import Store
-import config
 
 bp = Blueprint('stats', __name__, url_prefix='')
 
@@ -13,7 +12,7 @@ def statsFunc():
         "tasks_to_execute": Store.getTasksToExecuteCount(),
         "incomplete_tasks": Store.getIncompleteTasksCount(),
         "finished_tasks": Store.getSuccessTaskCount(),
-        "maxTaskCount": config.MAX_TASK_COUNT
+        #"maxTaskCount": config.MAX_TASK_COUNT
     }
     
     return stats

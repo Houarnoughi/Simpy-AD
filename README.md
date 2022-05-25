@@ -24,11 +24,7 @@ python3 -m pip install -r requirements.txt
 ## run Simulaiton
 
 ```bash
-cd simpy-ad
-```
-
-```bash
-python3 webapp/app.py
+python3 app.py
 ```
 ## Simulation options are defined in simpy-ad/config.py
 

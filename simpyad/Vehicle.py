@@ -43,6 +43,7 @@ class Vehicle(object):
 
         self.c_location = c_location
         self.f_location = f_location
+        print(c_location, f_location)
         self.trip_coordinates = []
         self.speed = speed
         self.bw = bw

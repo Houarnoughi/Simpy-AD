@@ -16,7 +16,7 @@ FPS = 30
 RANDOM_MOVE = True
 
 # rsu, 0 to 5 for this area
-RSU_COUNT = 1
+RSU_COUNT = 5
 """
 RSU_LOCATIONS = 
 addr1, 50.63725143907785, 3.0702985651377745

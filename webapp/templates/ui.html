@@ -14,26 +14,103 @@
 
 <div id="app">
     <v-app class="">
-        <v-container class="" fluid>
-            <div class="text-h4">Simulation Config</div>
-        </v-container>
 
-        <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
-            <v-col cols="2">
-                <v-text-field v-model="simulation.steps" label="Steps" type="number"></v-text-field>
-            </v-col>
-            <v-col cols="2">
-                <v-text-field v-model="simulation.vehicle_count" label="Vehicles" type="number"></v-text-field>
-            </v-col>
-            <v-col cols="2">
-                <v-text-field v-model="simulation.vehicle_fps" label="Vehicle FPS" type="number"></v-text-field>
-            </v-col>
-            <v-col cols="3">
-                <v-select v-model="simulation.vehicle_mapping" :items="mappingOptions" label="Task Mapping Policy">
-                </v-select>
-            </v-col>
-        </v-row>
+        <v-expansion-panels v-model="panel" class="pa-5" multiple>
+            <!-- Simulation props -->
+            <v-expansion-panel >
+                <v-expansion-panel-header>
+                    <div>
+                        <v-icon size="30">mdi-cog</v-icon>
+                        Simulation config
+                    </div>
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                    <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
+                        <v-col cols="1">
+                            <v-text-field v-model="simulation.steps" label="Steps" type="number" prepend-icon="mdi-step-forward"></v-text-field>
+                        </v-col>
+                        <v-col cols="2">
+                            <v-select v-model="simulation.town" :items="towns" label="Town" item-text="name"
+                                return-object @change="changeMap" required prepend-icon="mdi-map-marker"></v-select>
+                        </v-col>
+                        <v-col cols="2">
+                            <v-text-field v-model="simulation.town.latitude" label="Latitude" @input="changeMap" prepend-icon="mdi-latitude">
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="2">
+                            <v-text-field v-model="simulation.town.longitude" label="Longitude" @input="changeMap" prepend-icon="mdi-longitude">
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="1">
+                            <v-text-field disabled v-model="mapRange" label="Area" prepend-icon="mdi-vector-square-plus"></v-text-field>
+                        </v-col>
+                    </v-row>
+                </v-expansion-panel-content>
+            </v-expansion-panel>
+            <!-- Vehicle props -->
+            <v-expansion-panel>
+                <v-expansion-panel-header>
+                    <div>
+                        <v-icon size="30">mdi-car</v-icon>
+                        Vehicles
+                    </div>
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                    <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
+                        <v-col cols="1">
+                            <v-text-field v-model="simulation.vehicle_count" label="Vehicles" type="number">
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="1">
+                            <v-text-field v-model="simulation.vehicle_fps" label="Vehicle FPS" type="number">
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="3">
+                            <v-select v-model="simulation.vehicle_mapping" :items="mappingOptions"
+                                label="Task Mapping Policy">
+                            </v-select>
+                        </v-col>
+                        <v-col cols="3">
+                            <v-select v-model="simulation.vehicle_scheduling" :items="schedulerOptions"
+                                label="Task Scheduling Policy">
+                            </v-select>
+                        </v-col>
+                        <v-col cols="3">
+                            <v-select v-model="simulation.vehicle_networking" :items="networkingOptions"
+                                label="Vehicle Network">
+                            </v-select>
+                        </v-col>
+                    </v-row>
+                </v-expansion-panel-content>
+            </v-expansion-panel>
+            <!-- RSU props -->
+            <v-expansion-panel>
+                <v-expansion-panel-header>
+                    <div>
+                        <v-icon size="30">mdi-antenna</v-icon>
+                        Road Side Units
+                    </div>
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
 
+                </v-expansion-panel-content>
+            </v-expansion-panel>
+            <!-- Data Center props -->
+            <v-expansion-panel>
+                <v-expansion-panel-header>
+                    <div>
+                        <v-icon size="30">mdi-cloud</v-icon>
+                        Data Centers
+                    </div>
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+
+                </v-expansion-panel-content>
+            </v-expansion-panel>
+        </v-expansion-panels>
+
+
+        <!-- RSU props -->
         <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
             <v-col cols="3">
                 <v-select v-model="simulation.edge_scheduler" :items="schedulerOptions" label="Edge Scheduling Policy">
@@ -62,19 +139,6 @@
             <v-switch class="pl-5" v-model="verticalView" inset label="Vertical view"></v-switch>
         </v-row>
 
-        <v-row no-gutters class="pa-5 pb-0 " justify="center">
-            <v-col cols="2">
-                <v-text-field v-model="mapLat" label="Latitude" @input="changeMap" ></v-text-field>
-            </v-col>
-            
-            <v-col cols="2">
-                <v-text-field v-model="mapLong" label="Longitude" @input="changeMap" ></v-text-field>
-            </v-col>
-            <v-col cols="2">
-                <v-text-field v-model="mapRange" label="Area"  ></v-text-field>
-            </v-col>
-        </v-row>
-
         <v-row class="">
             <v-col class="" style="margin-left: auto; margin-right: auto;" :cols="verticalView ? 6:8">
                 <div id="map"></div>
@@ -96,6 +160,7 @@
         vuetify: new Vuetify(),
         delimiters: ['[[', ']]'],
         data: {
+            panel: [0],
             verticalView: false,
             RUNNING: false,
             chart: null,
@@ -108,29 +173,43 @@
             incompleteTasksCountList: [],
             simulationStep: 0,
             // map markers
-            mapLat: 50.631583072533594,
-            mapLong: 3.057713469569928,
+            mapLat: '',
+            mapLong: '',
             mapRange: 10,
             map: null,
             rsuMarkers: [],
             vehicleMarkers: [],
             tripMarkers: [],
+            // towns
+            towns: [],
             // simu props
             schedulerOptions: [],
             mappingOptions: [],
+            networkingOptions: [],
             simulation: {
                 steps: 100,
                 vehicle_count: 1,
                 vehicle_fps: 30,
                 vehicle_mapping: '',
+                vehicle_scheduling: '',
+                vehicle_networking: '',
                 edge_scheduler: '',
                 fog_scheduler: '',
-                cloud_scheduler: ''
+                cloud_scheduler: '',
+                town: {
+                    name: 'none',
+                    latitude: 0,
+                    longitude: 0
+                }
             }
         },
         async mounted() {
-            window.addEventListener('load', () => {
+            window.addEventListener('load', async () => {
+                console.log("loading")
+                await this.loadLocationOptions()
+                console.log("loaded")
                 this.setupMap()
+                this.changeMap()
             })
 
             this.chart = new Chart(
@@ -139,6 +218,7 @@
             )
             this.drawChart()
 
+            await this.loadNetworkingOptions()
             await this.loadSchedulerOptions()
             await this.loadMappingOptions()
             setInterval(this.statsCallback, 100)
@@ -153,8 +233,8 @@
                     attribution: '©️ OpenStreetMap contributors'
                 }).addTo(this.map);
 
-                // focus on Lille
-                this.map.setView([this.mapLat, this.mapLong], 13);
+                // focus on town
+                this.changeMap()
 
                 // handle zoom
                 this.map.on('zoomend', function (e) {
@@ -170,8 +250,8 @@
                 })
             },
             changeMap() {
-                console.log("her")
-                this.map.setView([this.mapLat, this.mapLong], 13);
+                let coordinates = [this.simulation.town.latitude, this.simulation.town.longitude]
+                this.map.setView(coordinates, 13);
             },
             // set interval callbacks
             drawChart() {
@@ -301,13 +381,23 @@
             // simulation
             startSimulation() {
                 this.RUNNING = true
+                let config = {
+                    steps: this.simulation.steps,
+                    vehicle_count: this.simulation.vehicle_count,
+                    vehicle_fps: this.simulation.vehicle_fps,
+                    vehicle_mapping: this.simulation.vehicle_mapping,
+                    vehicle_scheduling: this.simulation.vehicle_scheduling,
+                    vehicle_networking: this.simulation.vehicle_networking,
+                    town: this.simulation.town
+                }
+                console.log("sending config", config)
                 fetch('/simulation/start', {
                     method: "POST",
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(this.simulation)
+                    body: JSON.stringify(config)
                 })
             },
             stopSimulation() {
@@ -341,6 +431,23 @@
                     .then(data => {
                         console.log("data", data)
                         this.mappingOptions = data.task_mapping_options
+                    })
+            },
+            async loadNetworkingOptions() {
+                await fetch('/networking/options')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("data", data)
+                        this.networkingOptions = data.networking_options
+                    })
+            },
+            async loadLocationOptions() {
+                await fetch('/location/options')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.towns = data.location_options
+
+                        this.simulation.town = this.towns[0]
                     })
             }
 

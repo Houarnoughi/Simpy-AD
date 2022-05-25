@@ -13,7 +13,7 @@ class CNNModel(object):
         , 'nb_conv_params', 'nb_bn_params', 'nb_fc_params', 'FLOPs', 'nb_layers', 'nb_conv_layers'
         , 'nb_bn_layers', 'nb_fc_layers', 'sum_activations', 'weighted_sum_neurons']
 
-    def __init__(self, name, input_width, model_path='../data/models_stats_AGX.csv'):
+    def __init__(self, name, input_width, model_path='data/models_stats_AGX.csv'):
         self.name = name
         self.input_width = input_width
         self.model_path = model_path
@@ -48,14 +48,14 @@ class CNNModel(object):
     """
     @staticmethod
     def getModelFlopsMinMax() -> Tuple[float, float]:
-        path = '../data/models_stats_AGX.csv'
+        path = 'data/models_stats_AGX.csv'
         dataset = pd.read_csv(path)
         flops = dataset["FLOPs"]
         return flops.min(), flops.max()
 
     @staticmethod
     def getModelMemoryMinMax() -> Tuple[float, float]:
-        path = '../data/models_stats_AGX.csv'
+        path = 'data/models_stats_AGX.csv'
         dataset = pd.read_csv(path)
         memory = dataset["Memory"]
         return memory.min(), memory.max()

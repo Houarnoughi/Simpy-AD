@@ -3,7 +3,6 @@ Static class that holds Simulation's that keeps track of
     - all PUs
     - all Tasks
 """
-from dataclasses import dataclass
 from Colors import END, GREEN, YELLOW, RED, BLUE
 from typing import List, TYPE_CHECKING
 from Location import Location
