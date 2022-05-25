@@ -1,13 +1,16 @@
 import haversine as hs
 from typing import Tuple
 
+
 class Latitude:
     min = -90
     max = 90
 
+
 class Longitude:
     min = -180
     max = 180
+
 
 class Location(object):
 
@@ -33,7 +36,7 @@ class Location(object):
 
     def setLongitude(self, longitude):
         self.longitude = longitude
-    
+
     def getDistanceInMetersBetween(src: 'Location', dst: 'Location'):
         source = (src.getLatitude(), src.getLongitude())
         dst_location = (dst.getLatitude(), dst.getLongitude())
@@ -48,15 +51,31 @@ class Location(object):
         src = (self.getLatitude(), self.getLongitude())
         dst_location = (dst.getLatitude(), dst.getLongitude())
         return hs.haversine(src, dst_location)
-    
+
     def getDistanceInKmFromTuples(src: Tuple[float, float], dst: Tuple[float, float]) -> float:
         return hs.haversine(src, dst)
 
     def getLatitudeLongitude(self) -> Tuple[float, float]:
         return self.getLatitude(), self.getLongitude()
 
+    def json(self) -> dict:
+        return {
+            'town': self.address,
+            'latitude': self.latitude,
+            'longitude': self.longitude
+        }
+
     def __str__(self):
         return f"[Location: {self.latitude}, {self.longitude}]"
-    
+
     def __repr__(self) -> str:
         return f"[Location: {self.latitude}, {self.longitude}]"
+
+
+UI_OPTIONS = [
+    Location("Paris", 48.857234818870474, 2.3405088720080602),
+    Location("Lille", 50.631583072533594, 3.057713469569928),
+    Location("Bordeaux", 44.83911345093876, -0.5775176280843897),
+    Location("Lyon", 45.764043, 4.835658),
+    Location("London", 51.509865, -0.118092),
+]
