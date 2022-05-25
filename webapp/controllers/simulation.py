@@ -66,6 +66,7 @@ def startSimulation():
 
         town = getTownLocation(request)
         print("town", town)
+        area_range = request.json.get("area_range", config.SIM_TIME)
 
         #return 'start'
         simulationThread = Simulation(
@@ -75,7 +76,8 @@ def startSimulation():
             vehicle_mapping=vehicle_mapping,
             vehicle_scheduling=vehicle_scheduling,
             vehicle_networking=vehicle_networking,
-            town=town
+            town=town,
+            area_range=float(area_range)
         )
         simulationThread.start()
 

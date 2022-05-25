@@ -1,6 +1,6 @@
 import haversine as hs
 from typing import Tuple
-
+import random
 
 class Latitude:
     min = -90
@@ -38,10 +38,11 @@ class Location(object):
         self.longitude = longitude
     
     def getLocationInRange(src: 'Location', range: float) -> 'Location':
+        """ range in meters, from UI """
         src_location = (src.getLatitude(), src.getLongitude())
 
-        point = hs.inverse_haversine(src_location, range, range)
-        return Location("", point[0], point[1])
+        lat, long = hs.inverse_haversine(src_location, range, random.random(), hs.Unit.METERS)
+        return Location("", lat, long)
 
     def getDistanceInMetersBetween(src: 'Location', dst: 'Location'):
         source = (src.getLatitude(), src.getLongitude())

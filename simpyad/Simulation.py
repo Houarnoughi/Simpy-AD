@@ -68,8 +68,9 @@ class Simulation(Thread):
             Store.Store.addPU(pu1)
 
             vehicle = Vehicle(
-                c_location=Location.getLocationInRange(self.town, random.randint(1, self.area_range)),
-                f_location=Location.getLocationInRange(self.town, random.randint(1, self.area_range)),
+                c_location=Location.getLocationInRange(self.town, random.randint(0, self.area_range)),
+                f_location=Location.getLocationInRange(self.town, random.randint(0, self.area_range)),
+                #f_location=self.town,
                 speed=10,
                 bw=10e6,
                 task_list=vehicle_tasks,

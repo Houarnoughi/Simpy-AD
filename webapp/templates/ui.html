@@ -17,7 +17,7 @@
 
         <v-expansion-panels v-model="panel" class="pa-5" multiple>
             <!-- Simulation props -->
-            <v-expansion-panel >
+            <v-expansion-panel>
                 <v-expansion-panel-header>
                     <div>
                         <v-icon size="30">mdi-cog</v-icon>
@@ -27,22 +27,26 @@
                 <v-expansion-panel-content>
                     <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
                         <v-col cols="1">
-                            <v-text-field v-model="simulation.steps" label="Steps" type="number" prepend-icon="mdi-step-forward"></v-text-field>
+                            <v-text-field v-model="simulation.steps" label="Steps" type="number"
+                                prepend-icon="mdi-step-forward"></v-text-field>
                         </v-col>
                         <v-col cols="2">
                             <v-select v-model="simulation.town" :items="towns" label="Town" item-text="name"
                                 return-object @change="changeMap" required prepend-icon="mdi-map-marker"></v-select>
                         </v-col>
                         <v-col cols="2">
-                            <v-text-field v-model="simulation.town.latitude" label="Latitude" @input="changeMap" prepend-icon="mdi-latitude">
+                            <v-text-field v-model="simulation.town.latitude" label="Latitude" @input="changeMap"
+                                prepend-icon="mdi-latitude">
                             </v-text-field>
                         </v-col>
                         <v-col cols="2">
-                            <v-text-field v-model="simulation.town.longitude" label="Longitude" @input="changeMap" prepend-icon="mdi-longitude">
+                            <v-text-field v-model="simulation.town.longitude" label="Longitude" @input="changeMap"
+                                prepend-icon="mdi-longitude">
                             </v-text-field>
                         </v-col>
                         <v-col cols="1">
-                            <v-text-field disabled v-model="mapRange" label="Area" prepend-icon="mdi-vector-square-plus"></v-text-field>
+                            <v-text-field v-model="mapRange" label="Area" prepend-icon="mdi-vector-square-plus"
+                                @input="changeMap"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-expansion-panel-content>
@@ -175,8 +179,9 @@
             // map markers
             mapLat: '',
             mapLong: '',
-            mapRange: 10,
+            mapRange: 2500,
             map: null,
+            mapArea: null,
             rsuMarkers: [],
             vehicleMarkers: [],
             tripMarkers: [],
@@ -252,6 +257,12 @@
             changeMap() {
                 let coordinates = [this.simulation.town.latitude, this.simulation.town.longitude]
                 this.map.setView(coordinates, 13);
+
+                if (this.mapArea) {
+                    this.map.removeLayer(this.mapArea)
+                }
+                this.mapArea = L.circle(coordinates, { color: "red", opacity: .5, fillOpacity: 0.05, 'radius': this.mapRange }).addTo(this.map);
+                
             },
             // set interval callbacks
             drawChart() {
@@ -388,7 +399,8 @@
                     vehicle_mapping: this.simulation.vehicle_mapping,
                     vehicle_scheduling: this.simulation.vehicle_scheduling,
                     vehicle_networking: this.simulation.vehicle_networking,
-                    town: this.simulation.town
+                    town: this.simulation.town,
+                    area_range: this.mapRange
                 }
                 console.log("sending config", config)
                 fetch('/simulation/start', {
