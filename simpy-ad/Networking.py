@@ -50,6 +50,10 @@ class FIFTH_GEN(Network):
     ToDo
     """
 
+UI_OPTIONS = [
+    LTE, LTE_PLUS
+]
+
 if __name__ == "__main__":
     lte_speed = LTE.getDownloadSpeed()
     lte_plus_speed = LTE_PLUS.getDownloadSpeed()

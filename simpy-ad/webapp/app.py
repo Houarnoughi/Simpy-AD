@@ -5,7 +5,7 @@ import random
 import sys
 from Simulation import Simulation
 from numpy import vectorize
-from controllers import stats, simulation, scheduler, mapper, vehicle, rsu, datacenter
+from controllers import stats, simulation, scheduler, mapper, vehicle, rsu, datacenter, networking, location
 
 sys.path.insert(1, "../simpy-ad")
 import config
@@ -21,6 +21,8 @@ app.register_blueprint(mapper.bp, url_prefix='/mapper')
 app.register_blueprint(vehicle.bp, url_prefix='/vehicle')
 app.register_blueprint(rsu.bp, url_prefix='/rsu')
 app.register_blueprint(datacenter.bp, url_prefix='/datacenter')
+app.register_blueprint(networking.bp, url_prefix='/networking')
+app.register_blueprint(location.bp, url_prefix='/location')
 
 print(app.blueprints.keys())
 
