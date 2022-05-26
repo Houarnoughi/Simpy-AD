@@ -17,15 +17,15 @@
 
         <v-expansion-panels v-model="panel" class="pa-5" multiple>
             <!-- Simulation props -->
-            <v-expansion-panel>
+            <v-expansion-panel class="" class="pa-0 ma-0">
                 <v-expansion-panel-header>
-                    <div>
+                    <div class="">
                         <v-icon size="30">mdi-cog</v-icon>
                         Simulation config
                     </div>
                 </v-expansion-panel-header>
-                <v-expansion-panel-content>
-                    <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
+                <v-expansion-panel-content class="">
+                    <v-row no-gutters class="" justify="space-around">
                         <v-col cols="1">
                             <v-text-field v-model="simulation.steps" label="Steps" type="number"
                                 prepend-icon="mdi-step-forward"></v-text-field>
@@ -114,7 +114,7 @@
         </v-expansion-panels>
 
 
-        <!-- RSU props -->
+        <!-- RSU props
         <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
             <v-col cols="3">
                 <v-select v-model="simulation.edge_scheduler" :items="schedulerOptions" label="Edge Scheduling Policy">
@@ -128,7 +128,7 @@
                 <v-select v-model="simulation.cloud_scheduler" :items="schedulerOptions"
                     label="Cloud Scheduling Policy"></v-select>
             </v-col>
-        </v-row>
+        </v-row>  -->
 
         <v-row class="pa-0 pl-5 ma-0">
             <v-col cols="6">
@@ -264,7 +264,7 @@
                     this.map.removeLayer(this.mapArea)
                 }
                 this.mapArea = L.circle(coordinates, { color: "red", opacity: .5, fillOpacity: 0.05, 'radius': this.mapRange }).addTo(this.map);
-                
+
             },
             // set interval callbacks
             drawChart() {
@@ -492,5 +492,9 @@
 
     .font-size-20 {
         font-size: 20px;
+    }
+
+    .v-expansion-panel-content__wrap {
+        padding: 0 !important;
     }
 </style>
