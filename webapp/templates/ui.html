@@ -45,7 +45,7 @@
                             </v-text-field>
                         </v-col>
                         <v-col cols="1">
-                            <v-text-field v-model="mapRange" label="Area" prepend-icon="mdi-vector-square-plus"
+                            <v-text-field v-model="mapRange" label="Area (meters)" prepend-icon="mdi-vector-square-plus"
                                 @input="changeMap"></v-text-field>
                         </v-col>
                     </v-row>
@@ -233,7 +233,9 @@
         methods: {
             setupMap() {
 
-                this.map = L.map('map');
+                this.map = L.map('map', {
+                    scrollWheelZoom: false
+                });
                 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
                     attribution: '©️ OpenStreetMap contributors'
                 }).addTo(this.map);
@@ -241,11 +243,11 @@
                 // focus on town
                 this.changeMap()
 
-                // handle zoom
+                /* handle zoom 
                 this.map.on('zoomend', function (e) {
                     let level = this.map.getZoom();
                     console.log("zoom level", level)
-                });
+                }); */
 
                 // handle click
                 this.map.on('click', function (e) {
