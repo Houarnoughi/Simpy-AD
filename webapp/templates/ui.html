@@ -44,8 +44,8 @@
                             </v-text-field>
                         </v-col>
                         <v-col cols="1">
-                            <v-text-field v-model="simulation.radius" label="Radius (meters)" prepend-icon="mdi-vector-square-plus"
-                                @input="changeMap"></v-text-field>
+                            <v-text-field v-model="simulation.radius" label="Radius (meters)"
+                                prepend-icon="mdi-vector-square-plus" @input="changeMap"></v-text-field>
                         </v-col>
                     </v-row>
                 </v-expansion-panel-content>
@@ -95,7 +95,22 @@
                     </div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-
+                    <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
+                        <v-col cols="1">
+                            <v-text-field v-model="simulation.rsu.count" label="RSUS" type="number">
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="3">
+                            <v-select v-model="simulation.rsu.scheduling" :items="schedulerOptions"
+                                label="RSU Scheduling Policy">
+                            </v-select>
+                        </v-col>
+                        <v-col cols="3">
+                            <v-select v-model="simulation.rsu.networking" :items="networkingOptions"
+                                label="RSU Network">
+                            </v-select>
+                        </v-col>
+                    </v-row>
                 </v-expansion-panel-content>
             </v-expansion-panel>
             <!-- Data Center props -->
@@ -107,7 +122,22 @@
                     </div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-
+                    <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
+                        <v-col cols="1">
+                            <v-text-field v-model="simulation.datacenter.count" label="Data Centers" type="number">
+                            </v-text-field>
+                        </v-col>
+                        <v-col cols="3">
+                            <v-select v-model="simulation.datacenter.scheduling" :items="schedulerOptions"
+                                label="Data Center Scheduling Policy">
+                            </v-select>
+                        </v-col>
+                        <v-col cols="3">
+                            <v-select v-model="simulation.datacenter.networking" :items="networkingOptions"
+                                label="Data Center Network">
+                            </v-select>
+                        </v-col>
+                    </v-row>
                 </v-expansion-panel-content>
             </v-expansion-panel>
         </v-expansion-panels>
@@ -190,7 +220,17 @@
                 vehicle: {
                     count: 0,
                     fps: 30,
-                    mapping: '', 
+                    mapping: '',
+                    scheduling: '',
+                    networking: ''
+                },
+                rsu: {
+                    count: 0,
+                    scheduling: '',
+                    networking: ''
+                },
+                datacenter: {
+                    count: 0,
                     scheduling: '',
                     networking: ''
                 },
@@ -224,9 +264,9 @@
             await this.loadNetworkingOptions()
             await this.loadSchedulerOptions()
             await this.loadMappingOptions()
-            
+
             setInterval(this.statsCallback, 100)
-            setInterval(this.rsusCallback, 1000)
+            setInterval(this.rsusCallback, 100)
             setInterval(this.vehiclesCallback, 100)
         },
         methods: {
@@ -397,7 +437,9 @@
                     steps: this.simulation.steps,
                     vehicle: this.simulation.vehicle,
                     town: this.simulation.town,
-                    radius: this.radius
+                    radius: this.simulation.radius,
+                    rsu: this.simulation.rsu,
+                    datacenter: this.simulation.datacenter
                 }
                 console.log("sending config", config)
                 //return
@@ -437,6 +479,8 @@
                         this.simulation.town = data.simulation.town
                         this.simulation.radius = data.simulation.radius
                         this.simulation.vehicle = data.simulation.vehicle
+                        this.simulation.rsu = data.simulation.rsu
+                        this.simulation.datacenter = data.simulation.datacenter
                     })
             },
             async loadSchedulerOptions() {

@@ -24,30 +24,71 @@ sys.path.append('.')
 
 class Simulation(Thread):
     def __init__(
-        self, 
+        self,
+        # Simulation
         steps,
+        town: dict,
+        radius,
+        # Vehicle
         vehicle_count,
         vehicle_fps,
         vehicle_mapping: TaskMappingPolicy,
         vehicle_scheduling: TaskSchedulingPolicy,
         vehicle_networking: Network,
-        town: dict,
-        radius = 3
+        # RSU
+        rsu_count,
+        rsu_scheduling: TaskSchedulingPolicy,
+        rsu_networking: Network,
+        # DATACENTER
+        datacenter_count,
+        datacenter_scheduling: TaskSchedulingPolicy,
+        datacenter_networking: Network,
     ):
         Thread.__init__(self)
         self.EXIT_THREAD = False
+
         self.steps = steps
+        self.town = town
+        self.radius = radius
+
         self.vehicle_count = vehicle_count
         self.vehicle_fps = vehicle_fps
         self.vehicle_mapping = vehicle_mapping
         self.vehicle_scheduling = vehicle_scheduling
         self.vehicle_networking = vehicle_networking
-        self.town = town
-        self.radius = radius
+
+        self.rsu_count = rsu_count
+        self.rsu_scheduling = rsu_scheduling
+        self.rsu_networking = rsu_networking
+
+        self.datacenter_count = datacenter_count
+        self.datacenter_scheduling = datacenter_scheduling
+        self.datacenter_networking = datacenter_networking
+
         self.env = simpy.Environment()
 
     def run(self):
+
+        # RSU
+        random_locations = [Location.getLocationInRange(self.town, random.randint(
+            0, self.radius)) for _ in range(self.rsu_count)]
+
+        for i in range(self.rsu_count):
+            pu = TeslaV100(task_list=[], scheduler=self.rsu_scheduling(
+                config.TESLA_QUANTUM), env=self.env)
+            Store.Store.addPU(pu)
+
+            rsu = RoadSideUnit(
+                activity_range=100,
+                location=random_locations[i],
+                server_list=[
+                    Server(pu_list=[pu], bw=1, env=self.env)
+                ],
+                to_vehicle_bw=1, to_cloud_bw=1, env=self.env)
+            rsu.showInfo()
+            Store.Store.addRSU(rsu)
         
+        # Vehicle
         inception = CNNModel('Inception-v3', 1024)
         resnet18 = CNNModel('ResNet-18', 480)
         mobilenet = CNNModel('MobileNet0.25-v1', 240)
@@ -68,9 +109,11 @@ class Simulation(Thread):
             Store.Store.addPU(pu1)
 
             vehicle = Vehicle(
-                c_location=Location.getLocationInRange(self.town, random.randint(0, self.radius)),
-                f_location=Location.getLocationInRange(self.town, random.randint(0, self.radius)),
-                #f_location=self.town,
+                c_location=Location.getLocationInRange(
+                    self.town, random.randint(0, self.radius)),
+                f_location=Location.getLocationInRange(
+                    self.town, random.randint(0, self.radius)),
+                # f_location=self.town,
                 speed=10,
                 bw=10e6,
                 task_list=vehicle_tasks,
@@ -80,34 +123,9 @@ class Simulation(Thread):
             vehicle.showInfo()
             Store.Store.vehicle_list.append(vehicle)
 
-        """
-        RSU init  x5
-        """
-        locations = [
-            Location("Zoo de Lille", 50.64099393427632, 3.044548801247785),
-            Location("Jardin des Géants",
-                     50.64347018158827, 3.0806523044990617),
-            Location("Palais bx arts", 50.63222755233801, 3.0628195821035655),
-            Location("Moulins", 50.620905648844506, 3.06973893974428),
-            Location("wazemmes", 50.627218409442975, 3.0400339217074266)
-        ]
-        for i in range(config.RSU_COUNT):
-            pu = TeslaV100(task_list=[], scheduler=config.FOG_TASK_SCHEDULING_POLICY(
-                config.TESLA_QUANTUM), env=self.env)
-            Store.Store.addPU(pu)
-
-            rsu = RoadSideUnit(
-                activity_range=100,
-                location=locations[i],
-                server_list=[
-                    Server(pu_list=[pu], bw=1, env=self.env)
-                ],
-                to_vehicle_bw=1, to_cloud_bw=1, env=self.env)
-            rsu.showInfo()
-            Store.Store.addRSU(rsu)
-
         taskMappingPolicy = self.vehicle_mapping(env=self.env)
-        taskMapper = TaskMapper(env=self.env, taskMappingPolicy=taskMappingPolicy)
+        taskMapper = TaskMapper(
+            env=self.env, taskMappingPolicy=taskMappingPolicy)
 
         while self.env.peek() < self.steps:
             if self.EXIT_THREAD:

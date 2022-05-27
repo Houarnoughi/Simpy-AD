@@ -16,7 +16,7 @@ simulationThread = None
 def getTaskMapperClass(request: dict) -> TaskMappingPolicy:
     name = request.get("mapping")
     if name == '':
-        return config.TASK_MAPPING_POLICY
+        return config.VEHICLE_TASK_MAPPING_POLICY
     else:
         from TaskMappingPolicy import UI_OPTIONS
         for option in UI_OPTIONS:
@@ -61,35 +61,51 @@ def startSimulation():
             return "already running a simu, please stop it first"
 
         print(request.json)
+        # Simulation
         steps = request.json.get("steps", config.SIM_STEPS)
-
-        vehicle: dict = request.json.get("vehicle")
-        print("vehicle", vehicle)
-
-        vehicle_count = vehicle.get("count")
-        vehicle_fps = vehicle.get("fps")
-
-        vehicle_mapping = getTaskMapperClass(vehicle)
-        print("vehicle_mapping", vehicle_mapping)
-        vehicle_scheduling = getTaskSchedulerClass(vehicle)
-        print("vehicle_scheduling", vehicle_scheduling)
-        vehicle_networking = getNetworkClass(vehicle)
-        print("vehicle_networking", vehicle_networking)
-
+        radius = request.json.get("radius")
         town = getTownLocation(request)
         print("town", town)
-        radius = request.json.get("radius")
+
+        # Vehicle
+        vehicle: dict = request.json.get("vehicle")
+        vehicle_count = vehicle.get("count")
+        vehicle_fps = vehicle.get("fps")
+        vehicle_mapping = getTaskMapperClass(vehicle)
+        vehicle_scheduling = getTaskSchedulerClass(vehicle)
+        vehicle_networking = getNetworkClass(vehicle)
+        print("VEHICLE", vehicle_count, vehicle_fps, vehicle_mapping, vehicle_scheduling, vehicle_networking)
+
+        # RSU
+        rsu: dict = request.json.get("rsu")
+        rsu_count = rsu.get("count")
+        rsu_scheduling = getTaskSchedulerClass(rsu)
+        rsu_network = getNetworkClass(rsu)
+        print("RSU", rsu_count, rsu_scheduling, rsu_network)
+
+        # DATACENTER
+        datacenter: dict = request.json.get("datacenter")
+        datacenter_count = datacenter.get("count")
+        datacenter_scheduling = getTaskSchedulerClass(datacenter)
+        datacenter_network = getNetworkClass(datacenter)
+        print("DATACENTER", datacenter_count, datacenter_scheduling, datacenter_network)
 
         # return 'start'
         simulationThread = Simulation(
             steps=int(steps),
+            town=town,
+            radius=float(radius),
             vehicle_count=int(vehicle_count),
             vehicle_fps=int(vehicle_fps),
             vehicle_mapping=vehicle_mapping,
             vehicle_scheduling=vehicle_scheduling,
             vehicle_networking=vehicle_networking,
-            town=town,
-            radius=float(radius)
+            rsu_count=int(rsu_count),
+            rsu_scheduling=rsu_scheduling,
+            rsu_networking=rsu_network,
+            datacenter_count=int(datacenter_count),
+            datacenter_scheduling=datacenter_scheduling,
+            datacenter_networking=datacenter_network
         )
         simulationThread.start()
 
@@ -127,9 +143,19 @@ def getConfig():
                 'vehicle': {
                     'count': config.VEHICLE_COUNT,
                     'fps': config.VEHICLE_FPS,
-                    'mapping': config.TASK_MAPPING_POLICY.__name__,
-                    'scheduling': config.EDGE_TASK_SCHEDULING_POLICY.__name__,
-                    'networking': config.NETWORK.__name__
+                    'mapping': config.VEHICLE_TASK_MAPPING_POLICY.__name__,
+                    'scheduling': config.VEHICLE_TASK_SCHEDULING_POLICY.__name__,
+                    'networking': config.VEHICLE_NETWORK.__name__
+                },
+                'rsu': {
+                    'count': config.RSU_COUNT,
+                    'scheduling': config.RSU_TASK_SCHEDULING_POLICY.__name__,
+                    'networking': config.RSU_NETWORK.__name__
+                },
+                'datacenter': {
+                    'count': config.DATACENTER_COUNT,
+                    'scheduling': config.DATACENTER_TASK_SCHEDULING_POLICY.__name__,
+                    'networking': config.DATACENTER_NETWORK.__name__
                 }
             }
     }
