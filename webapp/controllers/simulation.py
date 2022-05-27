@@ -9,6 +9,7 @@ bp = Blueprint('simulation', __name__, url_prefix='')
 global simulationThread
 simulationThread = None
 
+
 def getTaskMapperClass(request):
     name = request.json.get("vehicle_mapping")
     if name == '':
@@ -18,6 +19,7 @@ def getTaskMapperClass(request):
         for option in UI_OPTIONS:
             if option.__name__ == name:
                 return option
+
 
 def getTaskSchedulerClass(request):
     name = request.json.get("vehicle_scheduling")
@@ -29,6 +31,7 @@ def getTaskSchedulerClass(request):
             if option.__name__ == name:
                 return option
 
+
 def getNetworkClass(request):
     name = request.json.get("vehicle_networking")
     if name == '':
@@ -39,9 +42,11 @@ def getNetworkClass(request):
             if option.__name__ == name:
                 return option
 
+
 def getTownLocation(request) -> Location:
     town = request.json.get("town")
     return Location("", town['latitude'], town['longitude'])
+
 
 @bp.post('/start')
 def startSimulation():
@@ -51,12 +56,12 @@ def startSimulation():
         if simulationThread:
             print("already running a simu, please stop it first")
             return "already running a simu, please stop it first"
-        
+
         print(request.json)
-        steps = request.json.get("steps", config.SIM_TIME)
+        steps = request.json.get("steps", config.SIM_STEPS)
         vehicle_count = request.json.get("vehicle_count", config.VEHICLE_COUNT)
         vehicle_fps = request.json.get("vehicle_fps", config.FPS)
-        
+
         vehicle_mapping = getTaskMapperClass(request)
         print("vehicle_mapping", vehicle_mapping)
         vehicle_scheduling = getTaskSchedulerClass(request)
@@ -66,18 +71,18 @@ def startSimulation():
 
         town = getTownLocation(request)
         print("town", town)
-        area_range = request.json.get("area_range", config.SIM_TIME)
+        radius = request.json.get("radius")
 
-        #return 'start'
+        # return 'start'
         simulationThread = Simulation(
-            steps=int(steps), 
-            vehicle_count=int(vehicle_count), 
+            steps=int(steps),
+            vehicle_count=int(vehicle_count),
             vehicle_fps=int(vehicle_fps),
             vehicle_mapping=vehicle_mapping,
             vehicle_scheduling=vehicle_scheduling,
             vehicle_networking=vehicle_networking,
             town=town,
-            area_range=float(area_range)
+            radius=float(radius)
         )
         simulationThread.start()
 
@@ -85,6 +90,7 @@ def startSimulation():
     except Exception as e:
         print("app.startSimulation ", e)
         return "error"
+
 
 @bp.post('/stop')
 def stopSimulation():
@@ -100,3 +106,19 @@ def stopSimulation():
     except Exception as e:
         print(e)
         return "error"
+
+
+@bp.get('/config')
+def getConfig():
+
+    data = {
+        'simulation':
+            {
+                'steps': config.SIM_STEPS,
+                'town': config.TOWN.json(),
+                'radius': config.RADIUS,
+                'vehicle_count': config.VEHICLE_COUNT,
+            }
+    }
+
+    return data

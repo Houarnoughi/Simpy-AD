@@ -32,7 +32,7 @@ class Simulation(Thread):
         vehicle_scheduling: TaskSchedulingPolicy,
         vehicle_networking: Network,
         town: dict,
-        area_range = 3
+        radius = 3
     ):
         Thread.__init__(self)
         self.EXIT_THREAD = False
@@ -43,7 +43,7 @@ class Simulation(Thread):
         self.vehicle_scheduling = vehicle_scheduling
         self.vehicle_networking = vehicle_networking
         self.town = town
-        self.area_range = area_range
+        self.radius = radius
         self.env = simpy.Environment()
 
     def run(self):
@@ -68,8 +68,8 @@ class Simulation(Thread):
             Store.Store.addPU(pu1)
 
             vehicle = Vehicle(
-                c_location=Location.getLocationInRange(self.town, random.randint(0, self.area_range)),
-                f_location=Location.getLocationInRange(self.town, random.randint(0, self.area_range)),
+                c_location=Location.getLocationInRange(self.town, random.randint(0, self.radius)),
+                f_location=Location.getLocationInRange(self.town, random.randint(0, self.radius)),
                 #f_location=self.town,
                 speed=10,
                 bw=10e6,

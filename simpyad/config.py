@@ -5,13 +5,16 @@ import os
 from TaskMappingPolicy import RandomTaskMappingPolicy, InplaceMappingPolicy, CustomTaskMappingPolicy
 from TaskSchedulingPolicy import RoundRobinSchedulingPolicy, FIFOSchedulingPolicy, SJFSchedulingPolicy
 from Networking import LTE, LTE_PLUS
+from Location import Location
 
 ## simulation area
 MIN_LAT, MAX_LAT = 50.63089852336916, 50.650796308194764
 MIN_LONG, MAX_LONG = 3.032710061899567, 3.08480585127184
+TOWN = Location("Lille", 50.631583072533594, 3.057713469569928)
+RADIUS = 2000
 
 # vehicle
-VEHICLE_COUNT = 10
+VEHICLE_COUNT = 999
 FPS = 30
 RANDOM_MOVE = True
 
@@ -36,8 +39,8 @@ TASK_MAPPING_POLICY = RandomTaskMappingPolicy #CustomTaskMappingPolicy #RandomTa
 TASK_MAPPING_CALLBACK_INTERVAL = 1
 
 # steps
-SIM_TIME = 100
-MAX_TASK_COUNT = SIM_TIME * VEHICLE_COUNT * FPS * 3
+SIM_STEPS = 999
+MAX_TASK_COUNT = SIM_STEPS * VEHICLE_COUNT * FPS * 3
 
 # scheduler
 EDGE_TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy

@@ -14,7 +14,6 @@
 
 <div id="app">
     <v-app class="">
-
         <v-expansion-panels v-model="panel" class="pa-5" multiple>
             <!-- Simulation props -->
             <v-expansion-panel class="" class="pa-0 ma-0">
@@ -45,7 +44,7 @@
                             </v-text-field>
                         </v-col>
                         <v-col cols="1">
-                            <v-text-field v-model="mapRange" label="Area (meters)" prepend-icon="mdi-vector-square-plus"
+                            <v-text-field v-model="simulation.radius" label="Radius (meters)" prepend-icon="mdi-vector-square-plus"
                                 @input="changeMap"></v-text-field>
                         </v-col>
                     </v-row>
@@ -153,8 +152,6 @@
                 </div>
             </v-col>
         </v-row>
-
-
     </v-app>
 </div>
 
@@ -177,9 +174,6 @@
             incompleteTasksCountList: [],
             simulationStep: 0,
             // map markers
-            mapLat: '',
-            mapLong: '',
-            mapRange: 2500,
             map: null,
             mapArea: null,
             rsuMarkers: [],
@@ -202,10 +196,11 @@
                 fog_scheduler: '',
                 cloud_scheduler: '',
                 town: {
-                    name: 'none',
+                    name: 'null',
                     latitude: 0,
                     longitude: 0
-                }
+                },
+                radius: 0
             }
         },
         async mounted() {
@@ -223,9 +218,11 @@
             )
             this.drawChart()
 
+            await this.loadSimulationConfig()
             await this.loadNetworkingOptions()
             await this.loadSchedulerOptions()
             await this.loadMappingOptions()
+            
             setInterval(this.statsCallback, 100)
             setInterval(this.rsusCallback, 1000)
             setInterval(this.vehiclesCallback, 100)
@@ -263,7 +260,7 @@
                 if (this.mapArea) {
                     this.map.removeLayer(this.mapArea)
                 }
-                this.mapArea = L.circle(coordinates, { color: "red", opacity: .5, fillOpacity: 0.05, 'radius': this.mapRange }).addTo(this.map);
+                this.mapArea = L.circle(coordinates, { color: "red", opacity: .5, fillOpacity: 0.05, 'radius': this.simulation.radius }).addTo(this.map);
 
             },
             // set interval callbacks
@@ -402,9 +399,10 @@
                     vehicle_scheduling: this.simulation.vehicle_scheduling,
                     vehicle_networking: this.simulation.vehicle_networking,
                     town: this.simulation.town,
-                    area_range: this.mapRange
+                    radius: this.radius
                 }
                 console.log("sending config", config)
+                return
                 fetch('/simulation/start', {
                     method: "POST",
                     headers: {
@@ -431,11 +429,22 @@
                 }
                 return output;
             },
+            async loadSimulationConfig() {
+                await fetch('/simulation/config')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("config data", data.simulation.town)
+
+                        this.simulation.steps = data.simulation.steps
+                        this.simulation.town = data.simulation.town
+                        this.simulation.radius = data.simulation.radius
+                    })
+            },
             async loadSchedulerOptions() {
                 await fetch('/scheduler/options')
                     .then(response => response.json())
                     .then(data => {
-                        console.log("data", data)
+                        //console.log("data", data)
                         this.schedulerOptions = data.task_scheduling_options
                     })
             },
@@ -443,7 +452,7 @@
                 await fetch('/mapper/options')
                     .then(response => response.json())
                     .then(data => {
-                        console.log("data", data)
+                        //console.log("data", data)
                         this.mappingOptions = data.task_mapping_options
                     })
             },
@@ -451,7 +460,7 @@
                 await fetch('/networking/options')
                     .then(response => response.json())
                     .then(data => {
-                        console.log("data", data)
+                        //console.log("data", data)
                         this.networkingOptions = data.networking_options
                     })
             },
@@ -460,8 +469,7 @@
                     .then(response => response.json())
                     .then(data => {
                         this.towns = data.location_options
-
-                        this.simulation.town = this.towns[0]
+                        //this.simulation.town = this.towns[0]
                     })
             }
 
