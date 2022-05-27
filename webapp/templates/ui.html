@@ -61,25 +61,25 @@
                 <v-expansion-panel-content>
                     <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
                         <v-col cols="1">
-                            <v-text-field v-model="simulation.vehicle_count" label="Vehicles" type="number">
+                            <v-text-field v-model="simulation.vehicle.count" label="Vehicles" type="number">
                             </v-text-field>
                         </v-col>
                         <v-col cols="1">
-                            <v-text-field v-model="simulation.vehicle_fps" label="Vehicle FPS" type="number">
+                            <v-text-field v-model="simulation.vehicle.fps" label="Vehicle FPS" type="number">
                             </v-text-field>
                         </v-col>
                         <v-col cols="3">
-                            <v-select v-model="simulation.vehicle_mapping" :items="mappingOptions"
+                            <v-select v-model="simulation.vehicle.mapping" :items="mappingOptions"
                                 label="Task Mapping Policy">
                             </v-select>
                         </v-col>
                         <v-col cols="3">
-                            <v-select v-model="simulation.vehicle_scheduling" :items="schedulerOptions"
+                            <v-select v-model="simulation.vehicle.scheduling" :items="schedulerOptions"
                                 label="Task Scheduling Policy">
                             </v-select>
                         </v-col>
                         <v-col cols="3">
-                            <v-select v-model="simulation.vehicle_networking" :items="networkingOptions"
+                            <v-select v-model="simulation.vehicle.networking" :items="networkingOptions"
                                 label="Vehicle Network">
                             </v-select>
                         </v-col>
@@ -187,11 +187,13 @@
             networkingOptions: [],
             simulation: {
                 steps: 100,
-                vehicle_count: 1,
-                vehicle_fps: 30,
-                vehicle_mapping: '',
-                vehicle_scheduling: '',
-                vehicle_networking: '',
+                vehicle: {
+                    count: 0,
+                    fps: 30,
+                    mapping: '', 
+                    scheduling: '',
+                    networking: ''
+                },
                 edge_scheduler: '',
                 fog_scheduler: '',
                 cloud_scheduler: '',
@@ -393,16 +395,12 @@
                 this.RUNNING = true
                 let config = {
                     steps: this.simulation.steps,
-                    vehicle_count: this.simulation.vehicle_count,
-                    vehicle_fps: this.simulation.vehicle_fps,
-                    vehicle_mapping: this.simulation.vehicle_mapping,
-                    vehicle_scheduling: this.simulation.vehicle_scheduling,
-                    vehicle_networking: this.simulation.vehicle_networking,
+                    vehicle: this.simulation.vehicle,
                     town: this.simulation.town,
                     radius: this.radius
                 }
                 console.log("sending config", config)
-                return
+                //return
                 fetch('/simulation/start', {
                     method: "POST",
                     headers: {
@@ -438,6 +436,7 @@
                         this.simulation.steps = data.simulation.steps
                         this.simulation.town = data.simulation.town
                         this.simulation.radius = data.simulation.radius
+                        this.simulation.vehicle = data.simulation.vehicle
                     })
             },
             async loadSchedulerOptions() {

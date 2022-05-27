@@ -3,6 +3,9 @@ from Store import Store
 from Simulation import Simulation
 import config
 from Location import Location
+from Networking import Network
+from TaskSchedulingPolicy import TaskSchedulingPolicy
+from TaskMappingPolicy import TaskMappingPolicy
 
 bp = Blueprint('simulation', __name__, url_prefix='')
 
@@ -10,8 +13,8 @@ global simulationThread
 simulationThread = None
 
 
-def getTaskMapperClass(request):
-    name = request.json.get("vehicle_mapping")
+def getTaskMapperClass(request: dict) -> TaskMappingPolicy:
+    name = request.get("mapping")
     if name == '':
         return config.TASK_MAPPING_POLICY
     else:
@@ -21,8 +24,8 @@ def getTaskMapperClass(request):
                 return option
 
 
-def getTaskSchedulerClass(request):
-    name = request.json.get("vehicle_scheduling")
+def getTaskSchedulerClass(request: dict) -> TaskSchedulingPolicy:
+    name = request.get("scheduling")
     if name == '':
         return config.EDGE_TASK_SCHEDULING_POLICY
     else:
@@ -32,8 +35,8 @@ def getTaskSchedulerClass(request):
                 return option
 
 
-def getNetworkClass(request):
-    name = request.json.get("vehicle_networking")
+def getNetworkClass(request: dict) -> Network:
+    name = request.get("networking")
     if name == '':
         return config.NETWORK
     else:
@@ -59,14 +62,18 @@ def startSimulation():
 
         print(request.json)
         steps = request.json.get("steps", config.SIM_STEPS)
-        vehicle_count = request.json.get("vehicle_count", config.VEHICLE_COUNT)
-        vehicle_fps = request.json.get("vehicle_fps", config.FPS)
 
-        vehicle_mapping = getTaskMapperClass(request)
+        vehicle: dict = request.json.get("vehicle")
+        print("vehicle", vehicle)
+
+        vehicle_count = vehicle.get("count")
+        vehicle_fps = vehicle.get("fps")
+
+        vehicle_mapping = getTaskMapperClass(vehicle)
         print("vehicle_mapping", vehicle_mapping)
-        vehicle_scheduling = getTaskSchedulerClass(request)
+        vehicle_scheduling = getTaskSchedulerClass(vehicle)
         print("vehicle_scheduling", vehicle_scheduling)
-        vehicle_networking = getNetworkClass(request)
+        vehicle_networking = getNetworkClass(vehicle)
         print("vehicle_networking", vehicle_networking)
 
         town = getTownLocation(request)
@@ -117,7 +124,13 @@ def getConfig():
                 'steps': config.SIM_STEPS,
                 'town': config.TOWN.json(),
                 'radius': config.RADIUS,
-                'vehicle_count': config.VEHICLE_COUNT,
+                'vehicle': {
+                    'count': config.VEHICLE_COUNT,
+                    'fps': config.VEHICLE_FPS,
+                    'mapping': config.TASK_MAPPING_POLICY.__name__,
+                    'scheduling': config.EDGE_TASK_SCHEDULING_POLICY.__name__,
+                    'networking': config.NETWORK.__name__
+                }
             }
     }
 
