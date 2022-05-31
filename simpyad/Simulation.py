@@ -37,6 +37,7 @@ class Simulation(Thread):
         vehicle_networking: Network,
         # RSU
         rsu_count,
+        rsu_even_distribution: bool,
         rsu_scheduling: TaskSchedulingPolicy,
         rsu_networking: Network,
         # DATACENTER
@@ -58,6 +59,7 @@ class Simulation(Thread):
         self.vehicle_networking = vehicle_networking
 
         self.rsu_count = rsu_count
+        self.rsu_even_distribution = rsu_even_distribution
         self.rsu_scheduling = rsu_scheduling
         self.rsu_networking = rsu_networking
 
@@ -70,8 +72,14 @@ class Simulation(Thread):
     def run(self):
 
         # RSU
-        random_locations = [Location.getLocationInRange(self.town, random.randint(
-            0, self.radius)) for _ in range(self.rsu_count)]
+        locations = []
+
+        if self.rsu_even_distribution:
+            # Evenly distributed locations
+            locations = Location.getEvenDistributedPoints(self.town, self.rsu_count, self.radius)
+        else:
+            # Random locations
+            locations = [Location.getLocationInRange(self.town, random.randint(0, self.radius)) for _ in range(self.rsu_count)]
 
         for i in range(self.rsu_count):
             pu = TeslaV100(task_list=[], scheduler=self.rsu_scheduling(
@@ -80,7 +88,7 @@ class Simulation(Thread):
 
             rsu = RoadSideUnit(
                 activity_range=100,
-                location=random_locations[i],
+                location=locations[i],
                 server_list=[
                     Server(pu_list=[pu], bw=1, env=self.env)
                 ],

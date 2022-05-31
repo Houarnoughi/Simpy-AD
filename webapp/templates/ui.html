@@ -100,6 +100,9 @@
                             <v-text-field v-model="simulation.rsu.count" label="RSUS" type="number">
                             </v-text-field>
                         </v-col>
+                        <v-col cols="2">
+                            <v-switch v-model="simulation.rsu.evenDistribution" label="Distribute evenly"></v-switch>
+                        </v-col>
                         <v-col cols="3">
                             <v-select v-model="simulation.rsu.scheduling" :items="schedulerOptions"
                                 label="RSU Scheduling Policy">
@@ -190,66 +193,68 @@
         el: '#app',
         vuetify: new Vuetify(),
         delimiters: ['[[', ']]'],
-        data: {
-            panel: [0],
-            verticalView: false,
-            RUNNING: false,
-            chart: null,
-            chartLabels: ['All Tasks', 'Success', 'Failed', 'To execute', 'Incomplete'],
-            chartColors: ['black', 'green', 'red', 'blue', 'orange'],
-            allTasksCountList: [],
-            successTasksCountList: [],
-            failedTasksCountList: [],
-            toExecuteTasksCountList: [],
-            incompleteTasksCountList: [],
-            simulationStep: 0,
-            // map markers
-            map: null,
-            mapArea: null,
-            rsuMarkers: [],
-            vehicleMarkers: [],
-            tripMarkers: [],
-            // towns
-            towns: [],
-            // simu props
-            schedulerOptions: [],
-            mappingOptions: [],
-            networkingOptions: [],
-            simulation: {
-                steps: 100,
-                vehicle: {
-                    count: 0,
-                    fps: 30,
-                    mapping: '',
-                    scheduling: '',
-                    networking: ''
-                },
-                rsu: {
-                    count: 0,
-                    scheduling: '',
-                    networking: ''
-                },
-                datacenter: {
-                    count: 0,
-                    scheduling: '',
-                    networking: ''
-                },
-                edge_scheduler: '',
-                fog_scheduler: '',
-                cloud_scheduler: '',
-                town: {
-                    name: 'null',
-                    latitude: 0,
-                    longitude: 0
-                },
-                radius: 0
+        data() {
+            return {
+                panel: [2],
+                verticalView: false,
+                RUNNING: false,
+                chart: null,
+                chartLabels: ['All Tasks', 'Success', 'Failed', 'To execute', 'Incomplete'],
+                chartColors: ['black', 'green', 'red', 'blue', 'orange'],
+                allTasksCountList: [],
+                successTasksCountList: [],
+                failedTasksCountList: [],
+                toExecuteTasksCountList: [],
+                incompleteTasksCountList: [],
+                simulationStep: 0,
+                // map markers
+                map: null,
+                mapArea: null,
+                rsuMarkers: [],
+                vehicleMarkers: [],
+                tripMarkers: [],
+                // towns
+                towns: [],
+                // simu props
+                schedulerOptions: [],
+                mappingOptions: [],
+                networkingOptions: [],
+                simulation: {
+                    steps: 100,
+                    vehicle: {
+                        count: 0,
+                        fps: 30,
+                        mapping: '',
+                        scheduling: '',
+                        networking: ''
+                    },
+                    rsu: {
+                        count: 0,
+                        evenDistribution: true,
+                        scheduling: '',
+                        networking: ''
+                    },
+                    datacenter: {
+                        count: 0,
+                        evenDistribution: true,
+                        scheduling: '',
+                        networking: ''
+                    },
+                    edge_scheduler: '',
+                    fog_scheduler: '',
+                    cloud_scheduler: '',
+                    town: {
+                        name: 'null',
+                        latitude: 0,
+                        longitude: 0
+                    },
+                    radius: 0
+                }
             }
         },
         async mounted() {
             window.addEventListener('load', async () => {
-                console.log("loading")
                 await this.loadLocationOptions()
-                console.log("loaded")
                 this.setupMap()
                 this.changeMap()
             })
@@ -270,6 +275,9 @@
             setInterval(this.vehiclesCallback, 100)
         },
         methods: {
+            test() {
+                console.log(this.simulation)
+            },
             setupMap() {
 
                 this.map = L.map('map', {
@@ -359,8 +367,7 @@
                 fetch('/stats')
                     .then(response => response.json())
                     .then(data => {
-                        console.log("data", data, data.values)
-
+                        //console.log("data", data, data.values)
                         // if simu ended (Store is cleared)
                         if (data.all_tasks === 0) return
 
@@ -432,7 +439,6 @@
             },
             // simulation
             startSimulation() {
-                this.RUNNING = true
                 let config = {
                     steps: this.simulation.steps,
                     vehicle: this.simulation.vehicle,
@@ -441,7 +447,7 @@
                     rsu: this.simulation.rsu,
                     datacenter: this.simulation.datacenter
                 }
-                console.log("sending config", config)
+                console.log("sending config", config.rsu)
                 //return
                 fetch('/simulation/start', {
                     method: "POST",
@@ -451,6 +457,7 @@
                     },
                     body: JSON.stringify(config)
                 })
+                this.RUNNING = true
             },
             stopSimulation() {
                 this.RUNNING = false

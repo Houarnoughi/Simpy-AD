@@ -77,7 +77,7 @@ for _ in range(config.VEHICLE_COUNT):
         bw = 10e6,
         task_list=vehicle_tasks, 
         PU_list=[pu1], 
-        required_FPS=config.FPS, 
+        required_FPS=config.VEHICLE_FPS, 
         env=env)
     vehicle.showInfo()
     Store.vehicle_list.append(vehicle)
@@ -108,7 +108,7 @@ for i in range(config.RSU_COUNT):
 
 Store.showPUs()
 
-taskMappingPolicy=config.TASK_MAPPING_POLICY(env=env)
+taskMappingPolicy=config.VEHICLE_TASK_MAPPING_POLICY(env=env)
 taskMapper = TaskMapper(env=env, taskMappingPolicy=taskMappingPolicy)
 
 print("Enter to start Simulation")
@@ -116,7 +116,7 @@ input()
 
 #p = Plotter(env)
 
-env.run(until=config.SIM_TIME)
+env.run(until=config.SIM_STEPS)
 
 Store.showStats()
 Store.export()

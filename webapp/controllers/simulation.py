@@ -79,10 +79,12 @@ def startSimulation():
         # RSU
         rsu: dict = request.json.get("rsu")
         rsu_count = rsu.get("count")
+        rsu_even_distribution = rsu.get("evenDistribution")
         rsu_scheduling = getTaskSchedulerClass(rsu)
         rsu_network = getNetworkClass(rsu)
-        print("RSU", rsu_count, rsu_scheduling, rsu_network)
+        print("RSU", rsu_count, rsu_even_distribution, rsu_scheduling, rsu_network)
 
+        #return "ok"
         # DATACENTER
         datacenter: dict = request.json.get("datacenter")
         datacenter_count = datacenter.get("count")
@@ -90,7 +92,7 @@ def startSimulation():
         datacenter_network = getNetworkClass(datacenter)
         print("DATACENTER", datacenter_count, datacenter_scheduling, datacenter_network)
 
-        # return 'start'
+        #return 'start'
         simulationThread = Simulation(
             steps=int(steps),
             town=town,
@@ -101,6 +103,7 @@ def startSimulation():
             vehicle_scheduling=vehicle_scheduling,
             vehicle_networking=vehicle_networking,
             rsu_count=int(rsu_count),
+            rsu_even_distribution=rsu_even_distribution,
             rsu_scheduling=rsu_scheduling,
             rsu_networking=rsu_network,
             datacenter_count=int(datacenter_count),
@@ -149,6 +152,7 @@ def getConfig():
                 },
                 'rsu': {
                     'count': config.RSU_COUNT,
+                    'evenDistribution': config.RSU_EVEN_DISTRIBUTION,
                     'scheduling': config.RSU_TASK_SCHEDULING_POLICY.__name__,
                     'networking': config.RSU_NETWORK.__name__
                 },
