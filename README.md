@@ -24,13 +24,19 @@ pip3 install -r requirements.txt
 or
 python3 -m pip install -r requirements.txt
 ```
+## Simulation options are defined in simpy-ad/config.py
 
-## Run Simulaiton
+## Run Simulaiton as Flask Web App
 
 ```bash
 python3 app.py
 ```
-## Simulation options are defined in simpy-ad/config.py
+
+## Run Simulaiton as script
+
+```bash
+python3 simpyad/SimulationScenario.py
+```
 
 ## Extend entities
 
