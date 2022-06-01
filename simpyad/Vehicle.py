@@ -1,4 +1,4 @@
-from turtle import color
+import config
 from Location import Location
 import simpy
 from Colors import GREEN, END, RED
@@ -6,9 +6,7 @@ from Task import Task, _Task
 import numpy as np
 import Store
 from typing import List, TYPE_CHECKING
-from TaskMapper import TaskMapper
 import random
-import config
 from ProcessingUnit import AGX
 from Maps import PathPlanner
 
@@ -43,7 +41,6 @@ class Vehicle(object):
 
         self.c_location = c_location
         self.f_location = f_location
-        print(c_location, f_location)
         self.trip_coordinates = []
         self.speed = speed
         self.bw = bw
@@ -73,7 +70,7 @@ class Vehicle(object):
 
         # generate trip coordinates
         self.trip_coordinates = PathPlanner.getPath(self.c_location, self.f_location)
-        self.log(f'Trip Coordinates {self.trip_coordinates}')
+        #self.log(f'Trip Coordinates {self.trip_coordinates}')
         #input()
         #STEP = 10
         #trip_lat = np.linspace(self.c_location.latitude, self.f_location.latitude, STEP)

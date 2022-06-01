@@ -101,7 +101,7 @@
                             </v-text-field>
                         </v-col>
                         <v-col cols="2">
-                            <v-switch v-model="simulation.rsu.evenDistribution" label="Distribute evenly"></v-switch>
+                            <v-switch v-model="simulation.rsu.evenDistribution" label="Distribute evenly (soon)" disabled></v-switch>
                         </v-col>
                         <v-col cols="3">
                             <v-select v-model="simulation.rsu.scheduling" :items="schedulerOptions"
@@ -230,7 +230,7 @@
                     },
                     rsu: {
                         count: 0,
-                        evenDistribution: true,
+                        evenDistribution: false,
                         scheduling: '',
                         networking: ''
                     },

@@ -1,6 +1,7 @@
 import haversine as hs
 from typing import Tuple
 import random
+import math
 
 class Latitude:
     min = -90
@@ -37,13 +38,21 @@ class Location(object):
     def setLongitude(self, longitude):
         self.longitude = longitude
     
-    def getEvenDistributedPoints(src: 'Location', count: int, radius: float) -> list:
+    def getEvenDistributedPoints(src: 'Location', count: int, radius: int) -> list:
         """ get count evenly distributed points around this location """
+        RSU_DISTANCE = 200
+        CIRCLES = int(radius / RSU_DISTANCE)
+
         points = []
+
         for i in range(count):
-            #points.append(Location.getLocationInRange(src, i * 360 / count))
-            lat, long = hs.inverse_haversine(src.getLatitudeLongitude(), radius, i * 360 / count, unit=hs.Unit.METERS)
-            points.append(Location("", lat, long))
+            #DISTANCE_FROM_CENTER = random.choice(list(range(0, int(radius), 200)))
+            #DISTANCE_FROM_CENTER = radius * random.random()
+            DISTANCE_FROM_CENTER = radius
+            ANGLE = i * 360 / count
+            lat, long = hs.inverse_haversine(src.getLatitudeLongitude(), DISTANCE_FROM_CENTER, ANGLE, unit=hs.Unit.METERS)
+            points.append(Location("random", lat, long))
+        
         return points
     
     def getLocationInRange(src: 'Location', range: float) -> 'Location':
@@ -51,7 +60,7 @@ class Location(object):
         src_location = (src.getLatitude(), src.getLongitude())
 
         lat, long = hs.inverse_haversine(src_location, range, 60 * random.random(), hs.Unit.METERS)
-        return Location("", lat, long)
+        return Location("random", lat, long)
 
     def getDistanceInMetersBetween(src: 'Location', dst: 'Location'):
         source = (src.getLatitude(), src.getLongitude())

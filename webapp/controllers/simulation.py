@@ -96,7 +96,7 @@ def startSimulation():
         simulationThread = Simulation(
             steps=int(steps),
             town=town,
-            radius=float(radius),
+            radius=int(radius),
             vehicle_count=int(vehicle_count),
             vehicle_fps=int(vehicle_fps),
             vehicle_mapping=vehicle_mapping,

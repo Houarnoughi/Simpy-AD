@@ -1,5 +1,4 @@
-from distutils.command.config import config
-import sched
+import config
 from Units import Units
 import simpy
 from Server import Server
@@ -7,9 +6,8 @@ import Vehicle
 from TaskSchedulingPolicy import TaskSchedulingPolicy, NoMoreTasksException
 from Colors import YELLOW, END
 from time import time
-from TaskMapper import TaskMapper
+import TaskMapper
 from typing import List, TYPE_CHECKING
-import config
 from Exceptions import OutOfMemoryException
 
 if TYPE_CHECKING:
@@ -278,7 +276,7 @@ class ProcessingUnit(simpy.Resource):
                     self.removeTask(task)
                 """
                 # train step ?
-                TaskMapper.optimize()
+                TaskMapper.TaskMapper.optimize()
 
                 stop = self.env.now
                 task.updateTotalExecutionTime(stop-start)
