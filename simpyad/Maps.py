@@ -3,6 +3,7 @@ Map related implementations
 
 path planner etc
 """
+import config
 import requests
 from Location import Location
 from typing import TYPE_CHECKING
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 
 class OpenStreetAPI:
     URI = 'https://api.openrouteservice.org'
-    TOKEN = '5b3ce3597851110001cf62480a421079db594016b4d5c12fc6980fcd'
+    TOKEN = config.ORS_TOKEN
     REQUEST_HEADERS = {
         'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8'
     }

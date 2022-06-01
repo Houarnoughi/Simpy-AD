@@ -41,6 +41,15 @@ python3 app.py
 python3 simpyad/SimulationScenario.py
 ```
 
+## Open Route Service
+
+Simulation uses OpenRouteService for defining vehicle's trip between 2 points. Create an account on https://openrouteservice.org/dev/#/home and generate a token in case the one in config.py file is not valid anymore
+
+```bash
+# config.py
+ORS_TOKEN = '5b3ce3597851110001cf62480a421079db594016b4d5c12fc6980fcd'
+```
+
 # Extend Simulation
 
 ### Network
