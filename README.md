@@ -6,6 +6,10 @@
 
 ### Launch Simulation
 
+## Python
+
+Python 3.9 is used. Below versions might not work as typings and annotations are used everywhere
+
 ## clone
 
 ```bash
