@@ -4,20 +4,18 @@
 
 ![Alt text](assets/schema-1.png "Title")
 
-### Launch Simulation
-
 ## Python
 
 Python 3.9 is used. Below versions might not work as typings and annotations are used everywhere
 
-## clone
+### clone
 
 ```bash
 git clone https://github.com/Houarnoughi/Simpy-AD.git
 cd Simpy-AD
 ```
 
-## Install dependencies
+### Install dependencies
 
 ```bash
 pip3 install -r requirements.txt
