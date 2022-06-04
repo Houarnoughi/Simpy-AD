@@ -2,6 +2,7 @@ import config
 from Networking import Network
 from TaskMappingPolicy import TaskMappingPolicy
 from TaskSchedulingPolicy import TaskSchedulingPolicy
+from ProcessingUnit import ProcessingUnit
 
 from TaskMapper import TaskMapper
 from Server import Server
@@ -32,16 +33,19 @@ class Simulation(Thread):
         # Vehicle
         vehicle_count,
         vehicle_fps,
+        vehicle_processing_unit: ProcessingUnit,
         vehicle_mapping: TaskMappingPolicy,
         vehicle_scheduling: TaskSchedulingPolicy,
         vehicle_networking: Network,
         # RSU
         rsu_count,
         rsu_even_distribution: bool,
+        rsu_processing_unit: ProcessingUnit,
         rsu_scheduling: TaskSchedulingPolicy,
         rsu_networking: Network,
         # DATACENTER
         datacenter_count,
+        datacenter_processing_unit: ProcessingUnit,
         datacenter_scheduling: TaskSchedulingPolicy,
         datacenter_networking: Network,
     ):
@@ -54,16 +58,19 @@ class Simulation(Thread):
 
         self.vehicle_count = vehicle_count
         self.vehicle_fps = vehicle_fps
+        self.vehicle_processing_unit = vehicle_processing_unit
         self.vehicle_mapping = vehicle_mapping
         self.vehicle_scheduling = vehicle_scheduling
         self.vehicle_networking = vehicle_networking
 
         self.rsu_count = rsu_count
+        self.rsu_processing_unit = rsu_processing_unit
         self.rsu_even_distribution = rsu_even_distribution
         self.rsu_scheduling = rsu_scheduling
         self.rsu_networking = rsu_networking
 
         self.datacenter_count = datacenter_count
+        self.datacenter_processing_unit = datacenter_processing_unit
         self.datacenter_scheduling = datacenter_scheduling
         self.datacenter_networking = datacenter_networking
 
@@ -82,8 +89,7 @@ class Simulation(Thread):
             locations = [Location.getLocationInRange(self.town, random.randint(0, self.radius)) for _ in range(self.rsu_count)]
 
         for i in range(self.rsu_count):
-            pu = TeslaV100(task_list=[], scheduler=self.rsu_scheduling(
-                config.TESLA_QUANTUM), env=self.env)
+            pu = config.RSU_PROCESSING_UNIT(task_list=[], scheduler=self.rsu_scheduling(config.TESLA_QUANTUM), env=self.env)
             Store.Store.addPU(pu)
 
             rsu = RoadSideUnit(
@@ -112,8 +118,8 @@ class Simulation(Thread):
         for _ in range(self.vehicle_count):
             # PU init
             scheduler = self.vehicle_scheduling(config.AGX_QUANTUM)
-            pu1 = AGX(task_list=[], scheduler=scheduler, env=self.env)
-            Store.Store.addPU(pu1)
+            pu = config.VEHICLE_PROCESSING_UNIT(task_list=[], scheduler=scheduler, env=self.env)
+            Store.Store.addPU(pu)
 
             vehicle = Vehicle(
                 c_location=Location.getLocationInRange(
@@ -124,7 +130,7 @@ class Simulation(Thread):
                 speed=10,
                 bw=10e6,
                 task_list=vehicle_tasks,
-                PU_list=[pu1],
+                PU_list=[pu],
                 required_FPS=self.vehicle_fps,
                 env=self.env)
             vehicle.showInfo()

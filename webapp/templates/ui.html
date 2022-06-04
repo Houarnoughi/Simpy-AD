@@ -68,6 +68,11 @@
                             <v-text-field v-model="simulation.vehicle.fps" label="Vehicle FPS" type="number">
                             </v-text-field>
                         </v-col>
+                        <v-col cols="2">
+                            <v-select v-model="simulation.vehicle.processingUnit" :items="processingUnitOptions"
+                                label="Processing Unit">
+                            </v-select>
+                        </v-col>
                         <v-col cols="3">
                             <v-select v-model="simulation.vehicle.mapping" :items="mappingOptions"
                                 label="Task Mapping Policy">
@@ -78,7 +83,7 @@
                                 label="Task Scheduling Policy">
                             </v-select>
                         </v-col>
-                        <v-col cols="3">
+                        <v-col cols="1">
                             <v-select v-model="simulation.vehicle.networking" :items="networkingOptions"
                                 label="Vehicle Network">
                             </v-select>
@@ -101,7 +106,13 @@
                             </v-text-field>
                         </v-col>
                         <v-col cols="2">
-                            <v-switch v-model="simulation.rsu.evenDistribution" label="Distribute evenly (soon)" disabled></v-switch>
+                            <v-switch v-model="simulation.rsu.evenDistribution" label="Distribute evenly (soon)"
+                                disabled></v-switch>
+                        </v-col>
+                        <v-col cols="2">
+                            <v-select v-model="simulation.rsu.processingUnit" :items="processingUnitOptions"
+                                label="Processing Unit">
+                            </v-select>
                         </v-col>
                         <v-col cols="3">
                             <v-select v-model="simulation.rsu.scheduling" :items="schedulerOptions"
@@ -195,7 +206,7 @@
         delimiters: ['[[', ']]'],
         data() {
             return {
-                panel: [2],
+                panel: [1],
                 verticalView: false,
                 RUNNING: false,
                 chart: null,
@@ -216,6 +227,7 @@
                 // towns
                 towns: [],
                 // simu props
+                processingUnitOptions: [],
                 schedulerOptions: [],
                 mappingOptions: [],
                 networkingOptions: [],
@@ -226,19 +238,22 @@
                         fps: 30,
                         mapping: '',
                         scheduling: '',
-                        networking: ''
+                        networking: '',
+                        processingUnit: ''
                     },
                     rsu: {
                         count: 0,
                         evenDistribution: false,
                         scheduling: '',
-                        networking: ''
+                        networking: '',
+                        processingUnit: ''
                     },
                     datacenter: {
                         count: 0,
                         evenDistribution: true,
                         scheduling: '',
-                        networking: ''
+                        networking: '',
+                        processingUnit: ''
                     },
                     edge_scheduler: '',
                     fog_scheduler: '',
@@ -269,6 +284,7 @@
             await this.loadNetworkingOptions()
             await this.loadSchedulerOptions()
             await this.loadMappingOptions()
+            await this.loadProcessingUnitOptions()
 
             setInterval(this.statsCallback, 100)
             setInterval(this.rsusCallback, 100)
@@ -520,6 +536,13 @@
                     .then(data => {
                         this.towns = data.location_options
                         //this.simulation.town = this.towns[0]
+                    })
+            },
+            async loadProcessingUnitOptions() {
+                await fetch('/processingUnit/options')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.processingUnitOptions = data.processing_unit_options
                     })
             }
 

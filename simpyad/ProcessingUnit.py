@@ -1,14 +1,16 @@
-import config
+from Location import UI_OPTIONS
 from Units import Units
 import simpy
 from Server import Server
-import Vehicle
 from TaskSchedulingPolicy import TaskSchedulingPolicy, NoMoreTasksException
 from Colors import YELLOW, END
 from time import time
 import TaskMapper
 from typing import List, TYPE_CHECKING
 from Exceptions import OutOfMemoryException
+import Vehicle
+import config
+
 
 if TYPE_CHECKING:
     from Task import Task, _Task
@@ -374,3 +376,9 @@ class DGXa100(ProcessingUnit):
 
     def setCurrentServer(self, server: Server):
         self.currentServer = server
+
+
+UI_OPTIONS = [
+    AGX, TX2, TeslaV100, DGXa100
+]
+

@@ -6,6 +6,7 @@ from Location import Location
 from Networking import Network
 from TaskSchedulingPolicy import TaskSchedulingPolicy
 from TaskMappingPolicy import TaskMappingPolicy
+from ProcessingUnit import ProcessingUnit
 
 bp = Blueprint('simulation', __name__, url_prefix='')
 
@@ -51,6 +52,16 @@ def getTownLocation(request) -> Location:
     return Location("", town['latitude'], town['longitude'])
 
 
+def getProcessingUnit(request) -> ProcessingUnit:
+    name = request.get("processingUnit")
+    if name == '':
+        return config.VEHICLE_PROCESSING_UNIT
+    else:
+        from ProcessingUnit import UI_OPTIONS
+        for option in UI_OPTIONS:
+            if option.__name__ == name:
+                return option
+
 @bp.post('/start')
 def startSimulation():
     try:
@@ -71,6 +82,7 @@ def startSimulation():
         vehicle: dict = request.json.get("vehicle")
         vehicle_count = vehicle.get("count")
         vehicle_fps = vehicle.get("fps")
+        vehicle_processing_unit = getProcessingUnit(vehicle)
         vehicle_mapping = getTaskMapperClass(vehicle)
         vehicle_scheduling = getTaskSchedulerClass(vehicle)
         vehicle_networking = getNetworkClass(vehicle)
@@ -80,6 +92,7 @@ def startSimulation():
         rsu: dict = request.json.get("rsu")
         rsu_count = rsu.get("count")
         rsu_even_distribution = rsu.get("evenDistribution")
+        rsu_processing_unit = getProcessingUnit(rsu)
         rsu_scheduling = getTaskSchedulerClass(rsu)
         rsu_network = getNetworkClass(rsu)
         print("RSU", rsu_count, rsu_even_distribution, rsu_scheduling, rsu_network)
@@ -88,6 +101,7 @@ def startSimulation():
         # DATACENTER
         datacenter: dict = request.json.get("datacenter")
         datacenter_count = datacenter.get("count")
+        datacenter_processing_unit = getProcessingUnit(datacenter)
         datacenter_scheduling = getTaskSchedulerClass(datacenter)
         datacenter_network = getNetworkClass(datacenter)
         print("DATACENTER", datacenter_count, datacenter_scheduling, datacenter_network)
@@ -99,14 +113,17 @@ def startSimulation():
             radius=int(radius),
             vehicle_count=int(vehicle_count),
             vehicle_fps=int(vehicle_fps),
+            vehicle_processing_unit=vehicle_processing_unit,
             vehicle_mapping=vehicle_mapping,
             vehicle_scheduling=vehicle_scheduling,
             vehicle_networking=vehicle_networking,
             rsu_count=int(rsu_count),
             rsu_even_distribution=rsu_even_distribution,
+            rsu_processing_unit=rsu_processing_unit,
             rsu_scheduling=rsu_scheduling,
             rsu_networking=rsu_network,
             datacenter_count=int(datacenter_count),
+            datacenter_processing_unit=datacenter_processing_unit,
             datacenter_scheduling=datacenter_scheduling,
             datacenter_networking=datacenter_network
         )
@@ -146,6 +163,7 @@ def getConfig():
                 'vehicle': {
                     'count': config.VEHICLE_COUNT,
                     'fps': config.VEHICLE_FPS,
+                    'processingUnit': config.VEHICLE_PROCESSING_UNIT.__name__,
                     'mapping': config.VEHICLE_TASK_MAPPING_POLICY.__name__,
                     'scheduling': config.VEHICLE_TASK_SCHEDULING_POLICY.__name__,
                     'networking': config.VEHICLE_NETWORK.__name__
@@ -153,11 +171,13 @@ def getConfig():
                 'rsu': {
                     'count': config.RSU_COUNT,
                     'evenDistribution': config.RSU_EVEN_DISTRIBUTION,
+                    'processingUnit': config.RSU_PROCESSING_UNIT.__name__,
                     'scheduling': config.RSU_TASK_SCHEDULING_POLICY.__name__,
                     'networking': config.RSU_NETWORK.__name__
                 },
                 'datacenter': {
                     'count': config.DATACENTER_COUNT,
+                    'processingUnit': config.DATACENTER_PROCESSING_UNIT.__name__,
                     'scheduling': config.DATACENTER_TASK_SCHEDULING_POLICY.__name__,
                     'networking': config.DATACENTER_NETWORK.__name__
                 }

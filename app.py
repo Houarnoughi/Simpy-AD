@@ -4,7 +4,7 @@ import sys
 
 sys.path.append("./simpyad")
 
-from webapp.controllers import stats, simulation, scheduler, mapper, vehicle, rsu, datacenter, networking, location
+from webapp.controllers import stats, simulation, scheduler, mapper, vehicle, rsu, datacenter, networking, location, processingUnit
 
 app = Flask(__name__, template_folder="webapp/templates")
 app.debug = True
@@ -19,6 +19,7 @@ app.register_blueprint(rsu.bp, url_prefix='/rsu')
 app.register_blueprint(datacenter.bp, url_prefix='/datacenter')
 app.register_blueprint(networking.bp, url_prefix='/networking')
 app.register_blueprint(location.bp, url_prefix='/location')
+app.register_blueprint(processingUnit.bp, url_prefix='/processingUnit')
 
 @app.route('/', methods=['GET'])
 def index():

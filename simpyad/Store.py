@@ -7,7 +7,6 @@ from Colors import END, GREEN, YELLOW, RED, BLUE
 from typing import List, TYPE_CHECKING
 from Location import Location
 import random
-import config
 import os
 from Exceptions import NoMoreTasksException
 import Vehicle
@@ -15,6 +14,8 @@ import RoadSideUnit
 import DataCenter
 from requests import post
 import math
+import config
+
 
 if TYPE_CHECKING:
     from Task import Task, _Task

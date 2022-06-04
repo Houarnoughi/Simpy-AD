@@ -2,6 +2,7 @@
 Global variables defining the simulation
 """
 import os
+from ProcessingUnit import AGX, TeslaV100, DGXa100
 from TaskMappingPolicy import RandomTaskMappingPolicy, InplaceMappingPolicy, CustomTaskMappingPolicy
 from TaskSchedulingPolicy import RoundRobinSchedulingPolicy, FIFOSchedulingPolicy, SJFSchedulingPolicy
 from Networking import LTE, LTE_PLUS
@@ -17,6 +18,7 @@ RADIUS = 2000
 # VEHICLE
 VEHICLE_COUNT = 1
 VEHICLE_FPS = 1
+VEHICLE_PROCESSING_UNIT = AGX
 VEHICLE_TASK_MAPPING_POLICY = RandomTaskMappingPolicy
 VEHICLE_TASK_SCHEDULING_POLICY =  RoundRobinSchedulingPolicy
 VEHICLE_NETWORK = LTE
@@ -24,11 +26,13 @@ VEHICLE_NETWORK = LTE
 # RSU
 RSU_COUNT = 10
 RSU_EVEN_DISTRIBUTION = False
+RSU_PROCESSING_UNIT = TeslaV100
 RSU_TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
 RSU_NETWORK = LTE_PLUS
 
 # DATA CENTER
 DATACENTER_COUNT = 99
+DATACENTER_PROCESSING_UNIT = DGXa100
 DATACENTER_TASK_SCHEDULING_POLICY = FIFOSchedulingPolicy
 DATACENTER_NETWORK = LTE_PLUS
 
