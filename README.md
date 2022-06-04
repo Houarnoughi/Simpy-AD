@@ -41,15 +41,6 @@ python3 app.py
 python3 simpyad/SimulationScenario.py
 ```
 
-## Open Route Service
-
-Simulation uses OpenRouteService for defining vehicle's trip between 2 points. Create an account on https://openrouteservice.org/dev/#/home and generate a token in case the one in config.py file is not valid anymore
-
-```bash
-# config.py
-ORS_TOKEN = '5b3ce3597851110001cf62480a421079db594016b4d5c12fc6980fcd'
-```
-
 # Extend Simulation
 
 ### Network
@@ -58,15 +49,12 @@ ORS_TOKEN = '5b3ce3597851110001cf62480a421079db594016b4d5c12fc6980fcd'
 class Network(ABC):
     @abstractmethod
     def getTransferDuration(data: int):
-        """ implemented by child classes """
 
     @abstractmethod
     def getUploadSpeed() -> int:
-        """ implemented by child classes """
-        
+
     @abstractmethod
     def getDownloadSpeed() -> int:
-        """ implemented by child classes """
 ```
 
 Create new class that extends Network
@@ -91,6 +79,17 @@ and add to UI_OPTIONS to include it in dropdown
 UI_OPTIONS = [
     LTE, LTE_PLUS, Fibre
 ]
+```
+
+# External Services
+
+## Open Route Service
+
+Simulation uses OpenRouteService for defining vehicle's trip between 2 points. Create an account on https://openrouteservice.org/dev/#/home and generate a token in case the one in config.py file is not valid anymore
+
+```bash
+# config.py
+ORS_TOKEN = '5b3ce3597851110001cf62480a421079db594016b4d5c12fc6980fcd'
 ```
 
 ## References:
