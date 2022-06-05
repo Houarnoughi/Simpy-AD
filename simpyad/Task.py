@@ -275,6 +275,58 @@ class Task(object):
     def __repr__(self) -> str:
         return f"[ID: {self.id}, {self.name}]"
 
+
+class TrafficLightDetectionTask(_Task):
+    pass
+
+class TrafficSignDetectionTask(_Task):
+    pass
+
+class LaneDetectionTask(_Task):
+    pass
+
+class ObjectDetectionTask(_Task):
+    pass
+
+class ObjectTrackingTask(_Task):
+    pass
+
+class MappingTask(_Task):
+    pass
+
+class LocalizationAlgoTask(_Task):
+    pass
+
+class MotionPredictionTask(_Task):
+    pass
+
+class TrajectoryPlanningTask(_Task):
+    pass
+
+class BehaviorPlanningTask(_Task):
+    pass
+
+class RoutePlanningTask(_Task):
+    pass
+
+class ControlAlgoTask(_Task):
+    pass
+
+UI_OPTIONS = [
+    TrafficLightDetectionTask,
+    TrafficSignDetectionTask,
+    LaneDetectionTask,
+    ObjectDetectionTask,
+    ObjectTrackingTask,
+    MappingTask,
+    LocalizationAlgoTask,
+    MotionPredictionTask,
+    TrajectoryPlanningTask,
+    BehaviorPlanningTask,
+    RoutePlanningTask,
+    ControlAlgoTask
+]
+
 # if __name__ == '__main__':
 #     tasks = [_Task() for i in range(5)]
 #     t = tasks[0]

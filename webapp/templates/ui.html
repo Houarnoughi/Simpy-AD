@@ -89,6 +89,10 @@
                             </v-select>
                         </v-col>
                     </v-row>
+                    <!-- task section -->
+                    <v-row no-gutters class="pa-5 ">
+                        <v-select multiple chips v-model="simulation.vehicle.tasks" :items="taskOptions" label="Vehicle Task"></v-select>
+                    </v-row>
                 </v-expansion-panel-content>
             </v-expansion-panel>
             <!-- RSU props -->
@@ -231,6 +235,7 @@
                 schedulerOptions: [],
                 mappingOptions: [],
                 networkingOptions: [],
+                taskOptions: [],
                 simulation: {
                     steps: 100,
                     vehicle: {
@@ -239,7 +244,8 @@
                         mapping: '',
                         scheduling: '',
                         networking: '',
-                        processingUnit: ''
+                        processingUnit: '',
+                        tasks: []
                     },
                     rsu: {
                         count: 0,
@@ -285,6 +291,7 @@
             await this.loadSchedulerOptions()
             await this.loadMappingOptions()
             await this.loadProcessingUnitOptions()
+            await this.loadTaskOptions()
 
             setInterval(this.statsCallback, 100)
             setInterval(this.rsusCallback, 100)
@@ -543,6 +550,13 @@
                     .then(response => response.json())
                     .then(data => {
                         this.processingUnitOptions = data.processing_unit_options
+                    })
+            },
+            async loadTaskOptions() {
+                await fetch('/task/options')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.taskOptions = data.task_options
                     })
             }
 
