@@ -37,16 +37,16 @@ class Task(ABC):
     """
     idx = 0
 
-    def __init__(self, vehicle: 'Vehicle' = None, deadline=0, pu: 'ProcessingUnit' = None, flop: float = 0, size: float = 0, criticality: TaskCriticality = None):
+    def __init__(self, flop: float = 0, size: float = 0, criticality: TaskCriticality = None):
         self.id = Task.idx
         self.name = f'Task-{self.id}'
         Task.idx += 1
 
         # parent
-        self.vehicle: 'Vehicle' = vehicle
+        self.vehicle: 'Vehicle' = None
 
         self.status: TaskStatus = None
-        self.pu: 'ProcessingUnit' = pu
+        self.pu: 'ProcessingUnit' = None
 
         # props
         self.flop: float = flop
@@ -55,7 +55,7 @@ class Task(ABC):
         self.criticality: TaskCriticality = criticality
 
         # execution
-        self.deadline: float = deadline
+        self.deadline: float = 0
         self.execution_start_time: float = -1
         self.execution_end_time: float = -1
 
