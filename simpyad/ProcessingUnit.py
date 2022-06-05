@@ -30,7 +30,7 @@ class ProcessingUnit(simpy.Resource):
     idx = 0
     name = ''
 
-    def __init__(self, flops, memory, power, memory_bw, task_list: List['Task'], scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1, MAX_QUEUE_SIZE=200):
+    def __init__(self, flops, memory, power, memory_bw, scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1, MAX_QUEUE_SIZE=200):
         super().__init__(env, capacity)
         self.name = f'PU-{ProcessingUnit.idx}'
         ProcessingUnit.idx += 1
@@ -44,7 +44,6 @@ class ProcessingUnit(simpy.Resource):
         self.task_list = []
         self.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE
         self.scheduler = scheduler
-        self.setTaskList(task_list)
         self.env = env
         self.proc = env.process(self.run())
 
@@ -294,14 +293,14 @@ class AGX(ProcessingUnit):
     currentVehicle = None
     idx = 0
 
-    def __init__(self, task_list, scheduler: TaskSchedulingPolicy, env, capacity=1):
+    def __init__(self, scheduler: TaskSchedulingPolicy, env, capacity=1):
         name = f'AGX-{AGX.idx}'
         AGX.idx += 1
         flops = 11 * Units.tera
         memory = 32 * Units.giga
         power = 30  # 10W / 15W / 30W
         memory_bw = 137 * Units.giga
-        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity, MAX_QUEUE_SIZE=200)
+        super().__init__(flops, memory, power, memory_bw, scheduler, env, capacity, MAX_QUEUE_SIZE=200)
         super().setPuName(name)
 
     def getCurrentVehicle(self):
@@ -315,14 +314,14 @@ class TX2(ProcessingUnit):
     currentVehicle = None
     idx = 0
 
-    def __init__(self, task_list, scheduler: TaskSchedulingPolicy, env, capacity=1):
+    def __init__(self, scheduler: TaskSchedulingPolicy, env, capacity=1):
         name = f'TX2-{TX2.idx}'
         TX2.idx += 1
         flops = 1.33 * Units.tera
         memory = 8 * Units.giga
         power = 15  # 7.5W / 15W
         memory_bw = 59.7 * Units.giga
-        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity, MAX_QUEUE_SIZE=300)
+        super().__init__(flops, memory, power, memory_bw, scheduler, env, capacity, MAX_QUEUE_SIZE=300)
         super().setPuName(name)
 
     def getCurrentVehicle(self):
@@ -338,14 +337,14 @@ class TeslaV100(ProcessingUnit):
     currentServer = None
     idx = 0
 
-    def __init__(self, task_list, scheduler: TaskSchedulingPolicy, env, capacity=1):
+    def __init__(self, scheduler: TaskSchedulingPolicy, env, capacity=1):
         name = f'TeslaV100-{TeslaV100.idx}'
         TeslaV100.idx += 1
         flops = 112 * Units.tera
         memory = 32 * Units.giga
         power = 300
         memory_bw = 900 * Units.giga
-        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity, MAX_QUEUE_SIZE=400)
+        super().__init__(flops, memory, power, memory_bw, scheduler, env, capacity, MAX_QUEUE_SIZE=400)
         super().setPuName(name)
 
     def getCurrentServer(self):
@@ -361,14 +360,14 @@ class DGXa100(ProcessingUnit):
     currentServer = None
     idx = 0
 
-    def __init__(self, task_list, scheduler: TaskSchedulingPolicy, env, capacity=1):
+    def __init__(self, scheduler: TaskSchedulingPolicy, env, capacity=1):
         name = f'DGXa100-{DGXa100.idx}'
         DGXa100.idx += 1
         flops = 5 * Units.peta
         memory = 320 * Units.giga
         power = 6.5 * Units.kilo
         memory_bw = 2 * Units.tera
-        super().__init__(flops, memory, power, memory_bw, task_list, scheduler, env, capacity, MAX_QUEUE_SIZE=500)
+        super().__init__(flops, memory, power, memory_bw, scheduler, env, capacity, MAX_QUEUE_SIZE=500)
         super().setPuName(name)
 
     def getCurrentServer(self):
