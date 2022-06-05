@@ -89,7 +89,7 @@ class Simulation(Thread):
             locations = [Location.getLocationInRange(self.town, random.randint(0, self.radius)) for _ in range(self.rsu_count)]
 
         for i in range(self.rsu_count):
-            pu = config.RSU_PROCESSING_UNIT(task_list=[], scheduler=self.rsu_scheduling(config.TESLA_QUANTUM), env=self.env)
+            pu = config.RSU_PROCESSING_UNIT(scheduler=self.rsu_scheduling(config.TESLA_QUANTUM), env=self.env)
             Store.Store.addPU(pu)
 
             rsu = RoadSideUnit(
@@ -118,7 +118,7 @@ class Simulation(Thread):
         for _ in range(self.vehicle_count):
             # PU init
             scheduler = self.vehicle_scheduling(config.AGX_QUANTUM)
-            pu = config.VEHICLE_PROCESSING_UNIT(task_list=[], scheduler=scheduler, env=self.env)
+            pu = config.VEHICLE_PROCESSING_UNIT(scheduler=scheduler, env=self.env)
             Store.Store.addPU(pu)
 
             vehicle = Vehicle(
