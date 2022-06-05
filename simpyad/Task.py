@@ -21,13 +21,13 @@ class TaskStatus(Enum):
     FAILED_RESOURCE_UNAVAILABLE = 9
 
 
-class _Task(ABC):
+class Task(ABC):
     """
     Abstract class for defining tasks
 
     Task 
         - is created on a vehicle
-        - is assigned to a PU to be executed
+        - is assigned (by TaskMappingPolicy) to a PU to be executed
         - flop is the amount of computation
         - remaining_flop is the amount to execute, modified by PU
         - size is task's memory footprint
@@ -38,9 +38,9 @@ class _Task(ABC):
     idx = 0
 
     def __init__(self, vehicle: 'Vehicle' = None, deadline=0, pu: 'ProcessingUnit' = None, flop: float = 0, size: float = 0, criticality: TaskCriticality = None):
-        self.id = _Task.idx
+        self.id = Task.idx
         self.name = f'Task-{self.id}'
-        _Task.idx += 1
+        Task.idx += 1
 
         # parent
         self.vehicle: 'Vehicle' = vehicle
@@ -157,158 +157,40 @@ class _Task(ABC):
         return f'[{self.name}, {self.pu}]'
 
 
-class Task(object):
-
-    idx = 0
-
-    def __init__(self, flop, size, criticality: TaskCriticality = None, preemptive=False, real_time=False, status=TaskStatus.PAUSED, currentVehicle=None, currentPU=None):
-        self.id = Task.idx
-        self.name = f'Task-{Task.idx}'
-        Task.idx += 1
-        self.criticality = criticality
-        self.flop = flop
-        self.remaining_flop = flop
-        self.size = size
-        self.preemptive = preemptive
-        self.real_time = real_time
-        self.status = status
-        self.currentVehicle = currentVehicle
-        self.currentPU = currentPU
-        # deadline and expected execution time for failure check
-        self.deadline = 0
-        self.expected_exec_time = 0
-        self.total_execution_time = 0
-        self.execution_start_time = -1
-        self.execution_end_time = -1
-
-        self.scheduler_rounds = 0
-
-    def isSuccess(self):
-        return self.isStarted() and self.isFinished() and self.isFinishedBeforeDeadline()
-
-    def isFailed(self):
-        return (self.isStarted() and self.isFinished()) and not self.isFinishedBeforeDeadline()
-
-    def isIncomplete(self):
-        return self.isStarted() and not self.isFinished()
-
-    def isStarted(self):
-        return self.execution_start_time != -1
-
-    def isFinished(self):
-        return self.execution_end_time != -1
-
-    def isFinishedBeforeDeadline(self):
-        return self.execution_end_time < self.deadline
-
-    def getTaskName(self):
-        return self.name
-
-    def getFlop(self):
-        return self.flop
-
-    def setFlop(self, flop):
-        self.flop = flop
-
-    def getSize(self):
-        return self.size
-
-    def setSize(self, size):
-        self.size = size
-
-    def getPreemptive(self):
-        return self.preemptive
-
-    def setPreemptive(self, preemptive):
-        self.preemptive = preemptive
-
-    def getRealTime(self):
-        return self.real_time
-
-    def setRealTime(self, realtime):
-        self.real_time = realtime
-
-    def getStatus(self):
-        return self.status
-
-    def setStatus(self, status):
-        self.status = status
-
-    def getCurrentPU(self) -> 'ProcessingUnit':
-        return self.currentPU
-
-    def setCurrentPU(self, pu: 'ProcessingUnit'):
-        self.currentPU = pu
-
-    def getCurrentVehicle(self) -> 'Vehicle':
-        return self.currentVehicle
-
-    def setCurrentVehicle(self, current_vehicle: 'Vehicle'):
-        self.currentVehicle = current_vehicle
-
-    # OS time
-    def getTotalExecutionTime(self):
-        # return self.total_execution_time
-        return self.execution_end_time - self.execution_start_time
-
-    def updateTotalExecutionTime(self, time):
-        self.total_execution_time = self.getTotalExecutionTime() + time
-
-    # Simpy time
-    def setDeadline(self, deadline):
-        self.deadline = deadline
-
-    def getDeadline(self):
-        return self.deadline
-
-    # Simpy time
-    def setExpectedExecTime(self, time):
-        self.expected_exec_time = time
-
-    def getExpectedExecTime(self):
-        return self.expected_exec_time
-
-    def __str__(self):
-        return f"[ID: {self.id}, {self.name}]"
-
-    def __repr__(self) -> str:
-        return f"[ID: {self.id}, {self.name}]"
-
-
-class TrafficLightDetectionTask(_Task):
+class TrafficLightDetectionTask(Task):
     pass
 
-class TrafficSignDetectionTask(_Task):
+class TrafficSignDetectionTask(Task):
     pass
 
-class LaneDetectionTask(_Task):
+class LaneDetectionTask(Task):
     pass
 
-class ObjectDetectionTask(_Task):
+class ObjectDetectionTask(Task):
     pass
 
-class ObjectTrackingTask(_Task):
+class ObjectTrackingTask(Task):
     pass
 
-class MappingTask(_Task):
+class MappingTask(Task):
     pass
 
-class LocalizationAlgoTask(_Task):
+class LocalizationAlgoTask(Task):
     pass
 
-class MotionPredictionTask(_Task):
+class MotionPredictionTask(Task):
     pass
 
-class TrajectoryPlanningTask(_Task):
+class TrajectoryPlanningTask(Task):
     pass
 
-class BehaviorPlanningTask(_Task):
+class BehaviorPlanningTask(Task):
     pass
 
-class RoutePlanningTask(_Task):
+class RoutePlanningTask(Task):
     pass
 
-class ControlAlgoTask(_Task):
+class ControlAlgoTask(Task):
     pass
 
 UI_OPTIONS = [
@@ -327,7 +209,7 @@ UI_OPTIONS = [
 ]
 
 # if __name__ == '__main__':
-#     tasks = [_Task() for i in range(5)]
+#     tasks = [Task() for i in range(5)]
 #     t = tasks[0]
 #     infos = t.getInfos()
 #     print(infos)

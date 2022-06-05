@@ -12,12 +12,11 @@ import Vehicle
 import RoadSideUnit
 import DataCenter
 import config
-
+from Location import Location
 
 if TYPE_CHECKING:
-    from Task import Task, _Task
+    from Task import Task
     from ProcessingUnit import ProcessingUnit
-    from Location import Location
 
 class Store:
     """
@@ -55,13 +54,13 @@ class Store:
         print(f'{GREEN}[Store] {message} {END}')
 
     # FIFO
-    def getTask() -> '_Task':
+    def getTask() -> 'Task':
         if Store.tasks_to_execute:
             return Store.tasks_to_execute.pop(0)
         else:
             raise NoMoreTasksException()
 
-    def addTask(task: '_Task'):
+    def addTask(task: 'Task'):
         Store.tasks_to_execute.append(task)
         Store.all_tasks.append(task)
         
@@ -91,7 +90,7 @@ class Store:
     
     # returns a list of sorted n closest PUs to a Task (Vehicle) 
     # authorized offload options are defined in config.py
-    def getClosestPUforTask(task: '_Task', n) -> List[tuple['ProcessingUnit', float]]:
+    def getClosestPUforTask(task: 'Task', n) -> List[tuple['ProcessingUnit', float]]:
         task_location: Location = task.getCurrentVehicle().getLocation()
         #pu_distance_list = [(pu, Location.getDistanceInMetersBetween(task_location, pu.getParent().getLocation())) for pu in TaskMapper.pu_list]
         pu_distance_list = []
@@ -208,7 +207,7 @@ class Store:
         # print(f'{GREEN}Success tasks')
 
         tasks = Store.all_tasks
-        t: _Task = None
+        t: Task = None
 
         success_list = list(filter(Store.success_lambda, tasks))
         # for t in ended_list:

@@ -4,7 +4,7 @@ from Exceptions import NoMoreTasksException
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from Task import Task, _Task
+    from Task import Task
 """
 Abstract class for task scheduling policy. 
 Abstract methods must be implemented in a unique way
@@ -23,11 +23,11 @@ class TaskSchedulingPolicy(ABC):
         return 'manu'
     
     @abstractmethod
-    def addTaskInQueue(self, task: '_Task'):
+    def addTaskInQueue(self, task: 'Task'):
         """ impl by Policy """
     
     @abstractmethod
-    def getNextTask(self) -> '_Task':
+    def getNextTask(self) -> 'Task':
         """ return task to be executed by PU """
 
     @abstractmethod
@@ -43,7 +43,7 @@ class FIFOSchedulingPolicy(TaskSchedulingPolicy):
         task.scheduler_rounds += 1
         self.task_list.append(task)
     
-    def getNextTask(self) -> '_Task':
+    def getNextTask(self) -> 'Task':
         if self.task_list:
             return self.task_list.pop()
         else:
@@ -56,11 +56,11 @@ class FIFOSchedulingPolicy(TaskSchedulingPolicy):
         return None
 
 class SJFSchedulingPolicy(TaskSchedulingPolicy):
-    def addTaskInQueue(self, task: '_Task'):
+    def addTaskInQueue(self, task: 'Task'):
         task.scheduler_rounds += 1
         self.task_list.append(task)
     
-    def getNextTask(self) -> '_Task':
+    def getNextTask(self) -> 'Task':
         if self.task_list:
             return self.task_list.pop()
         else:
@@ -86,10 +86,10 @@ class RoundRobinSchedulingPolicy(TaskSchedulingPolicy):
         self.quantum: float = quantum
         self.queue = deque()
     
-    def addTaskInQueue(self, task: '_Task'):
+    def addTaskInQueue(self, task: 'Task'):
         self.queue.append(task)
     
-    def getNextTask(self) -> '_Task':
+    def getNextTask(self) -> 'Task':
         if self.queue:
             return self.queue.popleft()
         else:

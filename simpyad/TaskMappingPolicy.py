@@ -13,7 +13,7 @@ import numpy as np
 import config
 
 if TYPE_CHECKING:
-    from Task import _Task
+    from Task import Task
     from ProcessingUnit import ProcessingUnit
 
 
@@ -52,7 +52,7 @@ class TaskMappingPolicy(ABC):
         
 
     @abstractmethod
-    def assignToPu(self, task: '_Task', PU_list: list['ProcessingUnit']):
+    def assignToPu(self, task: 'Task', PU_list: list['ProcessingUnit']):
         """ com """
         raise NotImplemented("Please implement this method")
 
@@ -66,7 +66,7 @@ class RandomTaskMappingPolicy(TaskMappingPolicy):
     Randomly assign a task to one of PUs
     """
 
-    def assignToPu(self, task: '_Task', pu_list: list['ProcessingUnit']):
+    def assignToPu(self, task: 'Task', pu_list: list['ProcessingUnit']):
         random_pu: 'ProcessingUnit' = random.choice(pu_list)
         random_pu.submitTask(task)
     
@@ -75,7 +75,7 @@ class InplaceMappingPolicy(TaskMappingPolicy):
     Get tasks vehicle's main PU and assign task to it
     """
 
-    def assignToPu(self, task: '_Task', pu_list: list['ProcessingUnit'] = None):
+    def assignToPu(self, task: 'Task', pu_list: list['ProcessingUnit'] = None):
         vehicle_pu: 'ProcessingUnit' = task.getCurrentVehicle().getPU()
         vehicle_pu.submitTask(task)
 
@@ -104,7 +104,7 @@ class CustomTaskMappingPolicy(TaskMappingPolicy):
         #self.log('callback called')
         #input()
 
-    def assignToPu(self, task: '_Task', pu_list: list['ProcessingUnit'] = None):
+    def assignToPu(self, task: 'Task', pu_list: list['ProcessingUnit'] = None):
         inputs = [self.convertToFeatureVector(task, pu) for pu in pu_list]
         probas: torch.Tensor = self.nn(torch.tensor(inputs).float())
         probas = probas.detach().numpy()
@@ -115,7 +115,7 @@ class CustomTaskMappingPolicy(TaskMappingPolicy):
         best_pu: 'ProcessingUnit' = pu_list[index]
         best_pu.submitTask(task)
     
-    def convertToFeatureVector(self, task: '_Task', pu: 'ProcessingUnit'):
+    def convertToFeatureVector(self, task: 'Task', pu: 'ProcessingUnit'):
         """
         Convert task and pu to 1D feature vector
         """

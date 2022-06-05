@@ -44,7 +44,7 @@ torch.set_printoptions(precision=20)
 
 if TYPE_CHECKING:
     from ProcessingUnit import ProcessingUnit
-    from Task import Task, _Task
+    from Task import Task
 
 class TaskMapper:
 
@@ -66,7 +66,7 @@ class TaskMapper:
             try:
                 #Store.log(f"tasks to execute count {Store.getTasksToExecuteCount()}")
                 # FIFO
-                task: _Task = Store.Store.getTask()
+                task: Task = Store.Store.getTask()
                 TaskMapper.log(f'Got task {task} from Stores')
 
                 if config.OFFLOAD:
@@ -124,7 +124,7 @@ class TaskMapper:
                 
             yield env.timeout(config.TASK_MAPPER_CYCLE)
 
-    def taskPuToDict(task: '_Task', pu: 'ProcessingUnit'):
+    def taskPuToDict(task: 'Task', pu: 'ProcessingUnit'):
         inputs_dict = dict()
         inputs_dict['task_id'] = task.id
         inputs_dict["criticality"] = task.criticality.value

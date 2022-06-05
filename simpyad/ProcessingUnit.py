@@ -13,7 +13,7 @@ import config
 
 if TYPE_CHECKING:
     from Vehicle import Vehicle
-    from Task import Task, _Task
+    from Task import Task
 '''
 Benchmarks sources : https://developer.nvidia.com/embedded/jetson-modules 
 and https://developer.nvidia.com/blog/nvidia-jetson-agx-xavier-32-teraops-ai-robotics/
@@ -79,11 +79,11 @@ class ProcessingUnit(simpy.Resource):
     def setMemoryBandwidth(self, memory_bw):
         self.memory_bw = memory_bw
 
-    def getTaskList(self) -> List['_Task']:
+    def getTaskList(self) -> List['Task']:
         return self.task_list
 
-    def setTaskList(self, task_list: List['_Task']):
-        task: '_Task' = None
+    def setTaskList(self, task_list: List['Task']):
+        task: 'Task' = None
         for task in task_list:
             task.setCurrentPu(self)
             self.task_list.append(task)
@@ -95,19 +95,19 @@ class ProcessingUnit(simpy.Resource):
     def setScheduler(self, scheduler: TaskSchedulingPolicy):
         self.scheduler = scheduler
 
-    def getTaskLoadingTime(self, task: '_Task'):
+    def getTaskLoadingTime(self, task: 'Task'):
         return task.getSize() / self.getMemoryBandwidth()
 
-    def getTaskExecutionTime(self, task: '_Task'):
+    def getTaskExecutionTime(self, task: 'Task'):
         flops = self.getFlops()
         if self.getScheduler().getParallel():
             flops = int(self.getFlops()/len(self.getTaskList()))
         return task.getFlop() / flops
 
-    def getTaskEnergyConsumption(self, task: '_Task'):
+    def getTaskEnergyConsumption(self, task: 'Task'):
         return self.getTaskExecutionTime(task) * self.getPower()
 
-    def submitTask(self, task: '_Task'):
+    def submitTask(self, task: 'Task'):
 
         if task not in self.getTaskList():
             if self.actual_memory + task.getSize() > self.memory:
@@ -127,7 +127,7 @@ class ProcessingUnit(simpy.Resource):
         else:
             self.log(f'submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
 
-    def removeTask(self, task: '_Task'):
+    def removeTask(self, task: 'Task'):
         if task in self.task_list:
             self.task_list.remove(task)
     
@@ -135,7 +135,7 @@ class ProcessingUnit(simpy.Resource):
         q = self.scheduler.getQuantum()
         return q * self.getFlops()
 
-    def execute_task(self, task: '_Task'):
+    def execute_task(self, task: 'Task'):
         # load task in memory 
         yield self.env.timeout(self.getTaskLoadingTime(task))
 
@@ -212,7 +212,7 @@ class ProcessingUnit(simpy.Resource):
             # scheduler update tasks
             #print(f"sched tasks {len(self.scheduler.task_list)}")
             try:
-                task: '_Task' = self.scheduler.getNextTask()
+                task: 'Task' = self.scheduler.getNextTask()
                 
                 #self.log(f"run: processing task {task}")
                 yield self.env.process(self.execute_task(task))
@@ -244,7 +244,7 @@ class ProcessingUnit(simpy.Resource):
             #new_task_list = self.scheduler.getExecutionSequence(self.task_list)
             new_task_list = self.scheduler.getExecutionSequence()
 
-            task: '_Task' = None
+            task: 'Task' = None
             for task in new_task_list:
                 self.log(f'Starting executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
                 start = self.env.now

@@ -11,7 +11,7 @@ from ProcessingUnit import AGX, TeslaV100
 from Vehicle import Vehicle
 from Location import Location
 import Store
-from Task import _Task, TaskCriticality
+from Task import Task, TaskCriticality
 from CNNModel import CNNModel
 from threading import Thread, Condition
 from multiprocessing import Process
@@ -108,9 +108,9 @@ class Simulation(Thread):
         mobilenet = CNNModel('MobileNet0.25-v1', 240)
 
         vehicle_tasks = [
-            #_Task(flop=inception.getModelFLOPS(), size=inception.getModelMemory(), criticality=TaskCriticality.HIGH),
-            #_Task(flop=resnet18.getModelFLOPS(), size=resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
-            _Task(flop=mobilenet.getModelFLOPS(), size=mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
+            #Task(flop=inception.getModelFLOPS(), size=inception.getModelMemory(), criticality=TaskCriticality.HIGH),
+            #Task(flop=resnet18.getModelFLOPS(), size=resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
+            Task(flop=mobilenet.getModelFLOPS(), size=mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
             #Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
             #Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
             #Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),

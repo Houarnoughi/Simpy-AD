@@ -2,7 +2,7 @@ import config
 from Location import Location
 import simpy
 from Colors import GREEN, END, RED
-from Task import Task, _Task
+from Task import Task
 import Store
 from typing import List, TYPE_CHECKING
 import random
@@ -93,7 +93,7 @@ class Vehicle(object):
             FPS = self.required_FPS
             for frame in range(FPS):
                 for i, task in enumerate(self.task_list):
-                    t: '_Task' = _Task(flop=task.flop, size=task.size, criticality=task.criticality)
+                    t: 'Task' = Task(flop=task.flop, size=task.size, criticality=task.criticality)
                     t.setCurrentVehicle(self)
 
                     # execution time in place
