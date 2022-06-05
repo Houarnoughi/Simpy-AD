@@ -163,6 +163,7 @@ def getConfig():
                 'vehicle': {
                     'count': config.VEHICLE_COUNT,
                     'fps': config.VEHICLE_FPS,
+                    'tasks': list(map(lambda e: e.__name__, config.VEHICLE_TASKS)),
                     'processingUnit': config.VEHICLE_PROCESSING_UNIT.__name__,
                     'mapping': config.VEHICLE_TASK_MAPPING_POLICY.__name__,
                     'scheduling': config.VEHICLE_TASK_SCHEDULING_POLICY.__name__,

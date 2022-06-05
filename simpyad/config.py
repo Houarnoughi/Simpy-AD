@@ -7,7 +7,20 @@ from TaskMappingPolicy import RandomTaskMappingPolicy, InplaceMappingPolicy, Cus
 from TaskSchedulingPolicy import RoundRobinSchedulingPolicy, FIFOSchedulingPolicy, SJFSchedulingPolicy
 from Networking import LTE, LTE_PLUS
 from Location import Location
-
+from Task import (
+    TrafficLightDetectionTask,
+    TrafficSignDetectionTask,
+    LaneDetectionTask,
+    ObjectDetectionTask,
+    ObjectTrackingTask,
+    MappingTask,
+    LocalizationAlgoTask,
+    MotionPredictionTask,
+    TrajectoryPlanningTask,
+    BehaviorPlanningTask,
+    RoutePlanningTask,
+    ControlAlgoTask
+)
 
 # SIMULATION
 SIM_STEPS = 100
@@ -18,9 +31,15 @@ RADIUS = 2000
 # VEHICLE
 VEHICLE_COUNT = 1
 VEHICLE_FPS = 1
+VEHICLE_TASKS = [
+    TrafficLightDetectionTask,
+    TrafficSignDetectionTask,
+    LaneDetectionTask,
+    ObjectDetectionTask
+]
 VEHICLE_PROCESSING_UNIT = AGX
 VEHICLE_TASK_MAPPING_POLICY = RandomTaskMappingPolicy
-VEHICLE_TASK_SCHEDULING_POLICY =  RoundRobinSchedulingPolicy
+VEHICLE_TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
 VEHICLE_NETWORK = LTE
 
 # RSU
@@ -37,8 +56,6 @@ DATACENTER_TASK_SCHEDULING_POLICY = FIFOSchedulingPolicy
 DATACENTER_NETWORK = LTE_PLUS
 
 
-
-
 # Task offloading
 OFFLOAD = True
 OFFLOAD_TO_VEHICLE = False
@@ -47,7 +64,8 @@ OFFLOAD_TO_DATACENTER = False
 
 # Task Mapping, task to PU attribution
 N_CLOSEST_PU = 2
-TASK_MAPPING_POLICY = RandomTaskMappingPolicy #CustomTaskMappingPolicy #RandomTaskMappingPolicy #InplaceMappingPolicy #RandomTaskMappingPolicy
+# CustomTaskMappingPolicy #RandomTaskMappingPolicy #InplaceMappingPolicy #RandomTaskMappingPolicy
+TASK_MAPPING_POLICY = RandomTaskMappingPolicy
 TASK_MAPPING_CALLBACK_INTERVAL = 1
 
 MAX_TASK_COUNT = SIM_STEPS * VEHICLE_COUNT * VEHICLE_FPS * 3
