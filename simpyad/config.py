@@ -1,26 +1,12 @@
 """
 Global variables defining the simulation
 """
-import os
-from ProcessingUnit import AGX, TeslaV100, DGXa100
-from TaskMappingPolicy import RandomTaskMappingPolicy, InplaceMappingPolicy, CustomTaskMappingPolicy
-from TaskSchedulingPolicy import RoundRobinSchedulingPolicy, FIFOSchedulingPolicy, SJFSchedulingPolicy
-from Networking import LTE, LTE_PLUS
+import TaskMappingPolicy
+import TaskSchedulingPolicy
+import Networking
+import Task
+import ProcessingUnit
 from Location import Location
-from Task import (
-    TrafficLightDetectionTask,
-    TrafficSignDetectionTask,
-    LaneDetectionTask,
-    ObjectDetectionTask,
-    ObjectTrackingTask,
-    MappingTask,
-    LocalizationAlgoTask,
-    MotionPredictionTask,
-    TrajectoryPlanningTask,
-    BehaviorPlanningTask,
-    RoutePlanningTask,
-    ControlAlgoTask
-)
 
 # SIMULATION
 SIM_STEPS = 100
@@ -32,28 +18,28 @@ RADIUS = 2000
 VEHICLE_COUNT = 1
 VEHICLE_FPS = 1
 VEHICLE_TASKS = [
-    TrafficLightDetectionTask,
-    TrafficSignDetectionTask,
-    LaneDetectionTask,
-    ObjectDetectionTask
+    Task.TrafficLightDetectionTask,
+    Task.TrafficSignDetectionTask,
+    Task.LaneDetectionTask,
+    Task.ObjectDetectionTask
 ]
-VEHICLE_PROCESSING_UNIT = AGX
-VEHICLE_TASK_MAPPING_POLICY = RandomTaskMappingPolicy
-VEHICLE_TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
-VEHICLE_NETWORK = LTE
+VEHICLE_PROCESSING_UNIT = ProcessingUnit.AGX
+VEHICLE_TASK_MAPPING_POLICY = TaskMappingPolicy.RandomTaskMappingPolicy
+VEHICLE_TASK_SCHEDULING_POLICY = TaskSchedulingPolicy.RoundRobinSchedulingPolicy
+VEHICLE_NETWORK = Networking.LTE
 
 # RSU
 RSU_COUNT = 10
 RSU_EVEN_DISTRIBUTION = False
-RSU_PROCESSING_UNIT = TeslaV100
-RSU_TASK_SCHEDULING_POLICY = RoundRobinSchedulingPolicy
-RSU_NETWORK = LTE_PLUS
+RSU_PROCESSING_UNIT = ProcessingUnit.TeslaV100
+RSU_TASK_SCHEDULING_POLICY = TaskSchedulingPolicy.RoundRobinSchedulingPolicy
+RSU_NETWORK = Networking.LTE_PLUS
 
 # DATA CENTER
 DATACENTER_COUNT = 99
-DATACENTER_PROCESSING_UNIT = DGXa100
-DATACENTER_TASK_SCHEDULING_POLICY = FIFOSchedulingPolicy
-DATACENTER_NETWORK = LTE_PLUS
+DATACENTER_PROCESSING_UNIT = ProcessingUnit.DGXa100
+DATACENTER_TASK_SCHEDULING_POLICY = TaskSchedulingPolicy.FIFOSchedulingPolicy
+DATACENTER_NETWORK = Networking.LTE_PLUS
 
 
 # Task offloading
@@ -65,7 +51,7 @@ OFFLOAD_TO_DATACENTER = False
 # Task Mapping, task to PU attribution
 N_CLOSEST_PU = 2
 # CustomTaskMappingPolicy #RandomTaskMappingPolicy #InplaceMappingPolicy #RandomTaskMappingPolicy
-TASK_MAPPING_POLICY = RandomTaskMappingPolicy
+TASK_MAPPING_POLICY = TaskMappingPolicy.RandomTaskMappingPolicy
 TASK_MAPPING_CALLBACK_INTERVAL = 1
 
 MAX_TASK_COUNT = SIM_STEPS * VEHICLE_COUNT * VEHICLE_FPS * 3
