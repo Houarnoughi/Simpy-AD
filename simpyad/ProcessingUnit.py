@@ -1,4 +1,3 @@
-from Location import UI_OPTIONS
 from Units import Units
 import simpy
 from Server import Server
@@ -8,11 +7,12 @@ from time import time
 import TaskMapper
 from typing import List, TYPE_CHECKING
 from Exceptions import OutOfMemoryException
-import Vehicle
+
 import config
 
 
 if TYPE_CHECKING:
+    from Vehicle import Vehicle
     from Task import Task, _Task
 '''
 Benchmarks sources : https://developer.nvidia.com/embedded/jetson-modules 
@@ -244,6 +244,7 @@ class ProcessingUnit(simpy.Resource):
             #new_task_list = self.scheduler.getExecutionSequence(self.task_list)
             new_task_list = self.scheduler.getExecutionSequence()
 
+            task: '_Task' = None
             for task in new_task_list:
                 self.log(f'Starting executing {task.getTaskName()} on {self.getPUName()} at {self.env.now}')
                 start = self.env.now
@@ -306,7 +307,7 @@ class AGX(ProcessingUnit):
     def getCurrentVehicle(self):
         return self.currentVehicle
 
-    def setCurrentCurrentVehicle(self, vehicle: Vehicle):
+    def setCurrentCurrentVehicle(self, vehicle: 'Vehicle'):
         self.currentVehicle = vehicle
 
 
@@ -327,7 +328,7 @@ class TX2(ProcessingUnit):
     def getCurrentVehicle(self):
         return self.currentVehicle
 
-    def setCurrentCurrentVehicle(self, vehicle: Vehicle):
+    def setCurrentCurrentVehicle(self, vehicle: 'Vehicle'):
         self.currentVehicle = vehicle
 
 

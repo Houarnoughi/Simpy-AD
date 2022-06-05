@@ -3,7 +3,6 @@ from Location import Location
 import simpy
 from Colors import GREEN, END, RED
 from Task import Task, _Task
-import numpy as np
 import Store
 from typing import List, TYPE_CHECKING
 import random

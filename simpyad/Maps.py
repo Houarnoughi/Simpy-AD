@@ -6,10 +6,7 @@ path planner etc
 import config
 import requests
 from Location import Location
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from Location import Location
 
 class OpenStreetAPI:
     URI = 'https://api.openrouteservice.org'
@@ -22,7 +19,7 @@ class PathPlanner(object):
     """
     Path planner
     """
-    def getPath(start_node: 'Location', end_node: 'Location'):
+    def getPath(start_node: Location, end_node: Location) -> list:
         """
         Returns trip coordinates between 2 Locations
         """

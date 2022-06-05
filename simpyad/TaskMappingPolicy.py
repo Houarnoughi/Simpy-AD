@@ -6,7 +6,6 @@ from Colors import END, GREEN
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import Networking
 from CNNModel import CNNModel
 from Location import Location, Latitude, Longitude
 import math

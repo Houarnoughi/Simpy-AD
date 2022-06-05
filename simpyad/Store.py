@@ -5,15 +5,12 @@ Static class that holds Simulation's that keeps track of
 """
 from Colors import END, GREEN, YELLOW, RED, BLUE
 from typing import List, TYPE_CHECKING
-from Location import Location
 import random
 import os
 from Exceptions import NoMoreTasksException
 import Vehicle
 import RoadSideUnit
 import DataCenter
-from requests import post
-import math
 import config
 
 
@@ -53,49 +50,7 @@ class Store:
     started_failed_lambda = lambda t: t.isFailed()
     started_not_finished_lambda = lambda t: t.isIncomplete()
     not_started_lambda = lambda t: not t.isStarted()
-
-    def __init__(self, env):
-        self.env = env
-        #self.proc = env.process(self.run())
-
-    def run(self):
-        while True:
-            
-            vehicles = [
-                {
-                    "name": v.name,
-                    "lat": v.getLocation().latitude,
-                    "long": v.getLocation().longitude,
-                    "coordinates": v.getTripCoordinates()
-                } for v in Store.vehicle_list
-            ]
-            rsus = [
-                {
-                    "name": r.name,
-                    "lat": r.getLocation().latitude,
-                    "long": r.getLocation().longitude
-                } for r in Store.rsu_list
-            ]
-            stats = {
-                "all_tasks": Store.getTotalTaskCount(),
-                "success_tasks": Store.getSuccessTaskCount(),
-                "failed_tasks": Store.getStartedFailedTaskCount(),
-                "tasks_to_execute": Store.getTasksToExecuteCount(),
-                "incomplete_tasks": Store.getIncompleteTasksCount(),
-                "finished_tasks": Store.getSuccessTaskCount(),
-                "simulationTime": math.ceil(self.env.now),
-                "maxTaskCount": config.MAX_TASK_COUNT
-            }
-            try:
-                post(f"{config.SERVER_URL}/vehicle", json={"vehicles": vehicles})
-                post(f"{config.SERVER_URL}/rsu", json={"rsus": rsus})
-                post(f"{config.SERVER_URL}/stats", json={"data": stats})
-            except Exception as e:
-                #print(e)
-                pass
-            # update every 0.1 sec
-            yield self.env.timeout(config.POST_TIMEOUT)
-
+        
     def log(message):
         print(f'{GREEN}[Store] {message} {END}')
 

@@ -1,8 +1,12 @@
-from Location import Location
+
 import simpy
 from Colors import RED, END
-from typing import List
-from Server import Server
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Location import Location
+    from Server import Server
+
 '''
 Notes : Pour la simulation, les principales interactions se font seulement entre les tasks et les PU
 '''
@@ -17,7 +21,7 @@ class RoadSideUnit(simpy.Resource):
     name = ''
     #server_list = []
 
-    def __init__(self, location: Location, server_list: List[Server], to_vehicle_bw, to_cloud_bw, env: simpy.Environment, activity_range=0, capacity=1):
+    def __init__(self, location: 'Location', server_list: List['Server'], to_vehicle_bw, to_cloud_bw, env: simpy.Environment, activity_range=0, capacity=1):
         self.id = RoadSideUnit.idx
         self.name = f'RSU-{self.id}'
         RoadSideUnit.idx += 1
@@ -40,19 +44,19 @@ class RoadSideUnit(simpy.Resource):
     def getRSUName(self):
         return self.name
 
-    def setLocation(self, location: Location):
+    def setLocation(self, location: 'Location'):
         self.location=location
 
-    def getLocation(self) -> Location:
+    def getLocation(self) -> 'Location':
         return self.location
 
     # Get the list of the servers of the Roadside Unit
-    def getServerList(self) -> List[Server]:
+    def getServerList(self) -> List['Server']:
         return self.server_list
 
     # Set the list of the servers of the Roadside Unit
-    def setServerList(self, server_list: List[Server]):
-        server: Server = None
+    def setServerList(self, server_list: List['Server']):
+        server: 'Server' = None
         for server in server_list:
             if server not in self.getServerList():
                 self.server_list.append(server)

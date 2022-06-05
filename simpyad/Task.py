@@ -1,4 +1,3 @@
-from logging import critical
 from TaskCriticality import TaskCriticality
 from typing import TYPE_CHECKING
 from enum import Enum

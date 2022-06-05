@@ -1,8 +1,8 @@
-from simpy import Environment
-from typing import List, Union, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ProcessingUnit import ProcessingUnit
+    from simpy import Environment
 
 """
 parent - RSU, DatCenter
@@ -13,7 +13,7 @@ class Server(object):
     # each server must have its' own PUs, moving to instance var
     #PU_list = []   
 
-    def __init__(self, pu_list, bw, env: Environment, capacity=1):
+    def __init__(self, pu_list, bw, env: 'Environment', capacity=1):
         self.id = Server.idx
         self.name = f'Server-{Server.idx}'
         Server.idx += 1

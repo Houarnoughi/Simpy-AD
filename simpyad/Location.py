@@ -1,7 +1,6 @@
 import haversine as hs
 from typing import Tuple
 import random
-import math
 
 class Latitude:
     min = -90
