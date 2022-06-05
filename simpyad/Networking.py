@@ -4,57 +4,40 @@ Abstract Class for Networking
 You can extend Network interface to implement different type of network like 5G
 """
 from Units import Units
-from abc import ABC, abstractmethod
 
-class Network(ABC):
-    @abstractmethod
-    def getTransferDuration(data: int):
-        """ implemented by child classes """
+class Network:
+    DOWNLOAD = None
+    UPLOAD = None
 
-    @abstractmethod
-    def getUploadSpeed() -> int:
-        """ implemented by child classes """
+    @classmethod
+    def getTransferDuration(cls, data: int):
+        return data/ (cls.UPLOAD/8)
+
+    @classmethod
+    def getUploadSpeed(cls) -> int:
+        return cls.UPLOAD
         
-    @abstractmethod
-    def getDownloadSpeed() -> int:
-        """ implemented by child classes """
+    @classmethod
+    def getDownloadSpeed(cls) -> int:
+        return cls.DOWNLOAD
 
 class LTE(Network):
     DOWNLOAD = 20 * Units.mega
     UPLOAD = 10 * Units.mega
 
-    def getTransferDuration(data: int) -> float:
-        return data/ (LTE.UPLOAD/8)
-    
-    def getUploadSpeed() -> int:
-        return LTE.UPLOAD
-    
-    def getDownloadSpeed() -> int:
-        return LTE.DOWNLOAD
-
 class LTE_PLUS(Network):
     DOWNLOAD = 50 * Units.mega
     UPLOAD = 15 * Units.mega
 
-    def getTransferDuration(data: int) -> float:
-        return data/ (LTE_PLUS.UPLOAD/8)
-    
-    def getUploadSpeed() -> int:
-        return LTE_PLUS.UPLOAD
-    
-    def getDownloadSpeed() -> int:
-        return LTE_PLUS.DOWNLOAD
-
 class FIFTH_GEN(Network):
-    """
-    ToDo
-    """
+    DOWNLOAD = 777 * Units.mega
+    UPLOAD = 77 * Units.mega
 
 UI_OPTIONS = [
     LTE, LTE_PLUS
 ]
 
 if __name__ == "__main__":
-    lte_speed = LTE.getDownloadSpeed()
-    lte_plus_speed = LTE_PLUS.getDownloadSpeed()
-    print("speed", lte_speed, lte_plus_speed)
+    print("LTE", LTE.getUploadSpeed(), LTE.getDownloadSpeed())
+    print("LTE_PLUS", LTE_PLUS.getUploadSpeed(), LTE_PLUS.getDownloadSpeed())
+    print("FIFTH_GEN", FIFTH_GEN.getUploadSpeed(), FIFTH_GEN.getDownloadSpeed())
