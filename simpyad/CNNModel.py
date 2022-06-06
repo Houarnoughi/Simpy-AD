@@ -62,31 +62,31 @@ class CNNModel(object):
 
 class _CNNModel:
     NAME = None
-    FLOPS = None
+    FLOP = None
     SIZE = None
 
     def __init__(self) -> None:
         self.name = self.NAME
-        self.flops = self.FLOPS
+        self.flop = self.FLOP
         self.size = self.SIZE
 
-    def getFlops(self) -> int:
-        return self.flops
+    def getFlop(self) -> int:
+        return self.flop
     
     def getSize(self) -> int:
         return self.size
 
     def __repr__(self) -> str:
-        return f'[{self.name} flops={self.flops}, size={self.size}]'
+        return f'[{self.name} flop={self.flop}, size={self.size}]'
 
 class AlexNet(_CNNModel):
     NAME = 'AlexNet'
-    FLOPS = 1000
+    FLOP = 1000
     SIZE = 100
 
 class ResNet50(_CNNModel):
     NAME = 'ResNet50'
-    FLOPS = 2000
+    FLOP = 2000
     SIZE = 300
 
 if __name__ == '__main__':
@@ -97,4 +97,4 @@ if __name__ == '__main__':
     m = ResNet50()
     print(m)
 
-    print(m.getFlops())
+    print(m.getFlop())

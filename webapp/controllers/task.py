@@ -15,3 +15,22 @@ def taskOptions():
     return {
         'task_options': response
     }
+
+@bp.get('/informations')
+def taskInfos():
+
+    from Task import UI_OPTIONS
+    
+    response = [
+        {
+            'name': o.__name__,
+            'flop': o.FLOP,
+            'size': o.SIZE,
+            'criticality': o.CRITICALITY.name
+        } 
+        for o in UI_OPTIONS if hasattr(o, 'FLOP')
+    ]
+    #print("response", response)
+    return {
+        'task_informations': response
+    }

@@ -96,7 +96,7 @@
                     </v-row>
                 </v-expansion-panel-content>
             </v-expansion-panel>
-            <!-- Vehicle props -->
+            <!-- Tasks informations -->
             <v-expansion-panel>
                 <v-expansion-panel-header>
                     <div>
@@ -105,9 +105,14 @@
                     </div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
-                        
-                    </v-row>
+                    <v-data-table :headers="headers" :items="taskInformations" hide-default-footer
+                        class="pa-5 pt-0 pb-2">
+                        <template v-slot:item.criticality="{ item }">
+                            <div class="">
+                                [[ item.criticality ]]
+                            </div>
+                        </template>
+                    </v-data-table>
                 </v-expansion-panel-content>
             </v-expansion-panel>
             <!-- RSU props -->
@@ -225,7 +230,16 @@
         delimiters: ['[[', ']]'],
         data() {
             return {
-                panel: [1],
+                // tasks informations
+                headers: [
+                    { text: 'Name', value: 'name' },
+                    { text: 'FLOPs', value: 'flop' },
+                    { text: 'Size', value: 'size' },
+                    { text: 'Criticality', value: 'criticality' },
+                ],
+                taskInformations: [],
+
+                panel: [1, 2],
                 verticalView: false,
                 RUNNING: false,
                 chart: null,
@@ -307,6 +321,7 @@
             await this.loadMappingOptions()
             await this.loadProcessingUnitOptions()
             await this.loadTaskOptions()
+            await this.loadTaskInformations()
 
             setInterval(this.statsCallback, 100)
             setInterval(this.rsusCallback, 100)
@@ -572,6 +587,13 @@
                     .then(response => response.json())
                     .then(data => {
                         this.taskOptions = data.task_options
+                    })
+            },
+            async loadTaskInformations() {
+                await fetch('/task/informations')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.taskInformations = data.task_informations
                     })
             }
 
