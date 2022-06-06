@@ -81,20 +81,20 @@ class Simulation(Thread):
     def run(self):
 
         # RSU
-        locations = Location.getLocations(
+        rsu_locations = Location.getLocations(
             town=self.town, 
             count=self.rsu_count, 
             radius=self.radius,
             evenDistribution=self.rsu_even_distribution
         )
 
-        for i in range(self.rsu_count):
+        for location in rsu_locations:
             pu = config.RSU_PROCESSING_UNIT(scheduler=self.rsu_scheduling(config.TESLA_QUANTUM), env=self.env)
             Store.Store.addPU(pu)
 
             rsu = RoadSideUnit(
                 activity_range=100,
-                location=locations[i],
+                location=location,
                 server_list=[
                     Server(pu_list=[pu], bw=1, env=self.env)
                 ],
