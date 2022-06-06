@@ -3,66 +3,17 @@ from flask import Blueprint, Flask, request, Request
 from Store import Store
 from Simulation import Simulation
 import config
-from Location import Location
-from Networking import Network
-from TaskSchedulingPolicy import TaskSchedulingPolicy
-from TaskMappingPolicy import TaskMappingPolicy
-from ProcessingUnit import ProcessingUnit
-from Task import Task
+import Location
+import Networking
+import TaskSchedulingPolicy
+import TaskMappingPolicy
+import ProcessingUnit
+import Task
 
 bp = Blueprint('simulation', __name__, url_prefix='')
 
 global simulationThread
 simulationThread = None
-
-
-def getTaskMapperClass(request: dict) -> TaskMappingPolicy:
-    name = request.get("mapping")
-
-    from TaskMappingPolicy import UI_OPTIONS
-    for option in UI_OPTIONS:
-        if option.__name__ == name:
-            return option
-
-
-def getTaskSchedulerClass(request: dict) -> TaskSchedulingPolicy:
-    name = request.get("scheduling")
-
-    from TaskSchedulingPolicy import UI_OPTIONS
-    for option in UI_OPTIONS:
-        if option.__name__ == name:
-            return option
-
-
-def getNetworkClass(request: dict) -> Network:
-    name = request.get("networking")
-
-    from Networking import UI_OPTIONS
-    for option in UI_OPTIONS:
-        if option.__name__ == name:
-            return option
-
-
-def getProcessingUnit(request: dict) -> ProcessingUnit:
-    name = request.get("processingUnit")
-
-    from ProcessingUnit import UI_OPTIONS
-    for option in UI_OPTIONS:
-        if option.__name__ == name:
-            return option
-
-def getTasks(request: dict) -> list[Task]:
-    from Task import UI_OPTIONS
-
-    selected_task_list = request.get("tasks")
-
-    tasks = [option for option in UI_OPTIONS if option.__name__ in selected_task_list]
-
-    return tasks
-
-def getTownLocation(request: Request) -> Location:
-    town = request.json.get("town")
-    return Location("", town['latitude'], town['longitude'])
 
 @bp.post('/start')
 def startSimulation():
@@ -77,36 +28,36 @@ def startSimulation():
         # Simulation
         steps = request.json.get("steps", config.SIM_STEPS)
         radius = request.json.get("radius")
-        town = getTownLocation(request)
+        town = Location.getTownLocation(request)
         print("town", town)
 
         # Vehicle
         vehicle: dict = request.json.get("vehicle")
         vehicle_count = vehicle.get("count")
         vehicle_fps = vehicle.get("fps")
-        vehicle_tasks = getTasks(vehicle)
-        vehicle_processing_unit = getProcessingUnit(vehicle)
-        vehicle_mapping = getTaskMapperClass(vehicle)
-        vehicle_scheduling = getTaskSchedulerClass(vehicle)
-        vehicle_networking = getNetworkClass(vehicle)
+        vehicle_tasks = Task.getTasks(vehicle)
+        vehicle_processing_unit = ProcessingUnit.getProcessingUnit(vehicle)
+        vehicle_mapping = TaskMappingPolicy.getTaskMapperClass(vehicle)
+        vehicle_scheduling = TaskSchedulingPolicy.getTaskSchedulerClass(vehicle)
+        vehicle_networking = Networking.getNetworkClass(vehicle)
         print("VEHICLE", vehicle_count, vehicle_fps, vehicle_tasks, vehicle_mapping, vehicle_scheduling, vehicle_networking)
 
         # RSU
         rsu: dict = request.json.get("rsu")
         rsu_count = rsu.get("count")
         rsu_even_distribution = rsu.get("evenDistribution")
-        rsu_processing_unit = getProcessingUnit(rsu)
-        rsu_scheduling = getTaskSchedulerClass(rsu)
-        rsu_network = getNetworkClass(rsu)
+        rsu_processing_unit = ProcessingUnit.getProcessingUnit(rsu)
+        rsu_scheduling = TaskSchedulingPolicy.getTaskSchedulerClass(rsu)
+        rsu_network = Networking.getNetworkClass(rsu)
         print("RSU", rsu_count, rsu_even_distribution, rsu_scheduling, rsu_network)
 
         #return "ok"
         # DATACENTER
         datacenter: dict = request.json.get("datacenter")
         datacenter_count = datacenter.get("count")
-        datacenter_processing_unit = getProcessingUnit(datacenter)
-        datacenter_scheduling = getTaskSchedulerClass(datacenter)
-        datacenter_network = getNetworkClass(datacenter)
+        datacenter_processing_unit = ProcessingUnit.getProcessingUnit(datacenter)
+        datacenter_scheduling = TaskSchedulingPolicy.getTaskSchedulerClass(datacenter)
+        datacenter_network = Networking.getNetworkClass(datacenter)
         print("DATACENTER", datacenter_count, datacenter_scheduling, datacenter_network)
 
         #return 'start'

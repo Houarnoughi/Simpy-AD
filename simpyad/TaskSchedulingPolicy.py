@@ -107,6 +107,13 @@ UI_OPTIONS = [
     RoundRobinSchedulingPolicy
 ]
 
+def getTaskSchedulerClass(request: dict) -> TaskSchedulingPolicy:
+    name = request.get("scheduling")
+
+    for option in UI_OPTIONS:
+        if option.__name__ == name:
+            return option
+
 if __name__ == '__main__':
     
     fifo = FIFOSchedulingPolicy()

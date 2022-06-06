@@ -220,6 +220,13 @@ UI_OPTIONS = [
     ControlAlgoTask
 ]
 
+def getTasks(request: dict) -> list[Task]:
+    selected_task_list = request.get("tasks")
+
+    return [option for option in UI_OPTIONS if option.__name__ in selected_task_list]
+
+   
+
 if __name__ == '__main__':
     
     t1 = TrafficLightDetectionTask()

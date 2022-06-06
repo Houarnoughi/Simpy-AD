@@ -382,3 +382,9 @@ UI_OPTIONS = [
     AGX, TX2, TeslaV100, DGXa100
 ]
 
+def getProcessingUnit(request: dict) -> ProcessingUnit:
+    name = request.get("processingUnit")
+
+    for option in UI_OPTIONS:
+        if option.__name__ == name:
+            return option

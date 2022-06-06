@@ -37,6 +37,13 @@ UI_OPTIONS = [
     LTE, LTE_PLUS
 ]
 
+def getNetworkClass(request: dict) -> Network:
+    name = request.get("networking")
+
+    for option in UI_OPTIONS:
+        if option.__name__ == name:
+            return option
+
 if __name__ == "__main__":
     print("LTE", LTE.getUploadSpeed(), LTE.getDownloadSpeed())
     print("LTE_PLUS", LTE_PLUS.getUploadSpeed(), LTE_PLUS.getDownloadSpeed())

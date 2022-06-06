@@ -103,18 +103,8 @@ class Simulation(Thread):
             Store.Store.addRSU(rsu)
         
         # Vehicle
-        inception = CNNModel('Inception-v3', 1024)
-        resnet18 = CNNModel('ResNet-18', 480)
-        mobilenet = CNNModel('MobileNet0.25-v1', 240)
+        vehicle_tasks = [task() for task in self.vehicle_tasks]
 
-        vehicle_tasks = [
-            #Task(flop=inception.getModelFLOPS(), size=inception.getModelMemory(), criticality=TaskCriticality.HIGH),
-            #Task(flop=resnet18.getModelFLOPS(), size=resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
-            Task(flop=mobilenet.getModelFLOPS(), size=mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
-            #Task(inception.getModelFLOPS(), inception.getModelMemory(), criticality=TaskCriticality.HIGH),
-            #Task(resnet18.getModelFLOPS(), resnet18.getModelMemory(), criticality=TaskCriticality.MEDIUM),
-            #Task(mobilenet.getModelFLOPS(), mobilenet.getModelMemory(), criticality=TaskCriticality.LOW),
-        ]
         for _ in range(self.vehicle_count):
             # PU init
             scheduler = self.vehicle_scheduling(config.AGX_QUANTUM)

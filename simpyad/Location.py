@@ -1,6 +1,7 @@
 import haversine as hs
 from typing import Tuple
 import random
+from flask import Request
 
 class Latitude:
     min = -90
@@ -118,3 +119,7 @@ UI_OPTIONS = [
     #Location("Marrakech", 31.62949, -7.984659),
     #Location("Alger", 36.7578, 3.05775),
 ]
+
+def getTownLocation(request: Request) -> Location:
+    town = request.json.get("town")
+    return Location("", town['latitude'], town['longitude'])

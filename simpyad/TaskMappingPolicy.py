@@ -166,6 +166,13 @@ UI_OPTIONS = [
     CustomTaskMappingPolicy
 ]
 
+def getTaskMapperClass(request: dict) -> TaskMappingPolicy:
+    name = request.get("mapping")
+
+    for option in UI_OPTIONS:
+        if option.__name__ == name:
+            return option
+
 if __name__ == "__main__":
     env = simpy.Environment()
     r = CustomTaskMappingPolicy(env=env)
