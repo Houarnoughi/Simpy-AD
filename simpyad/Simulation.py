@@ -81,14 +81,12 @@ class Simulation(Thread):
     def run(self):
 
         # RSU
-        locations = []
-
-        if self.rsu_even_distribution:
-            locations = Location.getEvenDistributedPoints(self.town, self.rsu_count, self.radius)
-            print('locations', locations)
-        else:
-            # Random locations with random distance from town center (self.town)
-            locations = [Location.getLocationInRange(self.town, random.randint(0, self.radius)) for _ in range(self.rsu_count)]
+        locations = Location.getLocations(
+            town=self.town, 
+            count=self.rsu_count, 
+            radius=self.radius,
+            evenDistribution=self.rsu_even_distribution
+        )
 
         for i in range(self.rsu_count):
             pu = config.RSU_PROCESSING_UNIT(scheduler=self.rsu_scheduling(config.TESLA_QUANTUM), env=self.env)

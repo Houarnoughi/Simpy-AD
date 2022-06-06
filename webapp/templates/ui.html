@@ -126,7 +126,7 @@
                         </v-col>
                         <v-col cols="2">
                             <v-switch v-model="simulation.rsu.evenDistribution" label="Distribute evenly (soon)"
-                                disabled></v-switch>
+                                :disabled="true"></v-switch>
                         </v-col>
                         <v-col cols="2">
                             <v-select v-model="simulation.rsu.processingUnit" :items="processingUnitOptions"

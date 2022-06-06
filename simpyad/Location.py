@@ -37,6 +37,12 @@ class Location(object):
     def setLongitude(self, longitude):
         self.longitude = longitude
     
+    def getLocations(town: 'Location', count: int, radius: int, evenDistribution: bool) -> list['Location']:
+        if evenDistribution == False:
+            return [Location.getLocationInRange(town, random.randint(0, radius)) for _ in range(count)]
+
+        return Location.getEvenDistributedPoints(town, count, radius)
+
     def getEvenDistributedPoints(src: 'Location', count: int, radius: int) -> list:
         """ get count evenly distributed points around this location """
         RSU_DISTANCE = 200
