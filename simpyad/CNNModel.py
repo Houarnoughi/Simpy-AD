@@ -60,9 +60,41 @@ class CNNModel(object):
         memory = dataset["Memory"]
         return memory.min(), memory.max()
 
-if __name__ == '__main__':
-    min, max = CNNModel.getModelFlopsMinMax()
-    print(min, max)
+class _CNNModel:
+    NAME = None
+    FLOPS = None
+    SIZE = None
 
-    min, max = CNNModel.getModelMemoryMinMax()
-    print(min, max)
+    def __init__(self) -> None:
+        self.name = self.NAME
+        self.flops = self.FLOPS
+        self.size = self.SIZE
+
+    def getFlops(self) -> int:
+        return self.flops
+    
+    def getSize(self) -> int:
+        return self.size
+
+    def __repr__(self) -> str:
+        return f'[{self.name} flops={self.flops}, size={self.size}]'
+
+class AlexNet(_CNNModel):
+    NAME = 'AlexNet'
+    FLOPS = 1000
+    SIZE = 100
+
+class ResNet50(_CNNModel):
+    NAME = 'ResNet50'
+    FLOPS = 2000
+    SIZE = 300
+
+if __name__ == '__main__':
+    
+    m = AlexNet()
+    print(m)
+
+    m = ResNet50()
+    print(m)
+
+    print(m.getFlops())
