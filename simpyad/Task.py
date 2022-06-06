@@ -1,4 +1,3 @@
-from TaskCriticality import TaskCriticality
 from typing import TYPE_CHECKING
 from enum import Enum
 from abc import ABC, abstractmethod
@@ -8,6 +7,10 @@ if TYPE_CHECKING:
     from Vehicle import Vehicle
     from ProcessingUnit import ProcessingUnit
 
+class TaskCriticality(Enum):
+    HIGH = 1
+    MEDIUM = 2
+    LOW = 3
 
 class TaskStatus(Enum):
     CREATED = 0
@@ -184,24 +187,33 @@ class TrajectoryPlanningTask(Task):
     pass
 
 class BehaviorPlanningTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class RoutePlanningTask(Task):
-    pass
+    FLOP = 200
+    SIZE = 2200
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class ControlAlgoTask(Task):
-    pass
+    FLOP = 240
+    SIZE = 200
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class TrafficLightDetectionTask(Task):
     
     MODEL = AlexNet()
-    CRITICALILY = TaskCriticality.HIGH
+
+    FLOP = MODEL.getFlop()
+    SIZE = MODEL.getSize()
+    CRITICALITY = TaskCriticality.HIGH
 
     def __init__(self):
         super().__init__(
-            flop=self.MODEL.getFlops(), 
-            size=self.MODEL.getSize(), 
-            criticality=self.CRITICALILY
+            flop=self.FLOP,
+            size=self.SIZE,
+            criticality=self.CRITICALITY
         )
 
 
