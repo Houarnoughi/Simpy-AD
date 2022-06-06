@@ -2,6 +2,7 @@ from TaskCriticality import TaskCriticality
 from typing import TYPE_CHECKING
 from enum import Enum
 from abc import ABC, abstractmethod
+from CNNModel import AlexNet
 
 if TYPE_CHECKING:
     from Vehicle import Vehicle
@@ -151,14 +152,12 @@ class Task(ABC):
         return self.name
 
     def getInfos(self) -> str:
-        return f'[{self.name}, flop={self.flop}, remainingFlop={self.remaining_flop}, size={self.size}, startTime={self.execution_start_time}, endTime={self.execution_end_time}, pu={self.pu}, vehicle={self.vehicle}, status={self.status}, rounds={self.scheduler_rounds}]'
+        return f'[{self.name}: {self.__class__.__name__}, flop={self.flop}, remainingFlop={self.remaining_flop}, size={self.size}, startTime={self.execution_start_time}, endTime={self.execution_end_time}, pu={self.pu}, vehicle={self.vehicle}, status={self.status}, rounds={self.scheduler_rounds}]'
 
     def __repr__(self) -> str:
         return f'[{self.name}, {self.pu}]'
 
 
-class TrafficLightDetectionTask(Task):
-    pass
 
 class TrafficSignDetectionTask(Task):
     pass
@@ -193,6 +192,19 @@ class RoutePlanningTask(Task):
 class ControlAlgoTask(Task):
     pass
 
+class TrafficLightDetectionTask(Task):
+    
+    MODEL = AlexNet()
+    CRITICALILY = TaskCriticality.HIGH
+
+    def __init__(self):
+        super().__init__(
+            flop=self.MODEL.getFlops(), 
+            size=self.MODEL.getSize(), 
+            criticality=self.CRITICALILY
+        )
+
+
 UI_OPTIONS = [
     TrafficLightDetectionTask,
     TrafficSignDetectionTask,
@@ -208,8 +220,16 @@ UI_OPTIONS = [
     ControlAlgoTask
 ]
 
-# if __name__ == '__main__':
-#     tasks = [Task() for i in range(5)]
-#     t = tasks[0]
-#     infos = t.getInfos()
-#     print(infos)
+if __name__ == '__main__':
+    
+    t1 = TrafficLightDetectionTask()
+    t2 = TrafficLightDetectionTask()
+
+    print(t1.getInfos())
+    print(t2.getInfos())
+    
+    t1.decreaseRemainingFlop(50)
+    t2.decreaseRemainingFlop(300)
+
+    print(t1.getInfos())
+    print(t2.getInfos())

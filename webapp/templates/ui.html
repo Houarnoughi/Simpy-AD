@@ -91,7 +91,22 @@
                     </v-row>
                     <!-- task section -->
                     <v-row no-gutters class="pa-5 ">
-                        <v-select multiple chips v-model="simulation.vehicle.tasks" :items="taskOptions" label="Vehicle Task"></v-select>
+                        <v-select multiple chips v-model="simulation.vehicle.tasks" :items="taskOptions"
+                            label="Vehicle Task"></v-select>
+                    </v-row>
+                </v-expansion-panel-content>
+            </v-expansion-panel>
+            <!-- Vehicle props -->
+            <v-expansion-panel>
+                <v-expansion-panel-header>
+                    <div>
+                        <v-icon size="30">mdi-calculator-variant</v-icon>
+                        Tasks
+                    </div>
+                </v-expansion-panel-header>
+                <v-expansion-panel-content>
+                    <v-row no-gutters class="pa-5 pb-0 " justify="space-around">
+                        
                     </v-row>
                 </v-expansion-panel-content>
             </v-expansion-panel>
@@ -228,14 +243,14 @@
                 rsuMarkers: [],
                 vehicleMarkers: [],
                 tripMarkers: [],
-                // towns
+                // select options
                 towns: [],
-                // simu props
                 processingUnitOptions: [],
                 schedulerOptions: [],
                 mappingOptions: [],
                 networkingOptions: [],
                 taskOptions: [],
+                // simu props
                 simulation: {
                     steps: 100,
                     vehicle: {

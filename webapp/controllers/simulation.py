@@ -1,4 +1,5 @@
-from flask import Blueprint, Flask, request
+from traceback import print_tb
+from flask import Blueprint, Flask, request, Request
 from Store import Store
 from Simulation import Simulation
 import config
@@ -7,6 +8,7 @@ from Networking import Network
 from TaskSchedulingPolicy import TaskSchedulingPolicy
 from TaskMappingPolicy import TaskMappingPolicy
 from ProcessingUnit import ProcessingUnit
+from Task import Task
 
 bp = Blueprint('simulation', __name__, url_prefix='')
 
@@ -16,51 +18,51 @@ simulationThread = None
 
 def getTaskMapperClass(request: dict) -> TaskMappingPolicy:
     name = request.get("mapping")
-    if name == '':
-        return config.VEHICLE_TASK_MAPPING_POLICY
-    else:
-        from TaskMappingPolicy import UI_OPTIONS
-        for option in UI_OPTIONS:
-            if option.__name__ == name:
-                return option
+
+    from TaskMappingPolicy import UI_OPTIONS
+    for option in UI_OPTIONS:
+        if option.__name__ == name:
+            return option
 
 
 def getTaskSchedulerClass(request: dict) -> TaskSchedulingPolicy:
     name = request.get("scheduling")
-    if name == '':
-        return config.EDGE_TASK_SCHEDULING_POLICY
-    else:
-        from TaskSchedulingPolicy import UI_OPTIONS
-        for option in UI_OPTIONS:
-            if option.__name__ == name:
-                return option
+
+    from TaskSchedulingPolicy import UI_OPTIONS
+    for option in UI_OPTIONS:
+        if option.__name__ == name:
+            return option
 
 
 def getNetworkClass(request: dict) -> Network:
     name = request.get("networking")
-    if name == '':
-        return config.NETWORK
-    else:
-        from Networking import UI_OPTIONS
-        for option in UI_OPTIONS:
-            if option.__name__ == name:
-                return option
+
+    from Networking import UI_OPTIONS
+    for option in UI_OPTIONS:
+        if option.__name__ == name:
+            return option
 
 
-def getTownLocation(request) -> Location:
+def getProcessingUnit(request: dict) -> ProcessingUnit:
+    name = request.get("processingUnit")
+
+    from ProcessingUnit import UI_OPTIONS
+    for option in UI_OPTIONS:
+        if option.__name__ == name:
+            return option
+
+def getTasks(request: dict) -> list[Task]:
+    from Task import UI_OPTIONS
+
+    selected_task_list = request.get("tasks")
+
+    tasks = [option for option in UI_OPTIONS if option.__name__ in selected_task_list]
+
+    return tasks
+
+def getTownLocation(request: Request) -> Location:
     town = request.json.get("town")
     return Location("", town['latitude'], town['longitude'])
-
-
-def getProcessingUnit(request) -> ProcessingUnit:
-    name = request.get("processingUnit")
-    if name == '':
-        return config.VEHICLE_PROCESSING_UNIT
-    else:
-        from ProcessingUnit import UI_OPTIONS
-        for option in UI_OPTIONS:
-            if option.__name__ == name:
-                return option
 
 @bp.post('/start')
 def startSimulation():
@@ -82,11 +84,12 @@ def startSimulation():
         vehicle: dict = request.json.get("vehicle")
         vehicle_count = vehicle.get("count")
         vehicle_fps = vehicle.get("fps")
+        vehicle_tasks = getTasks(vehicle)
         vehicle_processing_unit = getProcessingUnit(vehicle)
         vehicle_mapping = getTaskMapperClass(vehicle)
         vehicle_scheduling = getTaskSchedulerClass(vehicle)
         vehicle_networking = getNetworkClass(vehicle)
-        print("VEHICLE", vehicle_count, vehicle_fps, vehicle_mapping, vehicle_scheduling, vehicle_networking)
+        print("VEHICLE", vehicle_count, vehicle_fps, vehicle_tasks, vehicle_mapping, vehicle_scheduling, vehicle_networking)
 
         # RSU
         rsu: dict = request.json.get("rsu")
@@ -113,6 +116,7 @@ def startSimulation():
             radius=int(radius),
             vehicle_count=int(vehicle_count),
             vehicle_fps=int(vehicle_fps),
+            vehicle_tasks=vehicle_tasks,
             vehicle_processing_unit=vehicle_processing_unit,
             vehicle_mapping=vehicle_mapping,
             vehicle_scheduling=vehicle_scheduling,

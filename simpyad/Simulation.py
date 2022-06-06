@@ -33,6 +33,7 @@ class Simulation(Thread):
         # Vehicle
         vehicle_count,
         vehicle_fps,
+        vehicle_tasks: list[Task],
         vehicle_processing_unit: ProcessingUnit,
         vehicle_mapping: TaskMappingPolicy,
         vehicle_scheduling: TaskSchedulingPolicy,
@@ -58,6 +59,7 @@ class Simulation(Thread):
 
         self.vehicle_count = vehicle_count
         self.vehicle_fps = vehicle_fps
+        self.vehicle_tasks = vehicle_tasks
         self.vehicle_processing_unit = vehicle_processing_unit
         self.vehicle_mapping = vehicle_mapping
         self.vehicle_scheduling = vehicle_scheduling
