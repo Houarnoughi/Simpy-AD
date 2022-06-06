@@ -163,28 +163,44 @@ class Task(ABC):
 
 
 class TrafficSignDetectionTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class LaneDetectionTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class ObjectDetectionTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class ObjectTrackingTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class MappingTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class LocalizationAlgoTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class MotionPredictionTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class TrajectoryPlanningTask(Task):
-    pass
+    FLOP = 230
+    SIZE = 2100
+    CRITICALITY = TaskCriticality.MEDIUM
 
 class BehaviorPlanningTask(Task):
     FLOP = 230

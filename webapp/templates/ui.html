@@ -92,7 +92,7 @@
                     <!-- task section -->
                     <v-row no-gutters class="pa-5 ">
                         <v-select multiple chips v-model="simulation.vehicle.tasks" :items="taskOptions"
-                            label="Vehicle Task"></v-select>
+                            label="Vehicle Task" item-text="name"></v-select>
                     </v-row>
                 </v-expansion-panel-content>
             </v-expansion-panel>
@@ -105,7 +105,7 @@
                     </div>
                 </v-expansion-panel-header>
                 <v-expansion-panel-content>
-                    <v-data-table :headers="headers" :items="taskInformations" hide-default-footer
+                    <v-data-table :headers="headers" :items="taskOptions" hide-default-footer
                         class="pa-5 pt-0 pb-2">
                         <template v-slot:item.criticality="{ item }">
                             <div class="">
@@ -237,9 +237,8 @@
                     { text: 'Size', value: 'size' },
                     { text: 'Criticality', value: 'criticality' },
                 ],
-                taskInformations: [],
 
-                panel: [1, 2],
+                panel: [1],
                 verticalView: false,
                 RUNNING: false,
                 chart: null,
@@ -321,7 +320,6 @@
             await this.loadMappingOptions()
             await this.loadProcessingUnitOptions()
             await this.loadTaskOptions()
-            await this.loadTaskInformations()
 
             setInterval(this.statsCallback, 100)
             setInterval(this.rsusCallback, 100)
@@ -587,13 +585,6 @@
                     .then(response => response.json())
                     .then(data => {
                         this.taskOptions = data.task_options
-                    })
-            },
-            async loadTaskInformations() {
-                await fetch('/task/informations')
-                    .then(response => response.json())
-                    .then(data => {
-                        this.taskInformations = data.task_informations
                     })
             }
 
