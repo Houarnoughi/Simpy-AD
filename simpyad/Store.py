@@ -73,6 +73,9 @@ class Store:
     def addPU(pu: 'ProcessingUnit'):
         Store.pu_list.append(pu)
     
+    def addVehicle(vehicle: 'Vehicle'):
+        Store.vehicle_list.append(vehicle)
+    
     def getTasksToExecuteCount():
         return len(list(filter(Store.not_started_lambda, Store.all_tasks))) if Store.all_tasks else 0
     

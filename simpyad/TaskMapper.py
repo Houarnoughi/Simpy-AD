@@ -30,7 +30,7 @@ from Location import Location, Latitude, Longitude
 import simpy
 from Colors import GREEN, END
 import random
-import Store
+from Store import Store
 from models import TaskMapperNet
 from typing import List, TYPE_CHECKING
 from CNNModel import CNNModel
@@ -66,11 +66,20 @@ class TaskMapper:
             try:
                 #Store.log(f"tasks to execute count {Store.getTasksToExecuteCount()}")
                 # FIFO
-                task: Task = Store.Store.getTask()
+                task: Task = Store.getTask()
                 TaskMapper.log(f'Got task {task} from Stores')
 
+                sorted_pu_list = Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
+                sorted_pu_list = [pu_dist[0] for pu_dist in sorted_pu_list]
+                
+                # add Vehicle (PU, dist) to the list
+                if not config.OFFLOAD_TO_VEHICLE:
+                    sorted_pu_list.append(task.getCurrentVehicle().getPU())
+
+                self.taskMappingPolicy.assignToPu(task, sorted_pu_list)
+                """
                 if config.OFFLOAD:
-                    sorted_pu_list = Store.Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
+                    sorted_pu_list = Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
                     sorted_pu_list = [pu_dist[0] for pu_dist in sorted_pu_list]
                     
                     # add Vehicle (PU, dist) to the list
@@ -78,7 +87,7 @@ class TaskMapper:
                         sorted_pu_list.append(task.getCurrentVehicle().getPU())
 
                     self.taskMappingPolicy.assignToPu(task, sorted_pu_list)
-
+                """
                 """
                 best_pu: 'ProcessingUnit' = None
                 if config.OFFLOAD:

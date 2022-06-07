@@ -4,7 +4,7 @@ from Server import Server
 from TaskSchedulingPolicy import TaskSchedulingPolicy, NoMoreTasksException
 from Colors import YELLOW, END
 from time import time
-import TaskMapper
+#import TaskMapper
 from typing import List, TYPE_CHECKING
 from Exceptions import OutOfMemoryException
 
@@ -278,7 +278,7 @@ class ProcessingUnit(simpy.Resource):
                     self.removeTask(task)
                 """
                 # train step ?
-                TaskMapper.TaskMapper.optimize()
+                #TaskMapper.TaskMapper.optimize()
 
                 stop = self.env.now
                 task.updateTotalExecutionTime(stop-start)

@@ -10,11 +10,10 @@ from RoadSideUnit import RoadSideUnit
 from ProcessingUnit import AGX, TeslaV100
 from Vehicle import Vehicle
 from Location import Location
-import Store
+from Store import Store
 from Task import Task, TaskCriticality
 from CNNModel import CNNModel
 from threading import Thread, Condition
-from multiprocessing import Process
 from time import sleep
 import simpy
 import random
@@ -27,25 +26,25 @@ class Simulation(Thread):
     def __init__(
         self,
         # Simulation
-        steps,
+        steps: int,
         town: dict,
-        radius,
+        radius: int,
         # Vehicle
-        vehicle_count,
-        vehicle_fps,
+        vehicle_count: int,
+        vehicle_fps: int,
         vehicle_tasks: list[Task],
         vehicle_processing_unit: ProcessingUnit,
         vehicle_mapping: TaskMappingPolicy,
         vehicle_scheduling: TaskSchedulingPolicy,
         vehicle_networking: Network,
         # RSU
-        rsu_count,
+        rsu_count: int,
         rsu_even_distribution: bool,
         rsu_processing_unit: ProcessingUnit,
         rsu_scheduling: TaskSchedulingPolicy,
         rsu_networking: Network,
         # DATACENTER
-        datacenter_count,
+        datacenter_count: int,
         datacenter_processing_unit: ProcessingUnit,
         datacenter_scheduling: TaskSchedulingPolicy,
         datacenter_networking: Network,
@@ -53,25 +52,25 @@ class Simulation(Thread):
         Thread.__init__(self)
         self.EXIT_THREAD = False
 
-        self.steps = steps
-        self.town = town
-        self.radius = radius
+        self.steps: int = steps
+        self.town: dict = town
+        self.radius: int = radius
 
-        self.vehicle_count = vehicle_count
-        self.vehicle_fps = vehicle_fps
+        self.vehicle_count: int = vehicle_count
+        self.vehicle_fps: int = vehicle_fps
         self.vehicle_tasks = vehicle_tasks
         self.vehicle_processing_unit = vehicle_processing_unit
         self.vehicle_mapping = vehicle_mapping
         self.vehicle_scheduling = vehicle_scheduling
         self.vehicle_networking = vehicle_networking
 
-        self.rsu_count = rsu_count
+        self.rsu_count: int = rsu_count
         self.rsu_processing_unit = rsu_processing_unit
         self.rsu_even_distribution = rsu_even_distribution
         self.rsu_scheduling = rsu_scheduling
         self.rsu_networking = rsu_networking
 
-        self.datacenter_count = datacenter_count
+        self.datacenter_count: int = datacenter_count
         self.datacenter_processing_unit = datacenter_processing_unit
         self.datacenter_scheduling = datacenter_scheduling
         self.datacenter_networking = datacenter_networking
@@ -89,8 +88,8 @@ class Simulation(Thread):
         )
 
         for location in rsu_locations:
-            pu = config.RSU_PROCESSING_UNIT(scheduler=self.rsu_scheduling(config.TESLA_QUANTUM), env=self.env)
-            Store.Store.addPU(pu)
+            pu = self.rsu_processing_unit(scheduler=self.rsu_scheduling(config.TESLA_QUANTUM), env=self.env)
+            Store.addPU(pu)
 
             rsu = RoadSideUnit(
                 activity_range=100,
@@ -100,7 +99,7 @@ class Simulation(Thread):
                 ],
                 to_vehicle_bw=1, to_cloud_bw=1, env=self.env)
             rsu.showInfo()
-            Store.Store.addRSU(rsu)
+            Store.addRSU(rsu)
         
         # Vehicle
         vehicle_tasks = [task() for task in self.vehicle_tasks]
@@ -108,8 +107,8 @@ class Simulation(Thread):
         for _ in range(self.vehicle_count):
             # PU init
             scheduler = self.vehicle_scheduling(config.AGX_QUANTUM)
-            pu = config.VEHICLE_PROCESSING_UNIT(scheduler=scheduler, env=self.env)
-            Store.Store.addPU(pu)
+            pu = self.vehicle_processing_unit(scheduler=scheduler, env=self.env)
+            Store.addPU(pu)
 
             vehicle = Vehicle(
                 c_location=Location.getLocationInRange(
@@ -124,7 +123,7 @@ class Simulation(Thread):
                 required_FPS=self.vehicle_fps,
                 env=self.env)
             vehicle.showInfo()
-            Store.Store.vehicle_list.append(vehicle)
+            Store.addVehicle(vehicle)
 
         taskMappingPolicy = self.vehicle_mapping(env=self.env)
         taskMapper = TaskMapper(
@@ -136,16 +135,16 @@ class Simulation(Thread):
 
             self.env.step()
 
-        Store.Store.showStats()
-        Store.Store.clear()
+        Store.showStats()
+        Store.clear()
 
     def stop(self):
         self.EXIT_THREAD = True
 
     def get_stats(self) -> float:
         print("Simulation store task count ",
-              Store.Store.getTotalTaskCount(), id(Store.Store))
-        return Store.Store.getTotalTaskCount()
+              Store.getTotalTaskCount(), id(Store))
+        return Store.getTotalTaskCount()
 
     def test(self):
         print("test")
