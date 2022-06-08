@@ -39,9 +39,9 @@ class Task(ABC):
         - execution_end_time is Simpy time set when there's no more remaining_flop to execute
         - scheduler_rounds is the number of times a task's been through the TaskScheduler (Round Robin)
     """
-    idx = 0
+    idx = 1
 
-    def __init__(self, flop: float = 0, size: float = 0, criticality: TaskCriticality = None):
+    def __init__(self, flop: float, size: float, criticality: TaskCriticality):
         self.id = Task.idx
         self.name = f'Task-{self.id}'
         Task.idx += 1
@@ -158,12 +158,11 @@ class Task(ABC):
         return f'[{self.name}: {self.__class__.__name__}, flop={self.flop}, remainingFlop={self.remaining_flop}, size={self.size}, startTime={self.execution_start_time}, endTime={self.execution_end_time}, pu={self.pu}, vehicle={self.vehicle}, status={self.status}, rounds={self.scheduler_rounds}]'
 
     def __repr__(self) -> str:
-        return f'[{self.name}, {self.pu}]'
-
+        return f'[{self.name}, pu={self.pu}]'
 
 
 class TrafficSignDetectionTask(Task):
-    FLOP = 230
+    FLOP = 2300
     SIZE = 2100
     CRITICALITY = TaskCriticality.MEDIUM
 
@@ -173,7 +172,7 @@ class LaneDetectionTask(Task):
     CRITICALITY = TaskCriticality.MEDIUM
 
 class ObjectDetectionTask(Task):
-    FLOP = 230
+    FLOP = 2300000000
     SIZE = 2100
     CRITICALITY = TaskCriticality.MEDIUM
 
@@ -203,27 +202,9 @@ class TrajectoryPlanningTask(Task):
     CRITICALITY = TaskCriticality.MEDIUM
 
 class BehaviorPlanningTask(Task):
-    FLOP = 230
+    FLOP = 100_000_000_000
     SIZE = 2100
     CRITICALITY = TaskCriticality.MEDIUM
-
-class RoutePlanningTask(Task):
-    FLOP = 200
-    SIZE = 2200
-    CRITICALITY = TaskCriticality.MEDIUM
-
-class ControlAlgoTask(Task):
-    FLOP = 240
-    SIZE = 200
-    CRITICALITY = TaskCriticality.MEDIUM
-
-class TrafficLightDetectionTask(Task):
-    
-    MODEL = AlexNet()
-
-    FLOP = MODEL.getFlop()
-    SIZE = MODEL.getSize()
-    CRITICALITY = TaskCriticality.HIGH
 
     def __init__(self):
         super().__init__(
@@ -232,6 +213,45 @@ class TrafficLightDetectionTask(Task):
             criticality=self.CRITICALITY
         )
 
+class RoutePlanningTask(Task):
+    FLOP = 50_000_000_000
+    SIZE = 2200
+    CRITICALITY = TaskCriticality.MEDIUM
+
+    def __init__(self):
+        super().__init__(
+            flop=self.FLOP,
+            size=self.SIZE,
+            criticality=self.CRITICALITY
+        )
+
+class ControlAlgoTask(Task):
+    FLOP = 100_000_000_000
+    SIZE = 200
+    CRITICALITY = TaskCriticality.MEDIUM
+
+    def __init__(self):
+        super().__init__(
+            flop=self.FLOP,
+            size=self.SIZE,
+            criticality=self.CRITICALITY
+        )
+
+class TrafficLightDetectionTask(Task):
+    
+    MODEL = AlexNet()
+
+    FLOP = 40_000_000_000
+    SIZE = 100
+    CRITICALITY = TaskCriticality.HIGH
+    
+    def __init__(self):
+        super().__init__(
+            flop=self.FLOP,
+            size=self.SIZE,
+            criticality=self.CRITICALITY
+        )
+    
 
 UI_OPTIONS = [
     TrafficLightDetectionTask,
@@ -256,12 +276,14 @@ def getTasks(request: dict) -> list[Task]:
    
 
 if __name__ == '__main__':
-    
+
     t1 = TrafficLightDetectionTask()
-    t2 = TrafficLightDetectionTask()
+    t2 = ControlAlgoTask()
 
     print(t1.getInfos())
     print(t2.getInfos())
+    
+    print()
     
     t1.decreaseRemainingFlop(50)
     t2.decreaseRemainingFlop(300)
