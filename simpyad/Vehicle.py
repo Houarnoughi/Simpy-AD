@@ -1,3 +1,4 @@
+from TaskMappingPolicy import TaskMappingPolicy
 import config
 from Location import Location
 import simpy
@@ -30,6 +31,7 @@ class Vehicle(object):
                  bw, # 4G bandwith to fog
                  task_list: List['Task'],  # The list of vehicle tasks
                  PU_list: List['ProcessingUnit'],  # The list of Processing units embedded on the vehicle
+                 task_mapping_policy: TaskMappingPolicy,
                  required_FPS,
                  env: simpy.Environment,  # The simulation environment
                  capacity=1):  # The capacity of the shared resource
@@ -46,11 +48,13 @@ class Vehicle(object):
         self.env = env
         # keep track of all generated tasks
         self.all_tasks = []
-        self.task_list = []
-        self.setTaskList(task_list)
+        self.task_list = task_list
+        #self.setTaskList(task_list)
         self.required_FPS = required_FPS
         self.PU_list = []
         self.setPUList(PU_list)
+
+        self.task_mapping_policy = task_mapping_policy
         self.capacity = capacity
         # self.updateTaskListExecution()
         # simpy.Resource.__init__(self, env, capacity)
@@ -92,31 +96,43 @@ class Vehicle(object):
             # random.randint(10, 30)#self.required_FPS - random.randint(10, 30)
             FPS = self.required_FPS
             for frame in range(FPS):
-                for i, task in enumerate(self.task_list):
-                    t: 'Task' = Task(flop=task.flop, size=task.size, criticality=task.criticality)
-                    t.setCurrentVehicle(self)
+                for i, taskClass in enumerate(self.task_list):
+                    
+                    #t: 'Task' = Task(flop=task.flop, size=task.size, criticality=task.criticality)
+                    task: 'Task' = taskClass()
+                    task.setCurrentVehicle(self)
 
                     # execution time in place
                     pu: ProcessingUnit = self.PU_list[0]
                     # set expected exec time
-                    EXPECTED_EXEC_TIME = pu.getTaskExecutionTime(t) + pu.getTaskLoadingTime(t)
+                    EXPECTED_EXEC_TIME = pu.getTaskExecutionTime(task) + pu.getTaskLoadingTime(task) 
                     #t.setExpectedExecTime(EXPECTED_EXEC_TIME)
                     # setting task deadline
                     DEADLINE = self.env.now + EXPECTED_EXEC_TIME
 
                     ## delta is task's offset in the frame
                     DELTA = config.PU_CYCLE
-                    t.setDeadline(DEADLINE + DELTA)
+                    task.setDeadline(DEADLINE + DELTA)
                     
-                    self.all_tasks.append(t)
-                    Store.Store.addTask(t)
+                    self.all_tasks.append(task)
+                    Store.Store.addTask(task)
+
+                    sorted_pu_list = Store.Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
+                    sorted_pu_list = [pu_dist[0] for pu_dist in sorted_pu_list]
+                
+                    # add Vehicle (PU, dist) to the list
+                    if not config.OFFLOAD_TO_VEHICLE:
+                        sorted_pu_list.append(task.getCurrentVehicle().getPU())
+
+                    self.task_mapping_policy.assignToPu(task, sorted_pu_list)
 
                     #self.log(f'task deadline {t} {t.getDeadline()}')
-                    TIMEOUT = 1 / (FPS*len(self.task_list))
-                    yield self.env.timeout(TIMEOUT)
+                    #TIMEOUT = 1 / (FPS*len(self.task_list))
+                    #yield self.env.timeout(TIMEOUT)
 
                 # send frame's tasks
-                #TIMEOUT = 1 / FPS
+                TIMEOUT = 1 / FPS
+                yield self.env.timeout(TIMEOUT)
                 #if config.RANDOM_MOVE:
                 #    self.moveToRandomLocation()
                 #self.log(f"Generated {len(self.task_list)} tasks, TIMEOUT {TIMEOUT}, Store: to execute {Store.getTasksToExecuteCount()}, incomplete {Store.getIncompleteTasksCount()}")
@@ -201,7 +217,7 @@ class Vehicle(object):
         task: 'Task' = None
         for task in task_list:
             if task not in self.task_list:
-                task.setCurrentVehicle(self)
+                task.setCurrentVehicle(vehicle=self)
                 self.task_list.append(task)
                 self.log(
                     f'[INFO] Vehicle-setTaskList: Task {task.getTaskName()} submitted to {self.getVehicleName()}')

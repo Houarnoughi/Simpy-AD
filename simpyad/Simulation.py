@@ -102,7 +102,7 @@ class Simulation(Thread):
             Store.addRSU(rsu)
         
         # Vehicle
-        vehicle_tasks = [task() for task in self.vehicle_tasks]
+        vehicle_tasks = self.vehicle_tasks #[task() for task in self.vehicle_tasks]
 
         for _ in range(self.vehicle_count):
             # PU init
@@ -120,14 +120,14 @@ class Simulation(Thread):
                 bw=10e6,
                 task_list=vehicle_tasks,
                 PU_list=[pu],
+                task_mapping_policy=self.vehicle_mapping(env=self.env),
                 required_FPS=self.vehicle_fps,
                 env=self.env)
             vehicle.showInfo()
             Store.addVehicle(vehicle)
 
-        taskMappingPolicy = self.vehicle_mapping(env=self.env)
-        taskMapper = TaskMapper(
-            env=self.env, taskMappingPolicy=taskMappingPolicy)
+        #taskMappingPolicy = self.vehicle_mapping(env=self.env)
+        #taskMapper = TaskMapper(env=self.env, taskMappingPolicy=taskMappingPolicy)
 
         while self.env.peek() < self.steps:
             if self.EXIT_THREAD:
@@ -136,7 +136,7 @@ class Simulation(Thread):
             self.env.step()
 
         Store.showStats()
-        Store.clear()
+        #Store.clear()
 
     def stop(self):
         self.EXIT_THREAD = True
