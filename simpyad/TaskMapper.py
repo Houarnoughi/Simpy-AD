@@ -58,7 +58,7 @@ class TaskMapper:
         TaskMapper.env = env
         self.env = env
         self.taskMappingPolicy = taskMappingPolicy
-        self.process = env.process(self.run(env))
+        #self.process = env.process(self.run(env))
 
     def run(self, env):
         #CYCLE = 0.001
@@ -67,7 +67,7 @@ class TaskMapper:
                 #Store.log(f"tasks to execute count {Store.getTasksToExecuteCount()}")
                 # FIFO
                 task: Task = Store.getTask()
-                TaskMapper.log(f'Got task {task} from Stores')
+                TaskMapper.log(f'Got task {task} from Store')
 
                 sorted_pu_list = Store.getClosestPUforTask(task, config.N_CLOSEST_PU)
                 sorted_pu_list = [pu_dist[0] for pu_dist in sorted_pu_list]
@@ -129,9 +129,10 @@ class TaskMapper:
                 pass
             except NoMoreTasksException as e:
                 #TaskMapper.log("NoMoreTasksException")
+                #exit()
                 pass
                 
-            yield env.timeout(config.TASK_MAPPER_CYCLE)
+            yield self.env.timeout(config.TASK_MAPPER_CYCLE)
 
     def taskPuToDict(task: 'Task', pu: 'ProcessingUnit'):
         inputs_dict = dict()
