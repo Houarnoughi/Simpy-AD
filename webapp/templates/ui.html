@@ -84,7 +84,7 @@
                             </v-select>
                         </v-col>
                         <v-col cols="1">
-                            <v-select v-model="simulation.vehicle.networking" :items="networkingOptions"
+                            <v-select v-model="simulation.vehicle.network" :items="networkOptions"
                                 label="Vehicle Network">
                             </v-select>
                         </v-col>
@@ -144,7 +144,7 @@
                             </v-select>
                         </v-col>
                         <v-col cols="3">
-                            <v-select v-model="simulation.rsu.networking" :items="networkingOptions"
+                            <v-select v-model="simulation.rsu.network" :items="networkOptions"
                                 label="RSU Network">
                             </v-select>
                         </v-col>
@@ -171,7 +171,7 @@
                             </v-select>
                         </v-col>
                         <v-col cols="3">
-                            <v-select v-model="simulation.datacenter.networking" :items="networkingOptions"
+                            <v-select v-model="simulation.datacenter.network" :items="networkOptions"
                                 label="Data Center Network">
                             </v-select>
                         </v-col>
@@ -242,11 +242,12 @@
                 verticalView: false,
                 RUNNING: false,
                 chart: null,
-                chartLabels: ['All Tasks', 'Success', 'Failed', 'To execute', 'Incomplete'],
-                chartColors: ['black', 'green', 'red', 'blue', 'orange'],
+                chartLabels: ['All Tasks', 'Success', 'After deadline', 'Failed', 'To execute', 'Incomplete'],
+                chartColors: ['black', 'green', 'orange', 'red', 'blue', 'yellow'],
                 allTasksCountList: [],
                 successTasksCountList: [],
                 failedTasksCountList: [],
+                afterDeadlineTaskCountList: [],
                 toExecuteTasksCountList: [],
                 incompleteTasksCountList: [],
                 simulationStep: 0,
@@ -261,7 +262,7 @@
                 processingUnitOptions: [],
                 schedulerOptions: [],
                 mappingOptions: [],
-                networkingOptions: [],
+                networkOptions: [],
                 taskOptions: [],
                 // simu props
                 simulation: {
@@ -271,7 +272,7 @@
                         fps: 30,
                         mapping: '',
                         scheduling: '',
-                        networking: '',
+                        network: '',
                         processingUnit: '',
                         tasks: []
                     },
@@ -279,14 +280,14 @@
                         count: 0,
                         evenDistribution: false,
                         scheduling: '',
-                        networking: '',
+                        network: '',
                         processingUnit: ''
                     },
                     datacenter: {
                         count: 0,
                         evenDistribution: true,
                         scheduling: '',
-                        networking: '',
+                        network: '',
                         processingUnit: ''
                     },
                     edge_scheduler: '',
@@ -315,7 +316,7 @@
             this.drawChart()
 
             await this.loadSimulationConfig()
-            await this.loadNetworkingOptions()
+            await this.loadNetworkOptions()
             await this.loadSchedulerOptions()
             await this.loadMappingOptions()
             await this.loadProcessingUnitOptions()
@@ -424,6 +425,7 @@
 
                         this.allTasksCountList.push(data.all_tasks)
                         this.successTasksCountList.push(data.success_tasks)
+                        this.afterDeadlineTaskCountList.push(data.after_deadline_tasks)
                         this.failedTasksCountList.push(data.failed_tasks)
                         this.toExecuteTasksCountList.push(data.tasks_to_execute)
                         this.incompleteTasksCountList.push(data.incomplete_tasks)
@@ -557,12 +559,12 @@
                         this.mappingOptions = data.task_mapping_options
                     })
             },
-            async loadNetworkingOptions() {
-                await fetch('/networking/options')
+            async loadNetworkOptions() {
+                await fetch('/network/options')
                     .then(response => response.json())
                     .then(data => {
                         //console.log("data", data)
-                        this.networkingOptions = data.networking_options
+                        this.networkOptions = data.network_options
                     })
             },
             async loadLocationOptions() {
@@ -594,6 +596,7 @@
                 return [
                     this.allTasksCountList,
                     this.successTasksCountList,
+                    this.afterDeadlineTaskCountList,
                     this.failedTasksCountList,
                     this.toExecuteTasksCountList,
                     this.incompleteTasksCountList

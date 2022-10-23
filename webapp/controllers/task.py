@@ -1,15 +1,10 @@
-from flask import Blueprint, Flask, request
-from Store import Store
-from Simulation import Simulation
-import config
+from flask import Blueprint
+from simulation.entity.task import UI_OPTIONS
 
 bp = Blueprint('task', __name__, url_prefix='')
 
-
 @bp.get('/options')
 def taskOptions():
-
-    from Task import UI_OPTIONS
 
     #response = list(map(lambda o: o.__name__, UI_OPTIONS))
     response = [
@@ -30,7 +25,7 @@ def taskOptions():
 @bp.get('/informations')
 def taskInfos():
 
-    from Task import UI_OPTIONS
+    from entity.task import UI_OPTIONS
 
     response = [
         {

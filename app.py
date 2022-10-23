@@ -1,10 +1,10 @@
-from pstats import Stats
-from flask import Flask, render_template, request
-import sys
+from flask import Flask, render_template
 
-sys.path.append("./simpyad")
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
-from webapp.controllers import stats, simulation, scheduler, mapper, vehicle, rsu, datacenter, networking, location, processingUnit, task
+from webapp.controllers import network, processing_unit, stats, simulation, scheduler, mapper, vehicle, rsu, datacenter, location, task
 
 app = Flask(__name__, template_folder="webapp/templates")
 app.debug = True
@@ -17,9 +17,9 @@ app.register_blueprint(mapper.bp, url_prefix='/mapper')
 app.register_blueprint(vehicle.bp, url_prefix='/vehicle')
 app.register_blueprint(rsu.bp, url_prefix='/rsu')
 app.register_blueprint(datacenter.bp, url_prefix='/datacenter')
-app.register_blueprint(networking.bp, url_prefix='/networking')
+app.register_blueprint(network.bp, url_prefix='/network')
 app.register_blueprint(location.bp, url_prefix='/location')
-app.register_blueprint(processingUnit.bp, url_prefix='/processingUnit')
+app.register_blueprint(processing_unit.bp, url_prefix='/processingUnit')
 app.register_blueprint(task.bp, url_prefix='/task')
 
 @app.route('/', methods=['GET'])
@@ -32,4 +32,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)

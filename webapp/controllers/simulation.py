@@ -1,14 +1,13 @@
-from traceback import print_tb
-from flask import Blueprint, Flask, request, Request
-from Store import Store
-from Simulation import Simulation
-import config
-import Location
-import Networking
-import TaskSchedulingPolicy
-import TaskMappingPolicy
-import ProcessingUnit
-import Task
+from flask import Blueprint, request
+from simulation.store import Store
+from simulation.simulation import Simulation
+from simulation import config
+from simulation.entity.location import Location
+
+from simulation.utils.network import getNetworkClass
+from simulation.task_scheduling.task_scheduling_policy import getSchedulingInstanceByName, getTaskSchedulerClass
+from simulation.task_mapping.task_mapping_policy import getMappingInstanceByName, getTaskMapperClass
+from simulation.entity.processing_unit import getProcessingUnit
 
 bp = Blueprint('simulation', __name__, url_prefix='')
 
@@ -35,30 +34,33 @@ def startSimulation():
         vehicle: dict = request.json.get("vehicle")
         vehicle_count = vehicle.get("count")
         vehicle_fps = vehicle.get("fps")
-        vehicle_tasks = Task.getTasks(vehicle)
-        vehicle_processing_unit = ProcessingUnit.getProcessingUnit(vehicle)
-        vehicle_mapping = TaskMappingPolicy.getTaskMapperClass(vehicle)
-        vehicle_scheduling = TaskSchedulingPolicy.getTaskSchedulerClass(vehicle)
-        vehicle_networking = Networking.getNetworkClass(vehicle)
-        print("VEHICLE", vehicle_count, vehicle_fps, vehicle_tasks, vehicle_mapping, vehicle_scheduling, vehicle_networking)
+        vehicle_tasks = vehicle.get("tasks")
+        vehicle_processing_unit = getProcessingUnit(vehicle.get("processingUnit"))
+        vehicle_mapping = getTaskMapperClass(vehicle.get("mapping"))
+        vehicle_scheduling = getTaskSchedulerClass(vehicle.get("scheduling"))
+        vehicle_network = getNetworkClass(vehicle.get("network"))
+        print("VEHICLE", vehicle_count, vehicle_fps, vehicle_tasks, vehicle_mapping, vehicle_scheduling, vehicle_network)
 
         # RSU
         rsu: dict = request.json.get("rsu")
         rsu_count = rsu.get("count")
         rsu_even_distribution = rsu.get("evenDistribution")
-        rsu_processing_unit = ProcessingUnit.getProcessingUnit(rsu)
-        rsu_scheduling = TaskSchedulingPolicy.getTaskSchedulerClass(rsu)
-        rsu_network = Networking.getNetworkClass(rsu)
+        rsu_processing_unit = getProcessingUnit(rsu.get("processingUnit"))
+        rsu_scheduling = getTaskSchedulerClass(rsu.get("scheduling"))
+        rsu_network = getNetworkClass(rsu.get("network"))
         print("RSU", rsu_count, rsu_even_distribution, rsu_scheduling, rsu_network)
 
         #return "ok"
         # DATACENTER
         datacenter: dict = request.json.get("datacenter")
         datacenter_count = datacenter.get("count")
-        datacenter_processing_unit = ProcessingUnit.getProcessingUnit(datacenter)
-        datacenter_scheduling = TaskSchedulingPolicy.getTaskSchedulerClass(datacenter)
-        datacenter_network = Networking.getNetworkClass(datacenter)
+        datacenter_processing_unit = getProcessingUnit(datacenter.get("processingUnit"))
+        datacenter_scheduling = getTaskSchedulerClass(datacenter.get("scheduling"))
+        datacenter_network = getNetworkClass(datacenter.get("network"))
         print("DATACENTER", datacenter_count, datacenter_scheduling, datacenter_network)
+
+        # scheduler
+        SCHEDULER_QUANTUM = config.SCHEDULER_QUANTUM
 
         #return 'start'
         simulationThread = Simulation(
@@ -71,16 +73,17 @@ def startSimulation():
             vehicle_processing_unit=vehicle_processing_unit,
             vehicle_mapping=vehicle_mapping,
             vehicle_scheduling=vehicle_scheduling,
-            vehicle_networking=vehicle_networking,
+            vehicle_network=vehicle_network,
             rsu_count=int(rsu_count),
             rsu_even_distribution=rsu_even_distribution,
             rsu_processing_unit=rsu_processing_unit,
             rsu_scheduling=rsu_scheduling,
-            rsu_networking=rsu_network,
+            rsu_network=rsu_network,
             datacenter_count=int(datacenter_count),
             datacenter_processing_unit=datacenter_processing_unit,
             datacenter_scheduling=datacenter_scheduling,
-            datacenter_networking=datacenter_network
+            datacenter_network=datacenter_network, 
+            SCHEDULER_QUANTUM=SCHEDULER_QUANTUM
         )
         simulationThread.start()
 
@@ -94,6 +97,10 @@ def startSimulation():
 def stopSimulation():
     print("stopping simulation")
     global simulationThread
+
+    if simulationThread is None:
+        return "not running"
+
     try:
         simulationThread.stop()
         simulationThread = None
@@ -109,33 +116,36 @@ def stopSimulation():
 @bp.get('/config')
 def getConfig():
 
+    # from ("town", "x", "y") tuple defined in simulation/config.py
+    TOWN = Location(*config.TOWN)
+    
     data = {
         'simulation':
             {
                 'steps': config.SIM_STEPS,
-                'town': config.TOWN.json(),
+                'town': TOWN.json(),
                 'radius': config.RADIUS,
                 'vehicle': {
                     'count': config.VEHICLE_COUNT,
                     'fps': config.VEHICLE_FPS,
-                    'tasks': list(map(lambda e: e.__name__, config.VEHICLE_TASKS)),
-                    'processingUnit': config.VEHICLE_PROCESSING_UNIT.__name__,
-                    'mapping': config.VEHICLE_TASK_MAPPING_POLICY.__name__,
-                    'scheduling': config.VEHICLE_TASK_SCHEDULING_POLICY.__name__,
-                    'networking': config.VEHICLE_NETWORK.__name__
+                    'tasks': config.VEHICLE_TASKS,
+                    'processingUnit': config.VEHICLE_PROCESSING_UNIT,
+                    'mapping': config.VEHICLE_TASK_MAPPING_POLICY,
+                    'scheduling': config.VEHICLE_TASK_SCHEDULING_POLICY,
+                    'network': config.VEHICLE_NETWORK
                 },
                 'rsu': {
                     'count': config.RSU_COUNT,
                     'evenDistribution': config.RSU_EVEN_DISTRIBUTION,
-                    'processingUnit': config.RSU_PROCESSING_UNIT.__name__,
-                    'scheduling': config.RSU_TASK_SCHEDULING_POLICY.__name__,
-                    'networking': config.RSU_NETWORK.__name__
+                    'processingUnit': config.RSU_PROCESSING_UNIT,
+                    'scheduling': config.RSU_TASK_SCHEDULING_POLICY,
+                    'network': config.RSU_NETWORK
                 },
                 'datacenter': {
                     'count': config.DATACENTER_COUNT,
-                    'processingUnit': config.DATACENTER_PROCESSING_UNIT.__name__,
-                    'scheduling': config.DATACENTER_TASK_SCHEDULING_POLICY.__name__,
-                    'networking': config.DATACENTER_NETWORK.__name__
+                    'processingUnit': config.DATACENTER_PROCESSING_UNIT,
+                    'scheduling': config.DATACENTER_TASK_SCHEDULING_POLICY,
+                    'network': config.DATACENTER_NETWORK
                 }
             }
     }

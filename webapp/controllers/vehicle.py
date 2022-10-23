@@ -1,6 +1,5 @@
-from flask import Blueprint, Flask
-from Store import Store
-import config
+from flask import Blueprint
+from simulation.store import Store
 
 bp = Blueprint('vehicle', __name__, url_prefix='')
 

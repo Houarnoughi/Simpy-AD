@@ -1,14 +1,10 @@
-from flask import Blueprint, Flask, request
-from Store import Store
-from Simulation import Simulation
-import config
+from flask import Blueprint
+from simulation.task_mapping.task_mapping_policy import UI_OPTIONS
 
 bp = Blueprint('mapper', __name__, url_prefix='')
 
 @bp.get('/options')
 def mappingOptions():
-
-    from TaskMappingPolicy import UI_OPTIONS
     
     response = list(map(lambda o: o.__name__, UI_OPTIONS))
     #print("response", response)

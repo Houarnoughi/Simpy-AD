@@ -1,9 +1,7 @@
-from flask import Blueprint, Flask
-from Store import Store
-import config
+from flask import Blueprint
+from simulation.store import Store
 
 bp = Blueprint('rsu', __name__, url_prefix='')
-
 
 @bp.route("/", methods=['GET'])
 def getRsus():
