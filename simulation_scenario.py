@@ -2,6 +2,7 @@
 from simulation import config
 from simulation.simulation import Simulation
 from simulation.entity.location import Location
+from simulation.service.map_service import ORSPathPlanner
 from simulation.task_scheduling.task_scheduling_policy import getTaskSchedulerClass
 from simulation.task_mapping.task_mapping_policy import getTaskMapperClass
 from simulation.entity.processing_unit import getProcessingUnit
@@ -21,6 +22,7 @@ if __name__ == '__main__':
     vehicle_tasks = config.VEHICLE_TASKS
     vehicle_processing_unit = getProcessingUnit(config.VEHICLE_PROCESSING_UNIT)
     vehicle_mapping = getTaskMapperClass(config.VEHICLE_TASK_MAPPING_POLICY)
+    vehicle_path_planner = ORSPathPlanner()
     vehicle_scheduling = getTaskSchedulerClass(config.VEHICLE_TASK_SCHEDULING_POLICY)
     vehicle_network = getNetworkClass(config.VEHICLE_NETWORK)
 
@@ -48,6 +50,7 @@ if __name__ == '__main__':
         vehicle_tasks=vehicle_tasks,
         vehicle_processing_unit=vehicle_processing_unit,
         vehicle_mapping=vehicle_mapping,
+        #vehicle_path_planner=vehicle_path_planner,
         vehicle_scheduling=vehicle_scheduling,
         vehicle_network=vehicle_network,
         # rsu

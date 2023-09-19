@@ -15,6 +15,20 @@ git clone https://github.com/Houarnoughi/Simpy-AD.git
 cd Simpy-AD
 ```
 
+# Run with Docker
+
+### build once (or on requirements.txt change)
+```bash
+docker-compose up --build
+```
+### run 
+
+```bash
+docker-compose up
+```
+
+You can edit code without restarting docker container, only refresh browser page
+
 ### Install dependencies
 
 ```bash
@@ -88,6 +102,12 @@ Simulation uses OpenRouteService for defining vehicle's trip between 2 points. C
 ```bash
 # config.py
 ORS_TOKEN = '5b3ce3597851110001cf62480a421079db594016b4d5c12fc6980fcd'
+```
+
+# Running tests
+```bash
+python3 -m simulation.test.task_scheduling_test
+python3 -m simulation.test.end_to_end
 ```
 
 ## References:

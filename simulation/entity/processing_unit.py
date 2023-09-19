@@ -2,7 +2,7 @@ from simulation.utils.units import Units
 import simpy
 from simulation.entity.server import Server
 from simulation.task_scheduling import TaskSchedulingPolicy
-from simulation.utils.colors import YELLOW, END
+from simulation.utils.colors import GREEN, YELLOW, END
 from time import time
 #import TaskMapper
 from typing import List, TYPE_CHECKING
@@ -48,8 +48,9 @@ class ProcessingUnit(simpy.Resource):
         self.executed_tasks = 0
 
     def run(self):
+        self.log("Starting ...")
         while True:
-            #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.tasks)}")
+            #print(f"{GREEN}{self.name} run at {self.env.now}, tasks={len(self.task_list)}")
             # scheduler update tasks
             #print(f"sched tasks {len(self.scheduler.task_list)}")
             try:
@@ -61,11 +62,10 @@ class ProcessingUnit(simpy.Resource):
                 yield self.env.process(self.execute_task(task))
                 self.log(f"run: processed task {task}")
                 #self.log(f"after exec {task}-flop={task.remaining_flop} at {self.env.now}, tasks={len(self.tasks)}")
-                self.log(f"after exec {task}-flop={task.flop}, remaining_flop={task.remaining_flop} at {self.env.now}")
+                #self.log(f"run: after exec {task}-flop={task.flop}, remaining_flop={task.remaining_flop} at {self.env.now}")
 
                 if task.getRemainingFlop() > 0:
-                    #self.log(f"run: Back to scheduler {task}")
-                    task.addSchedulerRound()
+                    self.log(f"run: Back to scheduler {task}")
                     self.scheduler.addTaskInQueue(task)
                 
                 if task.getRemainingFlop() <= 0:
@@ -76,10 +76,10 @@ class ProcessingUnit(simpy.Resource):
                     # task.isSuccess()
                     #self.log(f'Took {total}, expected {task.getExpectedExecTime()}, diff {task.getExpectedExecTime() - total}')
             except NoMoreTasksException as e:
-                #self.log(f'No more tasks to execute')
+                #self.log(f'No tasks to execute')
                 yield self.env.timeout(self.CYCLE)
             except Exception as e:
-                self.log(f'{e} CYCLE')
+                #self.log(f'{e} CYCLE')
                 yield self.env.timeout(self.CYCLE)
             #yield self.env.timeout(self.CYCLE)
 
@@ -102,10 +102,10 @@ class ProcessingUnit(simpy.Resource):
         else:
             self.log(f'submitTask: {task.getTaskName()} already assigned to {self.getPUName()}')
 
-    def getTaskLoadingTime(self, task: 'Task'):
+    def getTaskLoadingTime(self, task: 'Task') -> float:
         return task.getSize() / self.getMemoryBandwidth()
 
-    def getTaskExecutionTime(self, task: 'Task'):
+    def getTaskExecutionTime(self, task: 'Task') -> float:
         flops = self.getFlops()
         # if self.getScheduler().getParallel():
         #     flops = int(self.getFlops()/len(self.getTaskList()))
@@ -122,7 +122,7 @@ class ProcessingUnit(simpy.Resource):
         QUANTUM = self.getScheduler().getQuantum()
         if QUANTUM:
             qty = self.getQuantumFlop()
-            self.log(f"{self.name} qty={qty}, remaining_flop={task.getRemainingFlop()}, diff={task.getRemainingFlop()-qty}")
+            #self.log(f"{self.name} qty={qty}, remaining_flop={task.getRemainingFlop()}, diff={task.getRemainingFlop()-qty}")
 
             # if have less to burn in 1 quantum
             if qty >= task.getRemainingFlop():
@@ -142,7 +142,8 @@ class ProcessingUnit(simpy.Resource):
                 TIMEOUT = QUANTUM
         else:
             self.log("execute_task: No quantum")
-            exec_time = self.getTaskExecutionTime(task) * 1000
+            exec_time = self.getTaskExecutionTime(task) #* 1000
+            self.log(f"{exec_time=}, {exec_time*1000=}")
             # task finished
             task.setRemainingFlop(0)
             TIMEOUT = exec_time
@@ -214,7 +215,7 @@ class ProcessingUnit(simpy.Resource):
     
     def log(self, message):
         pass
-        #print(f"{END}{self.env.now}: {YELLOW}[{self.name}] {message}{END}")
+        print(f"{END}{self.env.now}: {YELLOW}[{self.name}] {message}{END}")
     
     def show_stats(self):
         self.log(f"{self.name} Executed {self.executed_tasks} tasks")
@@ -250,7 +251,7 @@ class AGX(ProcessingUnit):
     currentVehicle = None
     idx = 0
 
-    def __init__(self, scheduler: TaskSchedulingPolicy, env, capacity=1):
+    def __init__(self, scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
         name = f'AGX-{AGX.idx}'
         AGX.idx += 1
         flops = 11 * Units.tera
@@ -271,7 +272,7 @@ class TX2(ProcessingUnit):
     currentVehicle = None
     idx = 0
 
-    def __init__(self, scheduler: TaskSchedulingPolicy, env, capacity=1):
+    def __init__(self, scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
         name = f'TX2-{TX2.idx}'
         TX2.idx += 1
         flops = 1.33 * Units.tera
@@ -294,7 +295,7 @@ class TeslaV100(ProcessingUnit):
     currentServer = None
     idx = 0
 
-    def __init__(self, scheduler: TaskSchedulingPolicy, env, capacity=1):
+    def __init__(self, scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
         name = f'TeslaV100-{TeslaV100.idx}'
         TeslaV100.idx += 1
         flops = 112 * Units.tera
@@ -317,7 +318,7 @@ class DGXa100(ProcessingUnit):
     currentServer = None
     idx = 0
 
-    def __init__(self, scheduler: TaskSchedulingPolicy, env, capacity=1):
+    def __init__(self, scheduler: TaskSchedulingPolicy, env: simpy.Environment, capacity=1):
         name = f'DGXa100-{DGXa100.idx}'
         DGXa100.idx += 1
         flops = 5 * Units.peta

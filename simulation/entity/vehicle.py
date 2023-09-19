@@ -25,6 +25,7 @@ class Vehicle(object):
                  task_list: List['Task'],  # The list of vehicle tasks
                  PU_list: List['ProcessingUnit'],  # The list of Processing units embedded on the vehicle
                  task_mapping_policy: TaskMappingPolicy,
+                 path_planner: PathPlanner,
                  required_FPS,
                  env: simpy.Environment,  # The simulation environment
                  capacity=1):  # The capacity of the shared resource
@@ -47,7 +48,7 @@ class Vehicle(object):
         self.required_FPS = required_FPS
         self.PU_list = list()
         self.setPUList(PU_list)
-
+        self.path_planner = path_planner
         self.task_mapping_policy = task_mapping_policy
         self.capacity = capacity
         # simpy.Resource.__init__(self, env, capacity)
@@ -66,7 +67,7 @@ class Vehicle(object):
 
         # generate trip coordinates
         self.log("Getting path")
-        self.trip_coordinates = PathPlanner.getPath(self.c_location, self.f_location)
+        self.trip_coordinates = self.path_planner.getPath(self.c_location, self.f_location)
         self.log(f'Trip Coordinates length {len(self.trip_coordinates)}')
        
         while not self.trip_finished:
@@ -103,6 +104,7 @@ class Vehicle(object):
                     sorted_pu_list.append(pu)
                     #print("sorted_pu_list", sorted_pu_list)
 
+                    self.log(f"run: Assign task to pu")
                     self.task_mapping_policy.assignToPu(task, sorted_pu_list)
                     """
                     #self.log(f'task deadline {t} {t.getDeadline()}')
@@ -138,10 +140,10 @@ class Vehicle(object):
         """
         current_location = self.getCurrentLocation().getLatitudeLongitude()
         long, lat = self.trip_coordinates.pop(0)
-        future_location = Location("", lat, long)
+        next_location = Location("", lat, long)
         #distance = Location.getDistanceInKmFromTuples(current_location, new_location)
 
-        self.setCurrentLocation(future_location)
+        self.setCurrentLocation(next_location)
 
     def showInfo(self):
         print(
@@ -150,11 +152,9 @@ class Vehicle(object):
     def log(self, message):
         print(f"{END}{self.env.now}: {RED}[{self.name}] {message}{END}")
 
-    # Get the name of the vehicle
     def getVehicleName(self):
         return self.name
 
-    # Set the name of the vehicle
     def setVehicleName(self, name):
         self.name = name
 
@@ -169,19 +169,15 @@ class Vehicle(object):
     def setCurrentLocation(self, location: Location):
         self.c_location = location
 
-    # Get the destination location
     def getFutureLocation(self) -> Location:
         return self.f_location
 
-    # Set the destination location
     def setFutureLocation(self, location: Location):
         self.f_location = location
 
-    # Get the average car driving speed
     def getSpeed(self):
         return self.speed
 
-    # Set the average car driving speed
     def setSpeed(self, speed):
         self.speed = speed
 

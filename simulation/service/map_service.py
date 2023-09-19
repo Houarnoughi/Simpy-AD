@@ -5,8 +5,9 @@ path planner etc
 """
 from simulation.config import ORS_TOKEN
 import requests
+from abc import ABC, abstractmethod
 from simulation.entity.location import Location
-
+from typing import List, Tuple
 
 class OpenStreetAPI:
     URI = 'https://api.openrouteservice.org'
@@ -15,37 +16,39 @@ class OpenStreetAPI:
         'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8'
     }
 
+class PathPlanner(ABC):
+    def __init__(self) -> None:
+        super().__init__()
+    
+    @abstractmethod
+    def getPath(start_node: Location, end_node: Location) -> List[Tuple[float, float]]:
+        """ impl by subclass """
 
-"""
-OpenStreetAPI response object:
+class ORSPathPlanner(PathPlanner):
+    """
+    OpenStreetAPI response object:
 
-{
-    type: FeatureCollection,
-    features: [
-        {
-            type: Feature,
-            bbox: ,
-            properties: ,
-            geometry: {
-                type: LineString,
-                coordinates: [
-                    [8.666, 4.343]
-                    ...
-                ]
+    {
+        type: FeatureCollection,
+        features: [
+            {
+                type: Feature,
+                bbox: ,
+                properties: ,
+                geometry: {
+                    type: LineString,
+                    coordinates: [
+                        [8.666, 4.343]
+                        ...
+                    ]
+                }
             }
-        }
-    ],
-    bbox: ,
-    metadata: 
-}
-"""
-
-
-class PathPlanner:
+        ],
+        bbox: ,
+        metadata: 
+    }
     """
-    Path planner
-    """
-    def getPath(start_node: Location, end_node: Location) -> list:
+    def getPath(self, start_node: Location, end_node: Location) -> List[Tuple[float, float]]:
         """
         Returns trip coordinates between 2 Locations
         """
@@ -57,11 +60,10 @@ class PathPlanner:
             headers=OpenStreetAPI.REQUEST_HEADERS
         )
         json = response.json()
-
         coordinates = []
 
         if json.get('error'):
-            print("Path error ", json.get('error').get('message'))
+            print("Path error ", json.get('error'))
         else:
             coordinates = response.json().get(
                 'features')[0].get('geometry').get('coordinates')

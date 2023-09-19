@@ -1,9 +1,10 @@
-from simulation.utils.network import Network
-from simulation.task_mapping.task_mapping_policy import TaskMappingPolicy
+from .utils.network import Network
+from .task_mapping.task_mapping_policy import TaskMappingPolicy
 from .task_scheduling.task_scheduling_policy import TaskSchedulingPolicy
 from .entity.processing_unit import ProcessingUnit
 
 #from TaskMapper import TaskMapper
+from .service.map_service import ORSPathPlanner
 from .entity.server import Server
 from .entity.road_side_unit import RoadSideUnit
 from .entity.processing_unit import AGX, TeslaV100
@@ -16,10 +17,6 @@ from threading import Thread, Condition
 from time import sleep
 import simpy
 import random
-
-import sys
-sys.path.append('.')
-
 
 class Simulation(Thread):
     """
@@ -106,7 +103,8 @@ class Simulation(Thread):
         print("Done ...")
 
         for location in rsu_locations:
-            pu = self.rsu_processing_unit(scheduler=self.rsu_scheduling(self.SCHEDULER_QUANTUM), env=self.env)
+            scheduler: TaskSchedulingPolicy = self.rsu_scheduling(self.SCHEDULER_QUANTUM)
+            pu = self.rsu_processing_unit(scheduler=scheduler, env=self.env)
             Store.addPU(pu)
 
             rsu = RoadSideUnit(
@@ -124,7 +122,7 @@ class Simulation(Thread):
 
         for _ in range(self.vehicle_count):
             # PU init
-            scheduler = self.vehicle_scheduling(self.SCHEDULER_QUANTUM)
+            scheduler: TaskSchedulingPolicy = self.vehicle_scheduling(self.SCHEDULER_QUANTUM)
             pu = self.vehicle_processing_unit(scheduler=scheduler, env=self.env)
             Store.addPU(pu)
 
@@ -138,6 +136,7 @@ class Simulation(Thread):
                 bw=10e6,
                 task_list=vehicle_tasks,
                 PU_list=[pu],
+                path_planner=ORSPathPlanner(),
                 task_mapping_policy=self.vehicle_mapping(env=self.env),
                 required_FPS=self.vehicle_fps,
                 env=self.env)

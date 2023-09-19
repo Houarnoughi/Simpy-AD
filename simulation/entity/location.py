@@ -115,6 +115,7 @@ UI_OPTIONS = [
     #Location("London", 51.509865, -0.118092),
     #Location("Ney York", 40.7127837, -74.0059413),
     Location("Tokyo", 35.6894875, 139.6917064),
+    Location("Rennes", 48.110825, -1.678152),
     #Location("Moscow", 55.755826, 37.617298),
     #Location("Rome", 41.9027835, 12.4963655),
     #Location("Kigali", -1.9484010053997387, 30.0953033638107),

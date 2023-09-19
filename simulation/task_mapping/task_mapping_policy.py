@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
 import simpy
 import random
 import torch
@@ -8,6 +7,7 @@ import torch.nn.functional as F
 
 from simulation import config
 from simulation.utils.colors import END, GREEN
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from entity.task import Task
@@ -48,7 +48,7 @@ class TaskMappingPolicy(ABC):
         
 
     @abstractmethod
-    def assignToPu(self, task: 'Task', PU_list: list['ProcessingUnit']):
+    def assignToPu(self, task: 'Task', PU_list: List['ProcessingUnit']):
         """ com """
         raise NotImplemented("Please implement this method")
 
@@ -60,7 +60,7 @@ class RandomTaskMappingPolicy(TaskMappingPolicy):
     """
     Randomly assign a task to one of PUs
     """
-    def assignToPu(self, task: 'Task', pu_list: list['ProcessingUnit']):
+    def assignToPu(self, task: 'Task', pu_list: List['ProcessingUnit']):
         random_pu: ProcessingUnit = random.choice(pu_list)
         random_pu.submitTask(task)
 
@@ -69,7 +69,7 @@ class InplaceMappingPolicy(TaskMappingPolicy):
     Get tasks vehicle's main PU and assign task to it
     """
 
-    def assignToPu(self, task: 'Task', pu_list: list['ProcessingUnit'] = None):
+    def assignToPu(self, task: 'Task', pu_list: List['ProcessingUnit'] = None):
         vehicle_pu: 'ProcessingUnit' = task.getCurrentVehicle().getPU()
         vehicle_pu.submitTask(task)
 
@@ -101,7 +101,7 @@ class CustomTaskMappingPolicy(TaskMappingPolicy):
         #self.log('callback called')
         #input()
 
-    def assignToPu(self, task: 'Task', pu_list: list['ProcessingUnit'] = None):
+    def assignToPu(self, task: 'Task', pu_list: List['ProcessingUnit'] = None):
         inputs = [self.convertToFeatureVector(task, pu) for pu in pu_list]
         probas: torch.Tensor = self.nn(torch.tensor(inputs).float())
         probas = probas.detach().numpy()

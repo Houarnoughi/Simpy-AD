@@ -34,7 +34,7 @@ class FIFTH_GEN(Network):
     UPLOAD = 77 * Units.mega
 
 UI_OPTIONS = [
-    LTE, LTE_PLUS
+    LTE, LTE_PLUS, FIFTH_GEN
 ]
 
 def getNetworkClass(name: str) -> Network:

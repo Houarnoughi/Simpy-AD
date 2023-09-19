@@ -41,7 +41,7 @@ class Task(ABC):
     """
     idx = 1
 
-    def __init__(self, flop: float, size: float, criticality: TaskCriticality):
+    def __init__(self, flop: float, size: float, criticality: TaskCriticality) -> 'Task':
         self.id = Task.idx
         self.name = f'Task-{self.id}'
         Task.idx += 1
@@ -158,7 +158,7 @@ class Task(ABC):
         return f'[{self.name}: startTime={self.execution_start_time}, endTime={self.execution_end_time}, deadline={self.deadline}, {self.__class__.__name__}, flop={self.flop}, remaining={self.remaining_flop}, pu={self.pu},  status={self.status}, rounds={self.scheduler_rounds}]'
 
     def __repr__(self) -> str:
-        return f'[{self.name}, pu={self.pu}]'
+        return f'[id={self.id}, name={self.name}, pu={self.pu}, flop={self.flop}, remaining_flop={self.remaining_flop}, rounds={self.scheduler_rounds}, endTime={self.execution_end_time}]'
 
 
 class TrafficSignDetectionTask(Task):

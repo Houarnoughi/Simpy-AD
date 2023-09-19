@@ -1,14 +1,14 @@
 from flask import Flask, render_template
+from simulation.config import FLASK_SERVER_PORT
 
 import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-from webapp.controllers import network, processing_unit, stats, simulation, scheduler, mapper, vehicle, rsu, datacenter, location, task
+from simulation.webapp.controllers import network, processing_unit, stats, simulation, scheduler, mapper, vehicle, rsu, datacenter, location, task
 
-app = Flask(__name__, template_folder="webapp/templates")
+app = Flask(__name__, template_folder="simulation/webapp/templates")
 app.debug = True
-
 
 app.register_blueprint(stats.bp, url_prefix='/stats')
 app.register_blueprint(simulation.bp, url_prefix='/simulation')
@@ -32,4 +32,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=FLASK_SERVER_PORT, debug=True)

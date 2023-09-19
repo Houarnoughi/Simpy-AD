@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from collections import deque
 from simulation.exception import NoMoreTasksException
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from entity.task import Task
+    from simulation.entity.task import Task
 
 """
 Abstract class for task scheduling policy. 
@@ -14,7 +14,7 @@ by each scheduling policy
 class TaskSchedulingPolicy(ABC):
     def __init__(self, parallel=False) -> None:
         self.parallel=parallel
-        self.task_list = []
+        self.task_list: List['Task'] = []
         self.quantum = None
 
     def getParallel(self) -> bool:
@@ -40,7 +40,7 @@ class TaskSchedulingPolicy(ABC):
         """ return number of tasks in the queue """  
 
 class FIFOSchedulingPolicy(TaskSchedulingPolicy):
-    def addTaskInQueue(self, task):
+    def addTaskInQueue(self, task: 'Task'):
         task.addSchedulerRound()
         self.task_list.append(task)
     
@@ -66,7 +66,7 @@ class SJFSchedulingPolicy(TaskSchedulingPolicy):
     
     def getNextTask(self) -> 'Task':
         if self.task_list:
-            self.task_list.sort(key=lambda t: t.getFlop())
+            self.task_list.sort(key=lambda t: t.getFlop(), reverse=True)
             return self.task_list.pop()
         else:
             raise NoMoreTasksException()
